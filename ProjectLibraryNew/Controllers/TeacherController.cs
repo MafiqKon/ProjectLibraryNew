@@ -182,16 +182,31 @@ namespace ProjectLibrary.Controllers
                 .OrderByDescending(g => g.Count)
                 .ToListAsync();
 
-            // РЕАЛНИ ДАННИ - активност по месеци
-            var monthlyActivity = await _context.BookCollections
+            // ========================================================
+            // ТУК Е ПОПРАВКАТА (РАЗДЕЛЯМЕ БАЗАТА ОТ C# ТЕКСТА)
+            // ========================================================
+
+            // 1. Взимаме само суровите числа от базата данни
+            var monthlyActivityRaw = await _context.BookCollections
                 .Where(bc => bc.User.UserType == UserType.Student && bc.CreatedDate >= DateTime.Now.AddMonths(-6))
                 .GroupBy(bc => new { bc.CreatedDate.Year, bc.CreatedDate.Month })
                 .Select(g => new {
-                    Period = $"{g.Key.Month}/{g.Key.Year}",
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
                     Activity = g.Count()
                 })
-                .OrderBy(g => g.Period)
                 .ToListAsync();
+
+            // 2. Сглобяваме красивия текст в паметта на сървъра
+            var monthlyActivity = monthlyActivityRaw
+                .Select(g => new {
+                    Period = $"{g.Month:D2}/{g.Year}",
+                    Activity = g.Activity,
+                    SortKey = g.Year * 100 + g.Month
+                })
+                .OrderBy(g => g.SortKey)
+                .ToList();
+            // ========================================================
 
             ViewBag.PopularBooks = popularBooks;
             ViewBag.GenreDistribution = genreDistribution;
