@@ -4,151 +4,159 @@
     ViewData["Title"] = "Текущи тестове";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
-    <div class="d-flex align-items-center">
-        <i data-lucide="clipboard-list" class="me-3 text-primary" style="width: 32px; height: 32px;"></i>
-        <div>
-            <h2 class="fw-bold mb-0" style="color: var(--text-main);">Текущи тестове</h2>
-            <p class="text-muted mb-0">Управлявайте и проследявайте вашите тестове</p>
-        </div>
-    </div>
-    <a href="@Url.Action("Create", "Tests")" class="btn btn-solid-premium shadow-sm rounded-pill fw-bold d-flex align-items-center px-4 hover-scale">
-        <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Създай нов тест
-    </a>
-</div>
-
-@if (Model.Any())
-{
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid var(--primary) !important;">
-                <div class="d-flex justify-content-center mb-2">
-                    <div class="rounded-circle d-flex justify-content-center align-items-center bg-primary bg-opacity-10 text-primary" style="width: 45px; height: 45px;">
-                        <i data-lucide="layers" style="width: 20px;"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Count</h3>
-                <p class="text-muted small fw-bold text-uppercase mb-0">Общо тестове</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #198754 !important;">
-                <div class="d-flex justify-content-center mb-2">
-                    <div class="rounded-circle d-flex justify-content-center align-items-center bg-success bg-opacity-10 text-success" style="width: 45px; height: 45px;">
-                        <i data-lucide="check-circle" style="width: 20px;"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Count(t => t.Test.IsPublished)</h3>
-                <p class="text-muted small fw-bold text-uppercase mb-0">Активни</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #0dcaf0 !important;">
-                <div class="d-flex justify-content-center mb-2">
-                    <div class="rounded-circle d-flex justify-content-center align-items-center bg-info bg-opacity-10 text-info" style="width: 45px; height: 45px;">
-                        <i data-lucide="users" style="width: 20px;"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Sum(t => t.TotalAttempts)</h3>
-                <p class="text-muted small fw-bold text-uppercase mb-0">Общо опити</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #f59e0b !important;">
-                <div class="d-flex justify-content-center mb-2">
-                    <div class="rounded-circle d-flex justify-content-center align-items-center text-warning" style="width: 45px; height: 45px; background-color: rgba(245, 158, 11, 0.1);">
-                        <i data-lucide="trending-up" style="width: 20px;"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-1" style="color: var(--text-main);">@(Model.Any() ? Model.Average(t => t.PassRate).ToString("0.0") : "0")%</h3>
-                <p class="text-muted small fw-bold text-uppercase mb-0">Ср. преминаване</p>
-            </div>
-        </div>
-    </div>
-}
-
-<div class="card border-0 shadow-sm mb-5" style="background-color: var(--bg-card); border: 2px solid var(--border-color) !important; border-radius: 16px;">
-    <div class="card-header border-bottom-0 bg-transparent p-4 pb-2">
-        <h5 class="fw-bold mb-0" style="color: var(--text-main);"><i data-lucide="folder-open" class="me-2 text-primary" style="width: 20px;"></i> Моите тестове</h5>
+<div class="container mt-4 mb-5 pt-3">
+    <div class="mb-3 d-flex align-items-center">
+        <button onclick="history.back()" class="btn btn-sm rounded-pill fw-bold d-inline-flex align-items-center shadow-sm px-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); transition: all 0.2s ease-in-out;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='white'; this.style.borderColor='var(--primary)';" onmouseout="this.style.backgroundColor='var(--bg-body)'; this.style.color='var(--text-main)'; this.style.borderColor='var(--border-color)';">
+            <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i> Назад
+        </button>
     </div>
 
-    <div class="card-body p-4 pt-2">
-        @if (Model.Any())
-        {
-            <div class="row g-4">
-                @foreach (var testStat in Model)
-                {
-                    var test = testStat.Test;
-                    <div class="col-md-6 mb-2">
-                        <div class="card h-100 shadow-sm" style="background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px; transform: none !important; transition: none !important;">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="color: var(--text-main);">@test.Title</h5>
-                                        <p class="mb-0 text-muted small"><i data-lucide="book" class="me-1" style="width: 14px;"></i> @test.Book.Title (@test.Book.Author.Name)</p>
-                                    </div>
-                                    <div>
-                                        @if (test.IsPublished)
-                                        {
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 shadow-sm"><i data-lucide="check" class="me-1" style="width: 12px;"></i> Активен</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1 shadow-sm"><i data-lucide="edit-2" class="me-1" style="width: 12px;"></i> Чернова</span>
-                                        }
-                                    </div>
-                                </div>
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <div class="d-flex align-items-center">
+            <i data-lucide="clipboard-list" class="me-3 text-primary" style="width: 32px; height: 32px;"></i>
+            <div>
+                <h2 class="fw-bold mb-0" style="color: var(--text-main);">Текущи тестове</h2>
+                <p class="text-muted mb-0">Управлявайте и проследявайте вашите тестове</p>
+            </div>
+        </div>
+        <a href="@Url.Action("Create", "Tests")" class="btn btn-solid-premium shadow-sm rounded-pill fw-bold d-flex align-items-center px-4 hover-scale">
+            <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Създай нов тест
+        </a>
+    </div>
 
-                                <div class="row text-center my-4 py-3 bg-light rounded-3" style="background-color: rgba(150, 150, 150, 0.05) !important;">
-                                    <div class="col-4 border-end" style="border-color: var(--border-color) !important;">
-                                        <div class="fw-bold fs-5 text-primary">@testStat.TotalAttempts</div>
-                                        <small class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Опити</small>
-                                    </div>
-                                    <div class="col-4 border-end" style="border-color: var(--border-color) !important;">
-                                        <div class="fw-bold fs-5 text-info">@testStat.AverageScore.ToString("0.0")%</div>
-                                        <small class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Среден успех</small>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="fw-bold fs-5 text-success">@testStat.PassRate.ToString("0.0")%</div>
-                                        <small class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Преминаване</small>
-                                    </div>
-                                </div>
+    @if (Model.Any())
+    {
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid var(--primary) !important;">
+                    <div class="d-flex justify-content-center mb-2">
+                        <div class="rounded-circle d-flex justify-content-center align-items-center bg-primary bg-opacity-10 text-primary" style="width: 45px; height: 45px;">
+                            <i data-lucide="layers" style="width: 20px;"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Count</h3>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Общо тестове</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #198754 !important;">
+                    <div class="d-flex justify-content-center mb-2">
+                        <div class="rounded-circle d-flex justify-content-center align-items-center bg-success bg-opacity-10 text-success" style="width: 45px; height: 45px;">
+                            <i data-lucide="check-circle" style="width: 20px;"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Count(t => t.Test.IsPublished)</h3>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Активни</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #0dcaf0 !important;">
+                    <div class="d-flex justify-content-center mb-2">
+                        <div class="rounded-circle d-flex justify-content-center align-items-center bg-info bg-opacity-10 text-info" style="width: 45px; height: 45px;">
+                            <i data-lucide="users" style="width: 20px;"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Sum(t => t.TotalAttempts)</h3>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Общо опити</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #f59e0b !important;">
+                    <div class="d-flex justify-content-center mb-2">
+                        <div class="rounded-circle d-flex justify-content-center align-items-center text-warning" style="width: 45px; height: 45px; background-color: rgba(245, 158, 11, 0.1);">
+                            <i data-lucide="trending-up" style="width: 20px;"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--text-main);">@(Model.Any() ? Model.Average(t => t.PassRate).ToString("0.0") : "0")%</h3>
+                    <p class="text-muted small fw-bold text-uppercase mb-0">Ср. преминаване</p>
+                </div>
+            </div>
+        </div>
+    }
 
-                                <div class="d-flex gap-2 mt-auto pt-2">
-                                    <a href="@Url.Action("TestStatistics", "Tests", new { id = test.Id })" class="btn btn-hover-gray w-50 rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center">
-                                        <i data-lucide="bar-chart" class="me-1" style="width: 16px;"></i> Статистика
-                                    </a>
-                                    <a href="@Url.Action("Details", "Tests", new { id = test.Id })" class="btn btn-hover-green w-50 rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center">
-                                        <i data-lucide="eye" class="me-1" style="width: 16px;"></i> Преглед
-                                    </a>
+    <div class="card border-0 shadow-sm mb-5" style="background-color: var(--bg-card); border: 2px solid var(--border-color) !important; border-radius: 16px;">
+        <div class="card-header border-bottom-0 bg-transparent p-4 pb-2">
+            <h5 class="fw-bold mb-0" style="color: var(--text-main);"><i data-lucide="folder-open" class="me-2 text-primary" style="width: 20px;"></i> Моите тестове</h5>
+        </div>
+
+        <div class="card-body p-4 pt-2">
+            @if (Model.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var testStat in Model)
+                    {
+                        var test = testStat.Test;
+                        <div class="col-md-6 mb-2">
+                            <div class="card h-100 shadow-sm" style="background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px; transform: none !important; transition: none !important;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="fw-bold mb-1" style="color: var(--text-main);">@test.Title</h5>
+                                            <p class="mb-0 text-muted small"><i data-lucide="book" class="me-1" style="width: 14px;"></i> @(test.Book?.Title ?? "Общ тест") @(test.Book?.Author?.Name != null ? $"({test.Book.Author.Name})" : "")</p>
+                                        </div>
+                                        <div>
+                                            @if (test.IsPublished)
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 shadow-sm"><i data-lucide="check" class="me-1" style="width: 12px;"></i> Активен</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1 shadow-sm"><i data-lucide="edit-2" class="me-1" style="width: 12px;"></i> Чернова</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row text-center my-4 py-3 bg-light rounded-3" style="background-color: rgba(150, 150, 150, 0.05) !important;">
+                                        <div class="col-4 border-end" style="border-color: var(--border-color) !important;">
+                                            <div class="fw-bold fs-5 text-primary">@testStat.TotalAttempts</div>
+                                            <small class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Опити</small>
+                                        </div>
+                                        <div class="col-4 border-end" style="border-color: var(--border-color) !important;">
+                                            <div class="fw-bold fs-5 text-info">@testStat.AverageScore.ToString("0.0")%</div>
+                                            <small class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Среден успех</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="fw-bold fs-5 text-success">@testStat.PassRate.ToString("0.0")%</div>
+                                            <small class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Преминаване</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2 mt-auto pt-2">
+                                        <a href="@Url.Action("TestStatistics", "Tests", new { id = test.Id })" class="btn btn-hover-gray w-50 rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center">
+                                            <i data-lucide="bar-chart" class="me-1" style="width: 16px;"></i> Статистика
+                                        </a>
+                                        <a href="@Url.Action("Details", "Tests", new { id = test.Id })" class="btn btn-hover-green w-50 rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center">
+                                            <i data-lucide="eye" class="me-1" style="width: 16px;"></i> Преглед
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="alert text-center py-5 border-0 rounded-4" style="background-color: rgba(150,150,150,0.05);">
-                <i data-lucide="inbox" class="mb-3 text-muted opacity-50" style="width: 48px; height: 48px;"></i>
-                <h5 class="fw-bold" style="color: var(--text-main);">Все още нямате създадени тестове</h5>
-                <p class="text-muted mb-4">Създайте първия си тест, за да започнете да проследявате статистиката.</p>
-                <a href="@Url.Action("Create", "Tests")" class="btn btn-solid-premium rounded-pill px-4 shadow-sm hover-scale">
-                    <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Създай първи тест
-                </a>
-            </div>
-        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert text-center py-5 border-0 rounded-4" style="background-color: rgba(150,150,150,0.05);">
+                    <i data-lucide="inbox" class="mb-3 text-muted opacity-50" style="width: 48px; height: 48px;"></i>
+                    <h5 class="fw-bold" style="color: var(--text-main);">Все още нямате създадени тестове</h5>
+                    <p class="text-muted mb-4">Създайте първия си тест, за да започнете да проследявате статистиката.</p>
+                    <a href="@Url.Action("Create", "Tests")" class="btn btn-solid-premium rounded-pill px-4 shadow-sm hover-scale">
+                        <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Създай първи тест
+                    </a>
+                </div>
+            }
+        </div>
     </div>
-</div>
 
-<div class="d-flex justify-content-between mt-4 mb-5">
-    <a href="@Url.Action("Index", "Teacher")" class="btn d-flex align-items-center fw-bold hover-scale" style="color: var(--text-muted);">
-        <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> Назад към Учителски панел
-    </a>
-    <a href="@Url.Action("Manage", "Tests")" class="btn btn-hover-gray rounded-pill fw-bold px-4 hover-scale d-flex align-items-center">
-        <i data-lucide="settings" class="me-2" style="width: 18px;"></i> Управление на тестове
-    </a>
+    <div class="d-flex justify-content-between mt-4 mb-5">
+        <a href="@Url.Action("Index", "Teacher")" class="btn d-flex align-items-center fw-bold hover-scale" style="color: var(--text-muted);">
+            <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> Назад към Учителски панел
+        </a>
+        <a href="@Url.Action("Manage", "Tests")" class="btn btn-hover-gray rounded-pill fw-bold px-4 hover-scale d-flex align-items-center">
+            <i data-lucide="settings" class="me-2" style="width: 18px;"></i> Управление на тестове
+        </a>
+    </div>
 </div>
 
 <style>
@@ -164,8 +172,8 @@
             background-color: #558061;
             border-color: #558061;
             color: white;
-            transform: scale(1.05); /* Уголемяване с 5% */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Лека сянка за дълбочина */
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
     .btn-hover-gray {
@@ -179,7 +187,15 @@
             background-color: #f3f4f6;
             border-color: #d1d5db;
             color: var(--text-main);
-            transform: scale(1.05); /* Уголемяване с 5% */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* По-лека сянка */
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
 </style>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}
