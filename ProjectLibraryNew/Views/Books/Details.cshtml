@@ -1,0 +1,364 @@
+﻿@model ProjectLibrary.Models.Book
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ProjectLibrary.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = Model.Title;
+
+    // Взимаме прогреса, ако го има
+    var progress = ViewBag.UserProgress as ProjectLibrary.Models.UserBookProgress;
+    bool isTextRead = progress != null && progress.IsTextRead;
+    bool isAnalysisRead = progress != null && progress.IsAnalysisRead;
+    bool hasPassedTest = progress != null && progress.HasPassedTest;
+}
+
+<form id="antiForgeryForm">@Html.AntiForgeryToken()</form>
+
+<div class="row mt-5 pt-5">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--text-main);">@Model.Title</h2>
+        <h4 class="text-muted mb-3">@Model.Author.Name</h4>
+
+        <div class="mb-4">
+            @if (Model.IsForMatura)
+            {
+                <span class="badge bg-success rounded-pill shadow-sm px-3 py-2 me-1">🎓 За матура</span>
+            }
+            <span class="badge rounded-pill shadow-sm px-3 py-2 me-1 text-dark" style="background-color: #e2e8f0;">@Model.Genre</span>
+            <span class="badge bg-secondary rounded-pill shadow-sm px-3 py-2">@Model.StudyYear клас</span>
+        </div>
+
+        <div class="card mb-4 shadow-sm border-0" style="background-color: var(--bg-card); color: var(--text-main); border-radius: 16px;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-0">
+                <h5 class="fw-bold"><i data-lucide="book-open" class="me-2 text-primary" style="width: 22px;"></i> Описание</h5>
+            </div>
+            <div class="card-body pt-3">
+                <p class="card-text text-muted" style="line-height: 1.7; font-size: 1.05rem;">@Model.Description</p>
+            </div>
+        </div>
+
+        <div id="analyses-section" class="card mb-4 shadow-sm border-0" style="background-color: var(--bg-card); color: var(--text-main); border-radius: 16px;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-0">
+                <h5 class="fw-bold"><i data-lucide="bar-chart-2" class="me-2 text-primary" style="width: 22px;"></i> Анализи</h5>
+            </div>
+            <div class="card-body pt-3">
+                @if (Model.Analyses.Any())
+                {
+                    <div class="d-flex justify-content-between align-items-center p-3 border rounded-4 shadow-sm" style="border-color: var(--border-color) !important; background-color: var(--bg-body);">
+                        <div>
+                            <span class="text-muted small fw-bold text-uppercase d-block mb-1">Налични</span>
+                            <h5 class="fw-bold mb-0" style="color: var(--primary);">@Model.Analyses.Count анализ(а)</h5>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary rounded-pill fw-bold px-4 py-2 hover-scale custom-outline-btn" data-bs-toggle="modal" data-bs-target="#analysesModal">
+                            <i data-lucide="book-open" class="me-1" style="width: 16px;"></i> Отвори
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted border rounded-4" style="border-style: dashed !important; border-color: var(--border-color) !important;">
+                        <i data-lucide="file-text" class="mb-2 opacity-50" style="width: 32px; height: 32px;"></i>
+                        <p class="mb-0 small fw-bold">Все още няма добавен анализ за това произведение.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.Tests.Any())
+        {
+            <div class="card mb-4 shadow-sm border-0" style="background-color: var(--bg-card); color: var(--text-main); border-radius: 16px;">
+                <div class="card-header border-0 bg-transparent pt-4 pb-0">
+                    <h5 class="fw-bold"><i data-lucide="check-square" class="me-2 text-primary" style="width: 22px;"></i> Тестове (@Model.Tests.Count)</h5>
+                </div>
+                <div class="card-body pt-3">
+                    @foreach (var test in Model.Tests)
+                    {
+                        <div class="mb-3 d-flex justify-content-between align-items-center p-3 border rounded-4 shadow-sm" style="border-color: var(--border-color) !important; background-color: var(--bg-body);">
+                            <h6 class="mb-0 fw-bold ms-2">@test.Title</h6>
+                            <a href="@Url.Action("Start", "Tests", new { id = test.Id })"
+                               class="btn btn-outline-primary btn-sm rounded-pill fw-bold px-4 py-2 hover-scale custom-outline-btn"
+                               onclick="return confirm('Искате ли да започнете този тест?')">
+                                Започни тест
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4 mt-md-0 mt-4">
+
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px; background-color: var(--bg-card); border: 2px solid var(--border-color) !important;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 d-flex align-items-center text-success">
+                        <i data-lucide="graduation-cap" class="me-2" style="width: 24px; height: 24px;"></i> Твоят прогрес
+                    </h5>
+
+                    <div class="d-flex flex-column gap-3">
+                        <div class="form-check custom-progress-check d-flex align-items-center m-0">
+                            <input class="form-check-input progress-checkbox shadow-sm" type="checkbox" id="checkText" data-type="text" data-book-id="@Model.Id" @(isTextRead ? "checked" : "") style="width: 22px; height: 22px; cursor: pointer; margin-top: 0;">
+                            <label class="form-check-label ms-3 fw-bold" for="checkText" style="cursor: pointer; font-size: 1.05rem; color: var(--text-main);">
+                                Прочетох текста
+                            </label>
+                        </div>
+
+                        <div class="form-check custom-progress-check d-flex align-items-center m-0">
+                            <input class="form-check-input progress-checkbox shadow-sm" type="checkbox" id="checkAnalysis" data-type="analysis" data-book-id="@Model.Id" @(isAnalysisRead ? "checked" : "") style="width: 22px; height: 22px; cursor: pointer; margin-top: 0;">
+                            <label class="form-check-label ms-3 fw-bold" for="checkAnalysis" style="cursor: pointer; font-size: 1.05rem; color: var(--text-main);">
+                                Прочетох анализа
+                            </label>
+                        </div>
+
+                        <div class="form-check custom-progress-check d-flex align-items-center m-0 opacity-75 mt-2 pt-3 border-top" style="border-color: var(--border-color) !important;">
+                            <input class="form-check-input shadow-sm" type="checkbox" id="checkTest" disabled @(hasPassedTest ? "checked" : "") style="width: 22px; height: 22px; margin-top: 0;">
+                            <label class="form-check-label ms-3 fw-bold text-muted" for="checkTest" style="font-size: 1rem; line-height: 1.2;">
+                                Успешен тест
+                                @if (hasPassedTest)
+                                {
+                                    <span class="badge bg-success ms-1">Взет!</span>
+                                }
+                                else
+                                {
+
+                                    <small class="d-block mt-1" style="font-size: 0.8rem;">(Отключва се при над 50%)</small>
+                                }
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card mb-4 border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-header border-0 pb-0 bg-transparent pt-4 text-center">
+                <h5 class="mb-3 fw-bold" style="color: var(--text-main);">
+                    <i data-lucide="zap" class="me-1" style="color: #eab308; fill: #eab308;"></i> Бързи действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+
+                    <a asp-controller="Books" asp-action="Read" asp-route-id="@Model.Id" class="btn btn-solid-premium w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale">
+                        <i data-lucide="book-open" class="me-2" style="width: 18px;"></i> Прочети произведението
+                    </a>
+
+                    @if (Model.Analyses.Any())
+                    {
+                        <button type="button" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981;" data-bs-toggle="modal" data-bs-target="#analysesModal">
+                            <i data-lucide="microscope" class="me-2" style="width: 18px;"></i> Виж анализа
+                        </button>
+                    }
+
+                    <a href="@Url.Action("Index", "Collections")" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale custom-outline-btn" style="background-color: transparent; border: 2px solid var(--primary); color: var(--primary);">
+                        <i data-lucide="bookmark-plus" class="me-2" style="width: 18px;"></i> Добави в моя списък
+                    </a>
+
+                    <a href="#comments-section" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main);">
+                        <i data-lucide="message-circle" class="me-2" style="width: 18px;"></i> Виж коментари
+                    </a>
+
+                    @if (Model.Tests.Any(t => t.IsPublished))
+                    {
+                        var firstTest = Model.Tests.FirstOrDefault(t => t.IsPublished);
+                        <a href="@Url.Action("Start", "Tests", new { id = firstTest.Id })" class="btn btn-primary text-white w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale mt-2">
+                            <i data-lucide="pen-tool" class="me-2" style="width: 18px;"></i> Започни тест
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-header border-0 pb-0 bg-transparent pt-4 text-center">
+                <h5 class="mb-0 fw-bold" style="color: var(--text-main);">
+                    <i data-lucide="user" class="me-1"></i> За автора
+                </h5>
+            </div>
+            <div class="card-body text-center pt-3 pb-4">
+
+                <img src="@(string.IsNullOrEmpty(Model.Author.ImageUrl) ? "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" : Model.Author.ImageUrl)"
+                     alt="@Model.Author.Name"
+                     class="rounded-circle mb-3 shadow-sm"
+                     style="width: 90px; height: 90px; object-fit: cover; border: 3px solid var(--bg-body);" />
+
+                <h6 class="fw-bold mb-2" style="color: var(--text-main); font-size: 1.1rem;">@Model.Author.Name</h6>
+
+                @{
+                    var bio = Model.Author.Biography ?? "Няма добавена биография за този автор.";
+                    var sentences = bio.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+                    var shortBio = sentences.Length > 2 ? string.Join(".", sentences.Take(2)) + "..." : bio;
+                }
+
+                <p class="small text-muted mb-4 text-start px-2" style="line-height: 1.6;">@shortBio</p>
+
+                <button type="button" class="btn w-100 fw-bold hover-scale rounded-pill py-2" style="background-color: var(--bg-body); color: var(--primary); border: 1px solid var(--border-color);" data-bs-toggle="modal" data-bs-target="#authorModal">
+                    <i data-lucide="book-open" class="me-1" style="width: 16px;"></i> Прочети биографията
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="mt-5 mb-5 opacity-25" style="border-color: var(--border-color);" />
+
+<div id="comments-section" class="mt-5 mb-5">
+    <div class="d-flex align-items-center mb-4">
+        <i data-lucide="message-square" class="me-2 text-primary" style="width: 28px; height: 28px;"></i>
+        <h3 class="fw-bold mb-0" style="color: var(--text-main);">Дискусия (@Model.Comments.Count)</h3>
+    </div>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="custom-card p-4 mb-5 shadow-sm" style="background-color: var(--bg-card); border: 2px solid var(--border-color) !important; border-radius: 16px; transform: none !important; transition: none !important;">
+            <form asp-controller="Comments" asp-action="Create" method="post">
+                <input type="hidden" name="bookId" value="@Model.Id" />
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small text-uppercase">Остави коментар:</label>
+                    <textarea name="content" class="form-control rounded-4 p-3 shadow-sm" rows="3" required placeholder="Напиши нещо..." style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color);"></textarea>
+                </div>
+                <button type="submit" class="btn btn-solid-premium px-4 py-2 fw-bold rounded-pill shadow-sm hover-scale">
+                    <i data-lucide="send" class="me-2" style="width: 16px;"></i> Публикувай
+                </button>
+            </form>
+        </div>
+    }
+
+    <div class="comments-list mt-4">
+        @if (Model.Comments != null && Model.Comments.Any())
+        {
+            @foreach (var comment in Model.Comments.Where(c => c.ParentCommentId == null).OrderByDescending(c => c.CreatedDate))
+            {
+                <partial name="_CommentPartial" model="comment" />
+            }
+        }
+        else
+        {
+            <div class="alert text-center rounded-4 border-0 py-4 shadow-sm" style="background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color) !important;">
+                <i data-lucide="message-circle" class="mb-2 opacity-50" style="width: 32px; height: 32px;"></i><br />
+                Все още няма коментари. Бъдете първият!
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="authorModal" tabindex="-1" aria-labelledby="authorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background-color: var(--bg-card); color: var(--text-main); border: none; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center px-4 px-md-5 pb-5 pt-0">
+                <img src="@(string.IsNullOrEmpty(Model.Author.ImageUrl) ? "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" : Model.Author.ImageUrl)"
+                     alt="@Model.Author.Name"
+                     class="rounded-circle mb-4 shadow"
+                     style="width: 140px; height: 140px; object-fit: cover; border: 4px solid var(--primary); margin-top: -40px; background-color: var(--bg-card);" />
+
+                <h2 class="fw-bold mb-2" id="authorModalLabel" style="color: var(--primary);">@Model.Author.Name</h2>
+                <p class="text-muted mb-4 pb-3 border-bottom w-50 mx-auto" style="font-size: 1.1rem; border-color: var(--border-color) !important;">
+                    <i>Класически български автор</i>
+                </p>
+
+                <div class="text-start px-md-3 text-muted" style="font-size: 1.05rem; line-height: 1.6; white-space: pre-wrap;">
+                    @if (!string.IsNullOrEmpty(Model.Author.Biography))
+                    {
+                        @Model.Author.Biography.Replace("\r\n\r\n", "\r\n").Replace("\n\n", "\n")
+                    }
+                    else
+                    {
+                        <span class="fst-italic opacity-75">Все още няма добавена биография за този автор.</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="analysesModal" tabindex="-1" aria-labelledby="analysesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="background-color: var(--bg-card); color: var(--text-main); border: none; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h4 class="modal-title fw-bold ms-3 mt-3 d-flex align-items-center" id="analysesModalLabel" style="color: var(--primary);">
+                    <i data-lucide="bar-chart-2" class="me-2" style="width: 28px; height: 28px;"></i> Анализи: @Model.Title
+                </h4>
+                <button type="button" class="btn-close shadow-none me-2 mt-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                @if (Model.Analyses.Any())
+                {
+                    @foreach (var analysis in Model.Analyses)
+                    {
+                        <div class="mb-4 p-4 border rounded-4 shadow-sm" style="border-color: var(--border-color) !important; background-color: var(--bg-body);">
+                            <p style="line-height: 1.8; white-space: pre-wrap; font-size: 1.05rem;" class="text-start mb-0">@analysis.Content</p>
+
+                            <div class="text-end mt-3 border-top pt-2" style="border-color: var(--border-color) !important;">
+                                <small class="text-muted fw-bold"><i data-lucide="calendar" class="me-1" style="width: 14px;"></i> Добавен на: @analysis.CreatedDate.ToString("dd.MM.yyyy")</small>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-outline-btn:focus, .custom-outline-btn:active {
+        outline: none !important;
+        box-shadow: none !important;
+        background-color: rgba(106, 156, 120, 0.1) !important;
+    }
+
+    .custom-outline-btn:hover {
+        background-color: var(--primary) !important;
+        color: white !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function toggleReplyForm(commentId) {
+            var targetForm = document.getElementById('reply-form-' + commentId);
+            var allForms = document.getElementsByClassName('reply-form-container');
+
+            for (var i = 0; i < allForms.length; i++) {
+                if (allForms[i].id !== 'reply-form-' + commentId) {
+                    allForms[i].classList.add('d-none');
+                }
+            }
+            targetForm.classList.toggle('d-none');
+
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+        }
+
+        // ==========================================
+        // ЛОГИКА ЗА ЧЕКБОКСОВЕТЕ ЗА ПРОГРЕС
+        // ==========================================
+        document.querySelectorAll('.progress-checkbox').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+
+                const bookId = this.getAttribute('data-book-id');
+                const progressType = this.getAttribute('data-type');
+                const isChecked = this.checked;
+
+                // Взимаме AntiForgeryToken-а от скритата форма най-горе
+                const token = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]').value;
+
+                fetch(`/Books/ToggleProgress?bookId=${bookId}&progressType=${progressType}&isChecked=${isChecked}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    }
+                })
+                .then(response => {
+                    if(!response.ok) {
+                        console.error('Нещо се обърка при запазването на прогреса.');
+                    }
+                })
+                .catch(error => console.error('Грешка:', error));
+            });
+        });
+    </script>
+}

@@ -1,0 +1,110 @@
+﻿@model ProjectLibrary.Models.Test
+
+@{
+    ViewData["Title"] = "Детайли за тест";
+}
+
+<h2>📋 @Model.Title</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>📖 Информация за теста</h5>
+            </div>
+            <div class="card-body">
+                <h4>@Model.Title</h4>
+                <p class="lead">@Model.Description</p>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>📚 Произведение:</strong> @Model.Book.Title</p>
+                        <p><strong>👨‍🎓 Автор:</strong> @Model.Book.Author.Name</p>
+                        <p><strong>📂 Жанр:</strong> @Model.Book.Genre</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>⏱️ Време:</strong> @Model.TimeLimitMinutes минути</p>
+                        <p><strong>📊 Точки:</strong> @Model.TotalPoints</p>
+                        <p><strong>🎯 Минимален успех:</strong> @Model.PassingScore%</p>
+                    </div>
+                </div>
+
+                <!-- Информация за книгата -->
+                <div class="border rounded p-3 bg-light">
+                    <h6>📖 За произведението:</h6>
+                    <p class="mb-1">@Model.Book.Description</p>
+                    <div class="mt-2">
+                        @if (!string.IsNullOrEmpty(Model.Book.Tags))
+                        {
+                            @foreach (var tag in Model.Book.Tags.Split(','))
+                            {
+                                <span class="badge bg-light text-dark">@tag.Trim()</span>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Инструкции -->
+        <div class="card">
+            <div class="card-header">
+                <h5>📝 Инструкции</h5>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>✅ Тестът съдържа 15 въпроса</li>
+                    <li>⏱️ Имате @Model.TimeLimitMinutes минути за изпълнение</li>
+                    <li>📝 Въпросите са със затворен и отворен отговор</li>
+                    <li>🎯 Минималният успех е @Model.PassingScore%</li>
+                    <li>💾 Отговорите се запазват автоматично</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Бързи действия -->
+        <div class="card">
+            <div class="card-header">
+                <h5>🚀 Бързи действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Start", new { id = Model.Id })" class="btn btn-success btn-lg">
+                        🚀 Започни тест
+                    </a>
+
+                    @if (User.IsInRole("Teacher") || User.IsInRole("Admin"))
+                    {
+                        <a href="@Url.Action("TestStatistics", new { id = Model.Id })" class="btn btn-info">
+                            📊 Статистика
+                        </a>
+                    }
+
+                    <a href="@Url.Action("Details", "Books", new { id = Model.Book.Id })" class="btn btn-outline-primary">
+                        📖 Виж произведението
+                    </a>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        ← Назад към тестовете
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация за автора -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>👨‍🎓 За автора</h5>
+            </div>
+            <div class="card-body">
+                <h6>@Model.Book.Author.Name</h6>
+                <p class="small">@(Model.Book.Author.Biography?.Length > 100 ? Model.Book.Author.Biography.Substring(0, 100) + "..." : Model.Book.Author.Biography)</p>
+                @if (Model.Book.Author.BirthDate.HasValue)
+                {
+                    <small class="text-muted">📅 @Model.Book.Author.BirthDate.Value.ToString("dd.MM.yyyy")</small>
+                }
+            </div>
+        </div>
+    </div>
+</div>

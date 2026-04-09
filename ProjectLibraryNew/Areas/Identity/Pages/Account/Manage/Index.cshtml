@@ -1,0 +1,45 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Данни на профила";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+}
+
+<h4 class="fw-bold mb-2" style="color: var(--text-main);">@ViewData["Title"]</h4>
+<p class="text-muted mb-4 pb-3" style="border-bottom: 2px solid var(--border-color); font-size: 0.9rem;">
+    Тук можете да прегледате и промените основната информация за вашия акаунт.
+</p>
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<form id="profile-form" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+    <div class="form-group mb-4">
+        <label asp-for="Username" class="form-label fw-bold text-muted small text-uppercase mb-1">Имейл адрес (Потребителско име)</label>
+        <div class="input-group shadow-sm rounded-pill overflow-hidden" style="border: 1px solid var(--border-color);">
+            <span class="input-group-text border-0" style="background-color: rgba(150,150,150,0.1); color: var(--text-muted);">
+                <i data-lucide="mail" style="width: 18px;"></i>
+            </span>
+            <input asp-for="Username" class="form-control border-0 px-3" style="background-color: rgba(150,150,150,0.1); color: var(--text-muted);" disabled />
+        </div>
+    </div>
+
+    <div class="form-group mb-4">
+        <label asp-for="Input.PhoneNumber" class="form-label fw-bold small text-uppercase mb-1" style="color: var(--text-main);">Телефонен номер</label>
+        <div class="input-group shadow-sm rounded-pill overflow-hidden" style="border: 1px solid var(--border-color); background-color: var(--bg-body);">
+            <span class="input-group-text border-0 bg-transparent" style="color: var(--text-main);">
+                <i data-lucide="phone" style="width: 18px;"></i>
+            </span>
+            <input asp-for="Input.PhoneNumber" class="form-control border-0 px-3 bg-transparent" placeholder="Въведете телефонен номер" style="color: var(--text-main);" />
+        </div>
+        <span asp-validation-for="Input.PhoneNumber" class="text-danger small mt-1 d-block ms-3"></span>
+    </div>
+
+    <button id="update-profile-button" type="submit" class="btn btn-solid-premium w-100 shadow-sm mt-3 py-2 rounded-pill hover-scale" style="font-size: 1.05rem;">
+        <i data-lucide="save" class="me-2" style="width: 18px;"></i> Запази промените
+    </button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

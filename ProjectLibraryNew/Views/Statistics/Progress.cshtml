@@ -1,0 +1,211 @@
+﻿@{
+    ViewData["Title"] = "Прогрес по учебни години";
+
+    var progressData = ViewBag.ProgressData as List<dynamic>;
+    var gradeDetails = ViewBag.GradeDetails as Dictionary<int, List<ProjectLibrary.Models.Book>>;
+    var hasRealData = ViewBag.HasRealData ?? false;
+}
+
+<h2>🎯 Прогрес по учебни години</h2>
+
+@if (!hasRealData)
+{
+    <div class="alert alert-info">
+        <h5>📚 Все още нямате добавени книги в колекции</h5>
+        <p>За да видите реалния си прогрес, добавете книги в <a href="@Url.Action("Index", "Collections")">вашите колекции</a>.</p>
+
+        <!-- Временни демо данни -->
+        @{
+            progressData = new List<dynamic>
+        {
+        new { Grade = 8, Read = 0, Total = 12, Percentage = 0, Books = new List<ProjectLibrary.Models.Book>() },
+        new { Grade = 9, Read = 0, Total = 15, Percentage = 0, Books = new List<ProjectLibrary.Models.Book>() },
+        new { Grade = 10, Read = 0, Total = 18, Percentage = 0, Books = new List<ProjectLibrary.Models.Book>() },
+        new { Grade = 11, Read = 0, Total = 15, Percentage = 0, Books = new List<ProjectLibrary.Models.Book>() },
+        new { Grade = 12, Read = 0, Total = 15, Percentage = 0, Books = new List<ProjectLibrary.Models.Book>() }
+        };
+        }
+
+        <div class="mt-3">
+            <a href="@Url.Action("Index", "Collections")" class="btn btn-primary">📚 Отиди към колекциите</a>
+        </div>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>📈 Общ прогрес</h5>
+        @if (hasRealData)
+        {
+            <small class="text-muted">📊 Реални данни от вашите колекции</small>
+        }
+        else
+        {
+            <small class="text-muted">📊 Демонстрационни данни</small>
+        }
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            @foreach (var grade in progressData)
+            {
+                <div class="col-md-3 mb-3">
+                    <div class="border rounded p-3 @GetGradeColor(grade.Grade) text-white">
+                        <h3>@grade.Read/@grade.Total</h3>
+                        <p class="mb-0">@grade.Grade-ти клас</p>
+                        <small>@grade.Percentage% завършено</small>
+                        <div class="progress mt-2 bg-white bg-opacity-25" style="height: 8px;">
+                            <div class="progress-bar bg-white" style="width: @grade.Percentage%"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Детайлен прогрес по години -->
+<div class="row">
+    @foreach (var grade in progressData)
+    {
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header @GetGradeHeaderColor(grade.Grade) text-white">
+                    <h5>@GetGradeIcon(grade.Grade) @grade.Grade-ти клас</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Прочетени произведения</span>
+                            <span>@grade.Read/@grade.Total</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar @GetGradeProgressColor(grade.Grade)" style="width: @grade.Percentage%">
+                                @grade.Percentage%
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (grade.Read > 0)
+                    {
+                        <div class="mt-3">
+                            <h6>📖 Вашите произведения:</h6>
+                            <ul class="list-group">
+                                @foreach (var book in grade.Books)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        "@book.Title" - @book.Author.Name
+                                        <span class="badge bg-success">✅ Прочетена</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mt-3">
+                            <h6>📖 Препоръчани произведения:</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    "Примерно произведение"
+                                    <span class="badge bg-secondary">❌ Непрочетена</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    "Друго препоръчано произведение"
+                                    <span class="badge bg-secondary">❌ Непрочетена</span>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Съвети за подготовка -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5>💡 Съвети за подготовка</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>🎯 Препоръки:</h6>
+                <ul>
+                    <li>💪 Започни със слабите си области</li>
+                    <li>📚 Чети по 1 произведение седмично</li>
+                    <li>✍️ Прави резюмета след всяко произведение</li>
+                    <li>🧠 Упражнявай се с тестове</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>📅 План за действие:</h6>
+                <ul>
+                    <li>⏰ 2 часа седмично за четене</li>
+                    <li>📝 1 тест на всеки 2 произведения</li>
+                    <li>👥 Дискусии с учител/група</li>
+                    <li>📊 Редовно следене на прогреса</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="@Url.Action("Index", "Statistics")" class="btn btn-secondary">← Назад към статистиката</a>
+    <a href="@Url.Action("Index", "Collections")" class="btn btn-outline-primary">📚 Към колекциите</a>
+</div>
+
+@functions {
+    private string GetGradeColor(int grade)
+    {
+        return grade switch
+        {
+            8 => "bg-primary",
+            9 => "bg-success",
+            10 => "bg-info",
+            11 => "bg-warning",
+            12 => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetGradeHeaderColor(int grade)
+    {
+        return grade switch
+        {
+            8 => "bg-primary",
+            9 => "bg-success",
+            10 => "bg-info",
+            11 => "bg-warning",
+            12 => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetGradeProgressColor(int grade)
+    {
+        return grade switch
+        {
+            8 => "bg-primary",
+            9 => "bg-success",
+            10 => "bg-info",
+            11 => "bg-warning",
+            12 => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetGradeIcon(int grade)
+    {
+        return grade switch
+        {
+            8 => "🎒",
+            9 => "🎓",
+            10 => "📚",
+            11 => "🎯",
+            12 => "🎯",
+            _ => "📖"
+        };
+    }
+}

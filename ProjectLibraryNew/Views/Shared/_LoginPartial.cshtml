@@ -1,0 +1,134 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using ProjectLibrary.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+
+    // Запазваме ролите в променливи, за да ни е по-лесно надолу
+    var isAdmin = User.IsInRole("Admin");
+    var isTeacher = User.IsInRole("Teacher");
+}
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item dropdown custom-dropdown">
+            <a class="nav-link nav-link-custom dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                @if (user != null && !string.IsNullOrEmpty(user.ProfilePictureUrl))
+                {
+                    <img src="@user.ProfilePictureUrl" alt="Avatar" class="rounded-circle me-2 shadow-sm" style="width: 32px; height: 32px; object-fit: cover; border: 2px solid var(--bg-body);" />
+                }
+                else
+                {
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-2 shadow-sm" style="width: 32px; height: 32px; background-color: var(--primary); color: white; border: 2px solid var(--bg-body);">
+                        <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                    </div>
+                }
+
+                <span class="d-none d-sm-inline fw-bold">@user?.FirstName @user?.LastName</span>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-3" aria-labelledby="userDropdown" style="background-color: var(--bg-card); border-radius: 20px; min-width: 250px; border: 1px solid var(--border-color) !important;">
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-controller="Profiles" asp-action="MyProfile" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(106, 156, 120, 0.1)'; this.style.color='var(--primary)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                        <i data-lucide="user" class="me-3 text-primary" style="width: 18px; height: 18px;"></i> Моят профил
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" href="/Identity/Account/Manage" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(150, 150, 150, 0.1)';" onmouseout="this.style.backgroundColor='transparent';">
+                        <i data-lucide="settings" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Настройки
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider my-2" style="border-color: var(--border-color); opacity: 0.5;"></li>
+                <li>
+                    <h6 class="dropdown-header fw-bold px-3 mb-2" style="color: #20c997; letter-spacing: 0.5px; font-size: 0.75rem; text-transform: uppercase;">
+                        <i data-lucide="book-open-check" class="me-1" style="width:14px; margin-top:-2px;"></i> Ученически панел
+                    </h6>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-controller="Tests" asp-action="Index" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(32, 201, 151, 0.1)'; this.style.color='#20c997';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                        <i data-lucide="file-check-2" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Всички тестове
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-controller="Tests" asp-action="MyResults" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(32, 201, 151, 0.1)'; this.style.color='#20c997';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                        <i data-lucide="bar-chart-3" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Моите оценки
+                    </a>
+                </li>
+
+                @if (isAdmin || isTeacher)
+                {
+                    <li><hr class="dropdown-divider my-2" style="border-color: var(--border-color); opacity: 0.5;"></li>
+                    <li>
+                        <h6 class="dropdown-header fw-bold px-3 mb-2" style="color: #0dcaf0; letter-spacing: 0.5px; font-size: 0.75rem; text-transform: uppercase;">
+                            <i data-lucide="graduation-cap" class="me-1" style="width:14px; margin-top:-2px;"></i> Учителски панел
+                        </h6>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-controller="Teacher" asp-action="Index" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(13, 202, 240, 0.1)'; this.style.color='#0dcaf0';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                            <i data-lucide="presentation" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Учителско табло
+                        </a>
+                    </li>
+                }
+
+                @if (isAdmin)
+                {
+                    <li><hr class="dropdown-divider my-2" style="border-color: var(--border-color); opacity: 0.5;"></li>
+                    <li>
+                        <h6 class="dropdown-header fw-bold px-3 mb-2" style="color: #f59e0b; letter-spacing: 0.5px; font-size: 0.75rem; text-transform: uppercase;">
+                            <i data-lucide="shield" class="me-1" style="width:14px; margin-top:-2px;"></i> Админ Панел
+                        </h6>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-area="" asp-controller="Admin" asp-action="Index" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.1)'; this.style.color='#f59e0b';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                            <i data-lucide="layout-dashboard" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Табло
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-area="" asp-controller="Admin" asp-action="Users" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.1)'; this.style.color='#f59e0b';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                            <i data-lucide="users" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Потребители
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-area="" asp-controller="Admin" asp-action="Books" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.1)'; this.style.color='#f59e0b';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                            <i data-lucide="book-open" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Произведения
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center rounded-3 mb-1 py-2 fw-semibold" asp-area="" asp-controller="Admin" asp-action="Authors" style="color: var(--text-main); transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.1)'; this.style.color='#f59e0b';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-main)';">
+                            <i data-lucide="pen-tool" class="me-3 text-muted" style="width: 18px; height: 18px;"></i> Автори
+                        </a>
+                    </li>
+                }
+
+                <li><hr class="dropdown-divider my-2" style="border-color: var(--border-color); opacity: 0.5;"></li>
+
+                <li>
+                    <form class="form-inline m-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button type="submit" class="dropdown-item d-flex align-items-center rounded-3 text-danger py-2 fw-semibold w-100 text-start" style="transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(220, 53, 69, 0.1)';" onmouseout="this.style.backgroundColor='transparent';">
+                            <i data-lucide="log-out" class="me-3" style="width: 18px; height: 18px;"></i> Изход
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link nav-link-custom fw-bold" asp-area="Identity" asp-page="/Account/Register">
+                <i data-lucide="user-plus" class="me-1" style="width: 18px;"></i> Регистрация
+            </a>
+        </li>
+        <li class="nav-item ms-2">
+            <a class="nav-link nav-link-custom fw-bold btn btn-primary text-white px-3 py-2 rounded-pill shadow-sm" asp-area="Identity" asp-page="/Account/Login">
+                <i data-lucide="log-in" class="me-1" style="width: 18px;"></i> Вход
+            </a>
+        </li>
+    }
+</ul>

@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "Прогрес за матура";
+}
+
+@{
+    var stats = ViewBag.MaturaStats;
+}
+
+<h2>🎓 Прогрес за матура</h2>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>📚 Общ прогрес</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-6">
+                <div class="border rounded p-4 bg-primary text-white">
+                    <h3>@stats.UserMaturaBooks/@stats.TotalMaturaBooks</h3>
+                    <p class="mb-0">Прочетени произведения</p>
+                    <div class="progress mt-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" style="width: @stats.Percentage%">
+                            @stats.Percentage%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="border rounded p-4 bg-info text-white">
+                    <h3>@(stats.TotalMaturaBooks - stats.UserMaturaBooks)</h3>
+                    <p class="mb-0">Оставащи произведения</p>
+                    <small>За да завършиш подготовката</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (stats.MissingBooks != null && stats.MissingBooks.Count > 0)
+{
+    <div class="card">
+        <div class="card-header">
+            <h5>📋 Препоръчани произведения за подготовка</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @foreach (var book in stats.MissingBooks)
+                {
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <h6 class="card-title">@book.Title</h6>
+                                <p class="card-text text-muted">@book.Author.Name • @book.Genre</p>
+                                <a href="@Url.Action("Details", "Books", new { id = book.Id })"
+                                   class="btn btn-sm btn-outline-primary">👀 Детайли</a>
+                                <a href="@Url.Action("Index", "Collections")"
+                                   class="btn btn-sm btn-success">➕ Добави в колекция</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<div class="mt-3">
+    <a href="@Url.Action("Index")" class="btn btn-secondary">← Назад към статистиката</a>
+    <a href="@Url.Action("Progress")" class="btn btn-outline-primary">🎯 Пълен учебен прогрес</a>
+</div>

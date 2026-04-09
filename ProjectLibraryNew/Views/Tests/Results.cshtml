@@ -1,0 +1,243 @@
+﻿@model ProjectLibrary.Models.TestResult
+
+@{
+    ViewData["Title"] = "Резултати от тест";
+
+    var resultDetails = ViewBag.ResultDetails as List<ProjectLibrary.Models.QuestionResult>;
+    var testQuestions = ViewBag.TestQuestions as List<ProjectLibrary.Models.TestQuestion>;
+}
+
+<h2>📊 Резултати от тест</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Общ резултат -->
+        <div class="card mb-4 @(Model.Percentage >= Model.Test.PassingScore ? "border-success" : "border-warning")">
+            <div class="card-header @(Model.Percentage >= Model.Test.PassingScore ? "bg-success text-white" : "bg-warning text-dark")">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h3>@Model.CorrectAnswers/@Model.TotalQuestions</h3>
+                        <small>Верни отговори</small>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>@Model.Score/@Model.Test.TotalPoints</h3>
+                        <small>Точки</small>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>@Model.Percentage.ToString("0.0")%</h3>
+                        <small>Успех</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body text-center">
+                @if (Model.Percentage >= Model.Test.PassingScore)
+                {
+                    <div class="alert alert-success">
+                        <h4>🎉 Поздравления!</h4>
+                        <p class="mb-0">Вие преминахте успешно теста с @Model.Percentage.ToString("0.0")% успех!</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <h4>📚 Още малко!</h4>
+                        <p class="mb-0">Вашият успех е @Model.Percentage.ToString("0.0")%. Минималният успех е @Model.Test.PassingScore%.</p>
+                    </div>
+                }
+
+                <div class="mt-3">
+                    <p><strong>⏱️ Време:</strong> @Model.TimeSpent.ToString(@"mm\:ss")</p>
+                    <p><strong>📅 Завършен на:</strong> @Model.CompletedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детайли по въпроси -->
+        <div class="card">
+            <div class="card-header">
+                <h5>📝 Детайли по въпроси</h5>
+            </div>
+            <div class="card-body">
+                @for (int i = 0; i < testQuestions.Count; i++)
+                {
+                    var question = testQuestions[i];
+                    var result = resultDetails.FirstOrDefault(r => r.QuestionId == question.Id);
+
+                    <div class="question-result mb-4 p-3 border rounded @(result.IsCorrect ? "border-success bg-light" : "border-danger bg-light")">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6>Въпрос @(i + 1) <span class="badge @(result.IsCorrect ? "bg-success" : "bg-danger")">@result.PointsEarned/@result.MaxPoints т.</span></h6>
+                            @if (result.IsCorrect)
+                            {
+                                <span class="badge bg-success">✅ Верен</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">❌ Грешен</span>
+                            }
+                        </div>
+
+                        <p class="fw-bold">@question.QuestionText</p>
+
+                        <!-- Показване на отговорите -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert @(result.IsCorrect ? "alert-success" : "alert-danger")">
+                                    <strong>Вашият отговор:</strong><br>
+                                    @if (question.Type == ProjectLibrary.Models.QuestionType.MultipleChoice)
+                                    {
+                                        var selectedOption = question.Options.FirstOrDefault(o => o.Id.ToString() == result.UserAnswer);
+                                        if (selectedOption != null)
+                                        {
+                                            <span>@GetOptionLetter(selectedOption.Id). @selectedOption.Text</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Няма отговор</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@(string.IsNullOrEmpty(result.UserAnswer) ? "Няма отговор" : result.UserAnswer)</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <strong>Верен отговор:</strong><br>
+                                    @if (question.Type == ProjectLibrary.Models.QuestionType.MultipleChoice)
+                                    {
+                                        var correctOption = question.Options.FirstOrDefault(o => o.Id == question.CorrectOptionId);
+                                        if (correctOption != null)
+                                        {
+                                            <span>@GetOptionLetter(correctOption.Id). @correctOption.Text</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@result.CorrectAnswer</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Обяснение за грешка -->
+                        @if (!result.IsCorrect)
+                        {
+                            <div class="alert alert-warning">
+                                <strong>💡 Препоръка:</strong> Прегледайте материала отново и се опитайте пак!
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Бързи действия -->
+        <div class="card">
+            <div class="card-header">
+                <h5>🚀 Следващи стъпки</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Start", new { id = Model.TestId })" class="btn btn-outline-primary">
+                        🔄 Опитай пак
+                    </a>
+                    <a href="@Url.Action("Details", "Books", new { id = Model.Test.Book.Id })" class="btn btn-outline-info">
+                        📖 Прегледай произведението
+                    </a>
+                    <a href="@Url.Action("MyResults")" class="btn btn-outline-success">
+                        📊 Всички мои резултати
+                    </a>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        ← Към всички тестове
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>📈 Статистика</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Общ резултат:</strong>
+                    <div class="progress mt-1" style="height: 20px;">
+                        <div class="progress-bar @GetProgressBarColor(Model.Percentage)"
+                             style="width: @Model.Percentage%"
+                             role="progressbar">
+                            @Model.Percentage.ToString("0.0")%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Верни отговори:</strong>
+                    <div class="progress mt-1" style="height: 20px;">
+                        <div class="progress-bar bg-success"
+                             style="width: @((double)Model.CorrectAnswers / Model.TotalQuestions * 100)%"
+                             role="progressbar">
+                            @Model.CorrectAnswers/@Model.TotalQuestions
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <p class="mb-1"><strong>⏱️ Време:</strong> @Model.TimeSpent.ToString(@"mm\:ss")</p>
+                    <p class="mb-0"><strong>📅 Дата:</strong> @Model.CompletedAt.ToString("dd.MM.yyyy")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация за теста -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>📋 Информация</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>📚 Тест:</strong> @Model.Test.Title</p>
+                <p><strong>📖 Произведение:</strong> @Model.Test.Book.Title</p>
+                <p><strong>👨‍🎓 Автор:</strong> @Model.Test.Book.Author.Name</p>
+                <p><strong>🎯 Минимум:</strong> @Model.Test.PassingScore%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Анимация за прогреса
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 500);
+        });
+    </script>
+}
+
+@functions {
+    private string GetOptionLetter(int optionId)
+    {
+        return optionId switch
+        {
+            1 => "а",
+            2 => "б",
+            3 => "в",
+            4 => "г",
+            _ => optionId.ToString()
+        };
+    }
+
+    private string GetProgressBarColor(double percentage)
+    {
+        if (percentage >= 80) return "bg-success";
+        if (percentage >= 60) return "bg-info";
+        if (percentage >= 40) return "bg-warning";
+        return "bg-danger";
+    }
+}

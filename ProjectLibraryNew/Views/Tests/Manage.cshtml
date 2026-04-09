@@ -1,0 +1,189 @@
+﻿@model IEnumerable<ProjectLibrary.Models.Test>
+
+@{
+    ViewData["Title"] = "Управление на тестове";
+}
+
+<div class="d-flex align-items-center mb-4 pt-3 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
+    <i data-lucide="clipboard-list" class="me-3" style="color: var(--primary); width: 32px; height: 32px;"></i>
+    <h2 class="fw-bold mb-0" style="color: var(--text-main);">Управление на тестове</h2>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 fw-bold" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981;">
+        <i data-lucide="check-circle-2" class="me-2 d-inline-block" style="width: 20px; height: 20px; vertical-align: text-bottom;"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="custom-card mb-5 p-0 overflow-hidden shadow-sm" style="border: 2px solid var(--border-color); background-color: var(--bg-card); border-radius: 16px;">
+    <div class="card-header border-0 bg-transparent p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom" style="border-color: var(--border-color) !important;">
+        <h5 class="fw-bold mb-3 mb-md-0" style="color: var(--text-main);">Моите тестове</h5>
+        <a href="@Url.Action("Create")" class="btn btn-solid-premium rounded-pill fw-bold px-4 py-2 hover-scale shadow-sm d-flex align-items-center justify-content-center">
+            <i data-lucide="plus" class="me-2" style="width: 18px; height: 18px;"></i> Създай нов тест
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="color: var(--text-main);">
+                    <thead style="background-color: rgba(150, 150, 150, 0.05);">
+                        <tr>
+                            <th class="py-3 px-4 border-bottom-0 fw-bold">Заглавие</th>
+                            <th class="py-3 px-4 border-bottom-0 fw-bold">Произведение</th>
+                            <th class="py-3 px-4 border-bottom-0 fw-bold text-center">Статус</th>
+                            <th class="py-3 px-4 border-bottom-0 fw-bold text-center">Въпроси</th>
+                            <th class="py-3 px-4 border-bottom-0 fw-bold text-center">Създаден</th>
+                            <th class="py-3 px-4 border-bottom-0 fw-bold text-end">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var test in Model)
+                        {
+                            var questions = test.GetQuestions();
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td class="py-3 px-4">
+                                    <h6 class="fw-bold mb-1" style="color: var(--text-main);">@test.Title</h6>
+                                    @if (!string.IsNullOrEmpty(test.Description))
+                                    {
+                                        <p class="text-muted small mb-0" style="display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">@test.Description</p>
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-muted fw-medium">
+                                    @(test.Book?.Title ?? "Общ тест")
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    @if (test.IsPublished)
+                                    {
+                                        <span class="badge rounded-pill px-3 py-2 fw-bold" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981;">
+                                            <i data-lucide="globe" class="me-1 d-inline-block" style="width: 14px; vertical-align: text-bottom;"></i> Публикуван
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill px-3 py-2 fw-bold" style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid #f59e0b;">
+                                            <i data-lucide="lock" class="me-1 d-inline-block" style="width: 14px; vertical-align: text-bottom;"></i> Чернова
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <span class="badge rounded-pill bg-primary px-3 py-2 fw-bold">@questions.Count въпроса</span>
+                                </td>
+                                <td class="py-3 px-4 text-center text-muted small fw-bold">
+                                    @test.CreatedDate.ToString("dd.MM.yyyy")
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <div class="d-flex justify-content-end align-items-center gap-2">
+                                        <a href="@Url.Action("TestStatistics", new { id = test.Id })"
+                                           class="btn btn-sm d-flex align-items-center justify-content-center hover-scale"
+                                           style="width: 36px; height: 36px; border-radius: 10px; background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6;"
+                                           title="Статистика">
+                                            <i data-lucide="bar-chart-2" style="width: 18px; margin: 0;"></i>
+                                        </a>
+
+                                        <a href="@Url.Action("Details", new { id = test.Id })"
+                                           class="btn btn-sm d-flex align-items-center justify-content-center hover-scale"
+                                           style="width: 36px; height: 36px; border-radius: 10px; background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color);"
+                                           title="Преглед">
+                                            <i data-lucide="eye" style="width: 18px; margin: 0;"></i>
+                                        </a>
+
+                                        <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center hover-scale"
+                                                style="width: 36px; height: 36px; border-radius: 10px; background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid #f59e0b;"
+                                                onclick="togglePublish(@test.Id, @test.IsPublished.ToString().ToLower())"
+                                                title="@(test.IsPublished ? "Скрий теста" : "Публикувай теста")">
+                                            @if (test.IsPublished)
+                                            {
+                                                <i data-lucide="lock" style="width: 18px; margin: 0;"></i>
+                                            }
+                                            else
+                                            {
+                                                <i data-lucide="globe" style="width: 18px; margin: 0;"></i>
+                                            }
+                                        </button>
+
+                                        <form asp-action="DeleteTest" asp-controller="Tests" method="post" class="m-0">
+                                            <input type="hidden" name="id" value="@test.Id" />
+                                            <button type="submit"
+                                                    class="btn btn-sm d-flex align-items-center justify-content-center hover-scale"
+                                                    style="width: 36px; height: 36px; border-radius: 10px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;"
+                                                    onclick="return confirm('Сигурни ли сте, че искате да изтриете този тест? Всички резултати на учениците към него също ще бъдат изтрити!')"
+                                                    title="Изтрий теста">
+                                                <i data-lucide="trash-2" style="width: 18px; margin: 0;"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted px-4">
+                <i data-lucide="inbox" class="mb-3 opacity-50" style="width: 64px; height: 64px;"></i>
+                <h4 class="fw-bold mb-2 text-dark">Все още нямате създадени тестове</h4>
+                <p class="mb-4">Създайте първия си тест, за да започнете да го управлявате оттук.</p>
+                <a href="@Url.Action("Create")" class="btn btn-solid-premium rounded-pill fw-bold px-5 py-2 hover-scale shadow-sm">
+                    <i data-lucide="plus" class="me-2" style="width: 18px; height: 18px;"></i> Създай първи тест
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="custom-card p-4 text-center d-flex flex-column align-items-center justify-content-center shadow-sm" style="border-radius: 16px; border: 1px solid var(--border-color); background-color: var(--bg-card);">
+                <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.5rem;">@Model.Count()</h2>
+                <p class="text-muted small fw-bold text-uppercase mb-0">Общо тестове</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="custom-card p-4 text-center d-flex flex-column align-items-center justify-content-center shadow-sm" style="border-radius: 16px; border: 1px solid var(--border-color); background-color: var(--bg-card);">
+                <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.5rem;">@Model.Count(t => t.IsPublished)</h2>
+                <p class="text-muted small fw-bold text-uppercase mb-0">Публикувани</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="custom-card p-4 text-center d-flex flex-column align-items-center justify-content-center shadow-sm" style="border-radius: 16px; border: 1px solid var(--border-color); background-color: var(--bg-card);">
+                <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.5rem;">@Model.Count(t => !t.IsPublished)</h2>
+                <p class="text-muted small fw-bold text-uppercase mb-0">Чернови</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="custom-card p-4 text-center d-flex flex-column align-items-center justify-content-center shadow-sm" style="border-radius: 16px; border: 1px solid var(--border-color); background-color: var(--bg-card);">
+                <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.5rem;">@Model.Sum(t => t.GetQuestions().Count)</h2>
+                <p class="text-muted small fw-bold text-uppercase mb-0">Общо въпроси</p>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="mt-4 pb-5">
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm custom-outline-btn d-inline-flex align-items-center" style="background-color: var(--bg-body); color: var(--text-main); border: 2px solid var(--border-color);">
+        <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> Към всички тестове
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        function togglePublish(testId, isCurrentlyPublished) {
+            if (confirm(`Сигурни ли сте, че искате да ${isCurrentlyPublished ? 'скриете' : 'публикувате'} този тест?`)) {
+                // Тук ще добавим AJAX заявка за промяна на статуса в бъдеще
+                alert('Функционалността за промяна на статус ще бъде вързана с базата данни скоро.');
+            }
+        }
+    </script>
+}

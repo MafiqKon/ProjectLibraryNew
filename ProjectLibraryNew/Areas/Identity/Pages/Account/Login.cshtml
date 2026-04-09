@@ -1,0 +1,73 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="row justify-content-center mt-5 mb-5">
+    <div class="col-md-5 col-lg-4">
+
+        <div class="card shadow-sm border-0" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-3 shadow-sm" style="width: 65px; height: 65px; background-color: var(--bg-body); border: 2px solid var(--border-color);">
+                        <i data-lucide="user" style="color: var(--primary); width: 32px; height: 32px;"></i>
+                    </div>
+                    <h3 class="fw-bold" style="color: var(--text-main);">Добре дошли отново!</h3>
+                    <p class="text-muted small">Влезте във вашия профил, за да продължите.</p>
+                </div>
+
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control rounded-3" autocomplete="username" aria-required="true" placeholder="name@example.com" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+                        <label asp-for="Input.Email" class="text-muted"><i data-lucide="mail" style="width: 16px; height: 16px; margin-top: -3px;"></i> Имейл адрес</label>
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Password" class="form-control rounded-3" autocomplete="current-password" aria-required="true" placeholder="password" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+                        <label asp-for="Input.Password" class="text-muted"><i data-lucide="lock" style="width: 16px; height: 16px; margin-top: -3px;"></i> Парола</label>
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" asp-for="Input.RememberMe" style="cursor: pointer;" />
+                            <label asp-for="Input.RememberMe" class="form-check-label text-muted small" style="cursor: pointer;">
+                                Запомни ме
+                            </label>
+                        </div>
+                        <a id="forgot-password" asp-page="./ForgotPassword" class="small fw-bold" style="color: var(--primary); text-decoration: none;">Забравена парола?</a>
+                    </div>
+
+                    <div>
+                        <button id="login-submit" type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill d-flex justify-content-center align-items-center shadow-sm" style="font-size: 1.1rem; transition: transform 0.2s ease;">
+                            <i data-lucide="log-in" class="me-2"></i> Вход
+                        </button>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <p class="mb-0 text-muted small">
+                            Нямате акаунт? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold" style="color: var(--primary); text-decoration: none; border-bottom: 1px dashed var(--primary);">Регистрирайте се</a>
+                        </p>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

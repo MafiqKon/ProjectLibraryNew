@@ -1,0 +1,197 @@
+﻿@model ProjectLibrary.Controllers.AdminStatistics
+@{
+    ViewData["Title"] = "Административен панел";
+}
+
+<div class="d-flex align-items-center mb-4 mt-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+    <div class="d-flex justify-content-center align-items-center rounded-3 me-3 shadow-sm" style="width: 50px; height: 50px; background-color: var(--primary); color: white;">
+        <i data-lucide="settings" style="width: 28px; height: 28px;"></i>
+    </div>
+    <div>
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Административен панел</h2>
+        <p class="text-muted mb-0">Глобално управление на системата и статистически данни</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid var(--primary) !important;">
+            <div class="d-flex justify-content-center mb-2">
+                <div class="rounded-circle d-flex justify-content-center align-items-center bg-primary bg-opacity-10 text-primary" style="width: 45px; height: 45px;">
+                    <i data-lucide="users" style="width: 20px;"></i>
+                </div>
+            </div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-main);">@Model.TotalUsers</h2>
+            <p class="text-muted small fw-bold text-uppercase mb-0">Потребители</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #198754 !important;">
+            <div class="d-flex justify-content-center mb-2">
+                <div class="rounded-circle d-flex justify-content-center align-items-center bg-success bg-opacity-10 text-success" style="width: 45px; height: 45px;">
+                    <i data-lucide="book-open" style="width: 20px;"></i>
+                </div>
+            </div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-main);">@Model.TotalBooks</h2>
+            <p class="text-muted small fw-bold text-uppercase mb-0">Книги</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #0dcaf0 !important;">
+            <div class="d-flex justify-content-center mb-2">
+                <div class="rounded-circle d-flex justify-content-center align-items-center bg-info bg-opacity-10 text-info" style="width: 45px; height: 45px;">
+                    <i data-lucide="folder" style="width: 20px;"></i>
+                </div>
+            </div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-main);">@Model.TotalCollections</h2>
+            <p class="text-muted small fw-bold text-uppercase mb-0">Колекции</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center p-3" style="background-color: var(--bg-card); border-radius: 16px; border-bottom: 4px solid #f59e0b !important;">
+            <div class="d-flex justify-content-center mb-2">
+                <div class="rounded-circle d-flex justify-content-center align-items-center bg-warning bg-opacity-10 text-warning" style="width: 45px; height: 45px;">
+                    <i data-lucide="message-square" style="width: 20px;"></i>
+                </div>
+            </div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-main);">@Model.TotalComments</h2>
+            <p class="text-muted small fw-bold text-uppercase mb-0">Коментари</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm h-100" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-2">
+                <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                    <i data-lucide="zap" class="me-2" style="color: #eab308; fill: #eab308; width: 22px;"></i> Бързи действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <a href="@Url.Action("Users")" class="btn shadow-sm rounded-pill py-2 fw-bold custom-outline-btn custom-outline-green d-flex justify-content-center align-items-center">
+                        <i data-lucide="users" class="me-2" style="width: 18px;"></i> Управление на потребители
+                    </a>
+                    <a href="@Url.Action("Books")" class="btn shadow-sm rounded-pill py-2 fw-bold custom-outline-btn custom-outline-green d-flex justify-content-center align-items-center">
+                        <i data-lucide="book-copy" class="me-2" style="width: 18px;"></i> Управление на книги
+                    </a>
+                    <a href="@Url.Action("Index", "Books")" class="btn shadow-sm rounded-pill py-2 fw-bold custom-outline-btn custom-outline-blue d-flex justify-content-center align-items-center">
+                        <i data-lucide="plus-circle" class="me-2" style="width: 18px;"></i> Добави нова книга
+                    </a>
+                    <a asp-action="Comments" class="btn shadow-sm rounded-pill py-2 fw-bold custom-outline-btn custom-outline-yellow d-flex justify-content-center align-items-center">
+                        <i data-lucide="message-circle" class="me-2" style="width: 18px;"></i> Управление на коментари
+                    </a>
+                    <a href="@Url.Action("Index", "Teacher")" class="btn shadow-sm rounded-pill py-2 fw-bold custom-outline-btn custom-outline-gray d-flex justify-content-center align-items-center">
+                        <i data-lucide="graduation-cap" class="me-2" style="width: 18px;"></i> Учителски панел
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm h-100" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-2">
+                <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                    <i data-lucide="user-plus" class="me-2 text-primary" style="width: 22px;"></i> Последни регистрации
+                </h5>
+            </div>
+            <div class="card-body p-4 pt-2">
+                @if (Model.RecentRegistrations.Any())
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var user in Model.RecentRegistrations.Take(5))
+                        {
+                            <div class="p-3 border rounded-4 d-flex justify-content-between align-items-center shadow-sm" style="background-color: var(--bg-body); border-color: var(--border-color) !important;">
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: var(--text-main);">@user.FirstName @user.LastName</h6>
+                                    <div class="d-flex gap-3 small text-muted">
+                                        <span><i data-lucide="mail" class="me-1" style="width: 12px;"></i> @user.Email</span>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2">@user.UserType</span>
+                                    </div>
+                                </div>
+                                <div class="text-end small text-muted">
+                                    <i data-lucide="calendar" class="me-1" style="width: 12px;"></i> @user.RegistrationDate.ToString("dd.MM.yyyy")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i data-lucide="user-x" class="text-muted opacity-50 mb-3" style="width: 48px; height: 48px;"></i>
+                        <p class="text-muted">Все още няма регистрирани потребители.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ПРЕМАХВАМЕ ПОДСКАЧАНЕТО ЗА ВСИЧКИ КАРТИ В АДМИН ПАНЕЛА */
+    .card:hover {
+        transform: none !important;
+        transition: none !important;
+    }
+
+    /* СТИЛОВЕ ЗА БУТОНИТЕ С РАМКИ */
+    .custom-outline-btn:focus, .custom-outline-btn:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .custom-outline-green {
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        background: transparent;
+    }
+
+        .custom-outline-green:hover {
+            background-color: var(--primary) !important;
+            color: white !important;
+        }
+
+    .custom-outline-blue {
+        border: 2px solid #0dcaf0;
+        color: #0dcaf0;
+        background: transparent;
+    }
+
+        .custom-outline-blue:hover {
+            background-color: #0dcaf0 !important;
+            color: white !important;
+        }
+
+    .custom-outline-yellow {
+        border: 2px solid #f59e0b;
+        color: #f59e0b;
+        background: transparent;
+    }
+
+        .custom-outline-yellow:hover {
+            background-color: #f59e0b !important;
+            color: white !important;
+        }
+
+    .custom-outline-gray {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        background: transparent;
+    }
+
+        .custom-outline-gray:hover {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

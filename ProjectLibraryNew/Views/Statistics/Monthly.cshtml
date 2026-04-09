@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Месечна статистика";
+}
+
+<h2>📅 Месечна статистика</h2>
+
+<div class="card">
+    <div class="card-header">
+        <h5>📈 Активност през последните 6 месеца</h5>
+    </div>
+    <div class="card-body">
+        @if (ViewBag.MonthlyStats != null && ViewBag.MonthlyStats.Count > 0)
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Период</th>
+                            <th>Създадени колекции</th>
+                            <th>Добавени книги</th>
+                            <th>Обща активност</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stat in ViewBag.MonthlyStats)
+                        {
+                            <tr>
+                                <td>@stat.Period</td>
+                                <td>@stat.CollectionsCreated</td>
+                                <td>@stat.BooksAdded</td>
+                                <td>
+                                    <div class="progress" style="height: 10px;">
+                                        @{
+                                            var totalActivity = stat.CollectionsCreated + stat.BooksAdded;
+                                            var maxActivity = Math.Max(totalActivity, 1);
+                                            var percentage = (totalActivity * 100) / maxActivity;
+                                        }
+                                        <div class="progress-bar bg-success" style="width: @percentage%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="fs-1">📊</i>
+                <p class="mt-2">Все още няма данни за месечна статистика.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="@Url.Action("Index")" class="btn btn-secondary">← Назад към статистиката</a>
+</div>

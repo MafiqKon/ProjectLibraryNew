@@ -1,0 +1,493 @@
+﻿@{
+    ViewData["Title"] = "Решаване на тест";
+
+    var test = ViewBag.Test as ProjectLibrary.Models.Test;
+    var questions = ViewBag.Questions as List<ProjectLibrary.Models.TestQuestion>;
+}
+
+<div class="test-page-wrapper px-md-4 mt-5 pt-4">
+    <h2 class="fw-bold mb-4" style="color: var(--text-main);">📝 @test.Title</h2>
+
+    <div class="row align-items-start">
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm border-0 timer-card" style="border-radius: 12px;">
+                <div class="card-header bg-warning text-dark border-0" style="border-radius: 12px 12px 0 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">⏱️ Оставащо време</h5>
+                        <span id="timer" class="h4 mb-0 fw-bold">@test.TimeLimitMinutes:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <form id="testForm" method="post" asp-action="Submit">
+                <input type="hidden" name="testId" value="@test.Id" />
+
+                @for (int i = 0; i < questions.Count; i++)
+                {
+                    var question = questions[i];
+
+                    <div class="card mb-5 question-card shadow-sm border-0" data-question-id="@question.Id" style="border-radius: 16px; background-color: var(--bg-card);">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <h4 class="fw-bold mb-0" style="color: var(--text-main);">@(i + 1). @question.QuestionText</h4>
+                                <span class="badge bg-secondary rounded-pill px-3 py-2 fs-6">@question.Points т.</span>
+                            </div>
+
+                            @if (question.Type == ProjectLibrary.Models.QuestionType.MultipleChoice)
+                            {
+                                <div class="options-container d-flex flex-column gap-3 mt-4">
+                                    @foreach (var option in question.Options)
+                                    {
+                                        <div class="form-check custom-option-box rounded-3">
+                                            <input class="form-check-input d-none" type="radio"
+                                                   name="answers[@question.Id]"
+                                                   id="option_@(question.Id)_@option.Id"
+                                                   value="@option.Id">
+
+                                            <label class="form-check-label w-100 p-4 m-0 d-flex align-items-center" for="option_@(question.Id)_@option.Id">
+                                                <div class="custom-radio-circle me-3 d-flex justify-content-center align-items-center">
+                                                    <div class="inner-circle rounded-circle"></div>
+                                                </div>
+                                                <span class="fs-5" style="color: var(--text-main);"><strong class="text-success">@GetOptionLetter(option.Id)</strong>. @option.Text</span>
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="form-group mt-4">
+                                    <textarea class="form-control rounded-4 p-4 shadow-sm custom-textarea"
+                                      name="answers[@question.Id]"
+                                      rows="4"
+                                      placeholder="Напишете вашия отговор тук..."></textarea>
+                                    <small class="form-text text-muted mt-2 d-block ms-2">
+                                        💡 Отговорът трябва да бъде точен и изчерпателен.
+                                    </small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="card shadow-sm border-0 mb-5" style="border-radius: 16px; background-color: var(--bg-card);">
+                    <div class="card-body text-center p-5">
+                        <h5 class="text-danger fw-bold mb-4">Проверете отговорите си преди да предадете!</h5>
+
+                        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                            <button type="button" class="btn btn-success btn-lg px-5 rounded-pill fw-bold hover-scale shadow-sm d-flex align-items-center justify-content-center" id="btnTriggerSubmit">
+                                <i data-lucide="upload" class="me-2" style="width: 20px;"></i> Предай тест
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-lg px-5 rounded-pill fw-bold hover-scale d-flex align-items-center justify-content-center" onclick="triggerLeaveModal()">
+                                <i data-lucide="log-out" class="me-2" style="width: 20px;"></i> Излез от теста
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4" id="sidebarContainer">
+            <div id="stickyNavCard" class="custom-scrollbar pe-2">
+
+                <div class="card mb-4 shadow-sm border-0" style="border-radius: 16px; background-color: var(--bg-card);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4 text-center" style="color: var(--text-main);">🧭 Навигация</h5>
+
+                        <div class="row g-2 justify-content-center" id="questionNav">
+                            @for (int i = 0; i < questions.Count; i++)
+                            {
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-outline-success question-nav-btn fw-bold d-flex justify-content-center align-items-center"
+                                            data-question-index="@i">
+                                        @(i + 1)
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-between mb-2">
+                                <small class="fw-bold text-uppercase" style="color: var(--text-muted); letter-spacing: 1px;">Прогрес</small>
+                                <small class="text-success fw-bold fs-6" id="progressText">0 / @questions.Count</small>
+                            </div>
+                            <div class="progress shadow-sm" style="height: 12px; border-radius: 10px; background-color: var(--bg-body);">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="progressBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0" style="border-radius: 16px; background-color: var(--bg-card);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4 text-center" style="color: var(--text-main);">ℹ️ Информация</h5>
+                        <ul class="list-unstyled mb-0" style="color: var(--text-muted);">
+                            <li class="mb-3 d-flex align-items-start">
+                                <i data-lucide="book" class="me-3 mt-1 text-success" style="width: 20px;"></i>
+                                <div>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Произведение</small>
+                                    <span style="color: var(--text-main);" class="fw-bold">@test.Book.Title</span>
+                                </div>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i data-lucide="user" class="me-3 mt-1 text-success" style="width: 20px;"></i>
+                                <div>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Автор</small>
+                                    <span style="color: var(--text-main);">@(test.Book?.Author?.Name ?? "Неизвестен автор")</span>
+                                </div>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i data-lucide="clock" class="me-3 mt-1 text-warning" style="width: 20px;"></i>
+                                <div>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Време за решаване</small>
+                                    <span style="color: var(--text-main);">@test.TimeLimitMinutes минути</span>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start">
+                                <i data-lucide="list-ordered" class="me-3 mt-1 text-info" style="width: 20px;"></i>
+                                <div>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Брой въпроси</small>
+                                    <span style="color: var(--text-main);">@questions.Count</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="leaveTestModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal-style">
+            <div class="modal-body text-center p-5">
+                <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px; background-color: rgba(220, 53, 69, 0.1);">
+                    <i data-lucide="alert-triangle" style="color: #dc3545; width: 40px; height: 40px;"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Сигурни ли сте, че искате да напуснете?</h4>
+                <p class="text-muted mb-4" style="font-size: 1.05rem;">Ако напуснете страницата сега, <b>всичките ви отговори ще бъдат загубени</b> и тестът няма да бъде предаден.</p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                    <button type="button" class="btn btn-outline-secondary fw-bold px-4 py-2 rounded-pill" data-bs-dismiss="modal">Остани в теста</button>
+                    <a href="#" id="confirmLeaveBtn" class="btn fw-bold px-4 py-2 rounded-pill shadow-sm no-warn" style="background-color: #dc3545; color: white; border: none;">Да, напусни</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal-style">
+            <div class="modal-body text-center p-5">
+                <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-4 transition-all" style="width: 80px; height: 80px; background-color: rgba(25, 135, 84, 0.1);" id="submitModalIconBg">
+                    <i data-lucide="send" style="color: #198754; width: 40px; height: 40px;" id="submitModalIcon"></i>
+                </div>
+                <h4 class="fw-bold mb-3" id="submitModalTitle">Предаване на теста</h4>
+                <p class="text-muted mb-4" id="submitModalText" style="font-size: 1.05rem;">Сигурни ли сте, че искате да предадете?</p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                    <button type="button" class="btn btn-outline-secondary fw-bold px-4 py-2 rounded-pill" data-bs-dismiss="modal">Върни се за редакция</button>
+                    <button type="button" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm" id="confirmSubmitBtn">Да, предай теста</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Дизайн на кутиите за отговори */
+    .question-card {
+        background-color: var(--bg-card);
+    }
+
+    .custom-option-box {
+        border: 2px solid var(--border-color);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        background-color: var(--bg-body);
+    }
+
+        .custom-option-box label {
+            cursor: pointer;
+        }
+
+    .custom-radio-circle {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--border-color);
+        border-radius: 50%;
+        background-color: white;
+    }
+
+    .inner-circle {
+        width: 12px;
+        height: 12px;
+        background-color: transparent;
+        transition: background-color 0.2s;
+    }
+
+    /* Хоувър и Избран статус - ЗЕЛЕНО */
+    .custom-option-box:hover {
+        border-color: #198754 !important;
+        background-color: rgba(25, 135, 84, 0.03) !important;
+    }
+
+    .custom-option-box.selected {
+        border-color: #198754 !important;
+        background-color: rgba(25, 135, 84, 0.08) !important;
+        box-shadow: 0 4px 12px rgba(25, 135, 84, 0.1);
+    }
+
+        .custom-option-box.selected .custom-radio-circle {
+            border-color: #198754 !important;
+        }
+
+        .custom-option-box.selected .inner-circle {
+            background-color: #198754 !important;
+        }
+
+    /* Навигационни бутони - ЗЕЛЕНО */
+    .question-nav-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+        .question-nav-btn.answered {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: white !important;
+        }
+
+    /* Отворен отговор */
+    .custom-textarea {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        border: 2px solid var(--border-color);
+        font-size: 1.1rem;
+        resize: vertical;
+    }
+
+        .custom-textarea:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        }
+
+    /* Тънък скролбар за плаващото меню */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #ced4da;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #198754;
+        }
+
+    .custom-modal-style {
+        background-color: var(--bg-card);
+        color: var(--text-main);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        let isFormDirty = true;
+        let targetUrl = '';
+
+        // 1. АБСОЛЮТНО ГАРАНТИРАНО ПЛАВАЩО МЕНЮ (С фикс за ширината под навбара)
+        const sidebarContainer = document.getElementById('sidebarContainer');
+        const stickyNavCard = document.getElementById('stickyNavCard');
+        const topSpacing = 100; // Отстояние от върха на екрана
+
+        function updateStickyNav() {
+            if (!sidebarContainer || !stickyNavCard) return;
+
+            const compStyle = window.getComputedStyle(sidebarContainer);
+            const paddingX = parseFloat(compStyle.paddingLeft) + parseFloat(compStyle.paddingRight);
+
+            if (window.scrollY > (sidebarContainer.offsetTop - topSpacing)) {
+                stickyNavCard.style.position = 'fixed';
+                stickyNavCard.style.top = topSpacing + 'px';
+
+                // Изваждаме padding-a, за да стои перфектно прибрано
+                stickyNavCard.style.width = (sidebarContainer.offsetWidth - paddingX) + 'px';
+                stickyNavCard.style.maxHeight = `calc(100vh - ${topSpacing + 20}px)`;
+                stickyNavCard.style.overflowY = 'auto';
+            } else {
+                stickyNavCard.style.position = 'static';
+                stickyNavCard.style.width = 'auto';
+                stickyNavCard.style.maxHeight = 'none';
+                stickyNavCard.style.overflowY = 'visible';
+            }
+        }
+
+        window.addEventListener('scroll', updateStickyNav);
+        window.addEventListener('resize', updateStickyNav);
+        updateStickyNav();
+
+        // 2. ТАЙМЕР ЛОГИКА
+        let timeLeft = @(test.TimeLimitMinutes * 60);
+        const timerElement = document.getElementById('timer');
+
+        function updateTimer() {
+            if (!timerElement) return;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 300) {
+                document.querySelector('.timer-card .card-header').classList.remove('bg-warning', 'text-dark');
+                document.querySelector('.timer-card .card-header').classList.add('bg-danger', 'text-white');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                isFormDirty = false;
+                window.onbeforeunload = null;
+                alert("Времето изтече! Тестът се предава автоматично.");
+                document.getElementById('testForm').submit();
+            }
+            timeLeft--;
+        }
+        const timerInterval = setInterval(updateTimer, 1000);
+
+        // 3. ИЗХОД ОТ ТЕСТА
+        function triggerLeaveModal() {
+            targetUrl = '@Url.Action("Details", "Books", new { id = test.BookId })';
+            $('#leaveTestModal').modal('show');
+        }
+
+        $('a').on('click', function (e) {
+            let href = $(this).attr('href');
+            if (!href || href === '#' || href.startsWith('javascript') || $(this).hasClass('no-warn')) return;
+            if (isFormDirty) {
+                e.preventDefault();
+                targetUrl = href;
+                $('#leaveTestModal').modal('show');
+            }
+        });
+
+        $('#confirmLeaveBtn').on('click', function (e) {
+            e.preventDefault();
+            isFormDirty = false;
+            window.onbeforeunload = null;
+            window.location.href = targetUrl;
+        });
+
+        // 4. ПРЕДАВАНЕ С МОДАЛ
+        $('#btnTriggerSubmit').on('click', function() {
+            const total = @questions.Count;
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length +
+                             Array.from(document.querySelectorAll('textarea')).filter(t => t.value.trim() !== "").length;
+
+            if (answered < total) {
+                $('#submitModalTitle').text('Имате пропуснати въпроси!');
+                $('#submitModalTitle').removeClass('text-success').addClass('text-warning');
+                $('#submitModalIcon').attr('data-lucide', 'alert-circle').css('color', '#ffc107');
+                $('#submitModalIconBg').css('background-color', 'rgba(255, 193, 7, 0.1)');
+                $('#submitModalText').html(`Не сте отговорили на <b class="text-danger">${total - answered}</b> въпроса.<br>Можете да предадете теста така, но ще загубите точки. Да предадем ли?`);
+                $('#confirmSubmitBtn').removeClass('btn-success').addClass('btn-warning text-dark').text('Предай въпреки това');
+            } else {
+                $('#submitModalTitle').text('Готови ли сте?');
+                $('#submitModalTitle').removeClass('text-warning').addClass('text-success');
+                $('#submitModalIcon').attr('data-lucide', 'check-circle-2').css('color', '#198754');
+                $('#submitModalIconBg').css('background-color', 'rgba(25, 135, 84, 0.1)');
+                $('#submitModalText').html('Отговорили сте на всички въпроси успешно.<br>Да предадем ли теста?');
+                $('#confirmSubmitBtn').removeClass('btn-warning text-dark').addClass('btn-success').text('Да, предай теста');
+            }
+
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            $('#submitConfirmModal').modal('show');
+        });
+
+        $('#confirmSubmitBtn').on('click', function() {
+            isFormDirty = false;
+            window.onbeforeunload = null;
+            $(this).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Зареждане...');
+            document.getElementById('testForm').submit();
+        });
+
+        // 5. UX ПОДОБРЕНИЯ И НАВИГАЦИЯ
+        function updateProgress() {
+            let answeredCount = 0;
+            const total = @questions.Count;
+
+            document.querySelectorAll('.question-card').forEach((card, index) => {
+                const isRadioAnswered = card.querySelector('input[type="radio"]:checked') !== null;
+                const isTextAnswered = Array.from(card.querySelectorAll('textarea')).some(t => t.value.trim() !== "");
+                const navBtn = document.querySelector(`.question-nav-btn[data-question-index="${index}"]`);
+
+                if (isRadioAnswered || isTextAnswered) {
+                    answeredCount++;
+                    if(navBtn) navBtn.classList.add('answered');
+                } else {
+                    if(navBtn) navBtn.classList.remove('answered');
+                }
+            });
+
+            const percentage = (answeredCount / total) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = answeredCount + ' / ' + total;
+        }
+
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const groupName = this.name;
+                document.querySelectorAll(`input[name="${groupName}"]`).forEach(r => {
+                    r.closest('.custom-option-box').classList.remove('selected');
+                });
+                if(this.checked) {
+                    this.closest('.custom-option-box').classList.add('selected');
+                }
+                updateProgress();
+            });
+        });
+
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.addEventListener('input', updateProgress);
+        });
+
+        document.querySelectorAll('.question-nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = this.getAttribute('data-question-index');
+                const targetCard = document.querySelectorAll('.question-card')[idx];
+
+                const y = targetCard.getBoundingClientRect().top + window.scrollY - 120;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            });
+        });
+
+        window.onbeforeunload = function() {
+            if (isFormDirty) return "Прогресът ще бъде изгубен!";
+        };
+
+        updateProgress();
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+    </script>
+}
+
+@functions {
+    private string GetOptionLetter(int optionId)
+    {
+        return optionId switch
+        {
+            1 => "А",
+            2 => "Б",
+            3 => "В",
+            4 => "Г",
+            _ => optionId.ToString()
+        };
+    }
+}

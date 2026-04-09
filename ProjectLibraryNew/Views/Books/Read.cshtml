@@ -1,0 +1,171 @@
+﻿@model ProjectLibrary.Models.Book
+
+@{
+    ViewData["Title"] = "Четене: " + Model.Title;
+}
+
+<div class="container book-reader-container mt-5 mb-5">
+
+    <div class="text-center text-md-start mb-4">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-back-to-book btn-outline-secondary rounded-pill fw-bold shadow-sm hover-scale btn-outline-cancel d-inline-flex align-items-center">
+            <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> <span>Назад към книгата</span>
+        </a>
+    </div>
+
+    <div class="text-center mb-4 pb-3 border-bottom">
+        <h1 class="display-4 fw-bold mb-3" style="color: var(--text-main); font-family: 'Georgia', serif;">
+            @Model.Title
+        </h1>
+        <h5 class="text-muted author-name" style="letter-spacing: 1px;">
+            от <span class="fw-bold" style="color: var(--primary);">@Model.Author.Name</span>
+        </h5>
+    </div>
+
+    <div class="d-flex justify-content-center mb-4">
+        <div class="reader-toolbar d-flex gap-3 p-2 shadow-sm rounded-pill" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+
+            <div class="btn-group shadow-none ms-1 d-none d-lg-block">
+                <button onclick="setReaderWidth('narrow')" class="btn btn-sm btn-reader-tool rounded-pill me-1" title="Тясно"><i data-lucide="align-center" style="width:16px;"></i></button>
+                <button onclick="setReaderWidth('medium')" class="btn btn-sm btn-reader-tool rounded-pill me-1 active" title="Средно"><i data-lucide="stretch-horizontal" style="width:16px;"></i></button>
+                <button onclick="setReaderWidth('wide')" class="btn btn-sm btn-reader-tool rounded-pill" title="Широко"><i data-lucide="maximize-2" style="width:16px;"></i></button>
+            </div>
+
+            <div class="vr opacity-25 d-none d-lg-block"></div>
+
+            <div class="btn-group shadow-none me-1 ms-1">
+                <button onclick="changeFontSize(-1)" class="btn btn-sm btn-reader-tool rounded-pill me-1"><i data-lucide="minus" style="width:14px;"></i></button>
+                <span class="d-flex align-items-center px-2 fw-bold text-muted small" id="fontSizeLabel" style="min-width: 45px; justify-content: center;">115%</span>
+                <button onclick="changeFontSize(1)" class="btn btn-sm btn-reader-tool rounded-pill"><i data-lucide="plus" style="width:14px;"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reading-container" class="mx-auto custom-card p-4 p-md-5 shadow-sm"
+         style="background-color: var(--bg-card); font-family: 'Georgia', serif; transition: max-width 0.4s ease-in-out; max-width: 900px; border-radius: 16px;">
+
+        @if (!string.IsNullOrEmpty(Model.FullText))
+        {
+            <div id="reading-content" style="white-space: pre-wrap; color: var(--text-main); font-size: 1.15rem; line-height: 1.6; transition: font-size 0.2s ease;">@Model.FullText.Replace("\r\n\r\n", "\r\n").Replace("\n\n", "\n")</div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i data-lucide="book-x" style="width: 48px; height: 48px; opacity: 0.5;" class="mb-3"></i>
+                <p>Текстът на това произведение все още не е добавен от администратора.</p>
+            </div>
+        }
+
+    </div>
+
+    <div class="text-center mt-5 text-muted mb-5">
+        <i data-lucide="feather" style="width: 24px;"></i>
+        <p class="mt-2 small text-uppercase fw-bold" style="letter-spacing: 2px;">Край на произведението</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentFontSize = 115;
+
+        function setReaderWidth(mode) {
+            const container = document.getElementById('reading-container');
+
+            // Премахваме активния клас от всички бутони за ширина
+            document.querySelectorAll('.btn-reader-tool').forEach(btn => {
+                if (btn.querySelector('[data-lucide="align-center"]') ||
+                    btn.querySelector('[data-lucide="stretch-horizontal"]') ||
+                    btn.querySelector('[data-lucide="maximize-2"]')) {
+                    btn.classList.remove('active');
+                }
+            });
+
+            if (mode === 'narrow') {
+                container.style.maxWidth = '650px';
+                event.currentTarget.classList.add('active');
+            } else if (mode === 'medium') {
+                container.style.maxWidth = '900px';
+                event.currentTarget.classList.add('active');
+            } else if (mode === 'wide') {
+                container.style.maxWidth = '1250px';
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize += (delta * 10);
+            if (currentFontSize < 80) currentFontSize = 80;
+            if (currentFontSize > 220) currentFontSize = 220;
+
+            const textElement = document.getElementById('reading-content');
+            if (textElement) {
+                textElement.style.fontSize = (currentFontSize / 100) + 'rem';
+                document.getElementById('fontSizeLabel').innerText = currentFontSize + '%';
+            }
+        }
+    </script>
+
+    <style>
+        /* СТИЛОВЕ ЗА ТУЛБАРА */
+        .btn-reader-tool {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 6px 12px;
+            transition: all 0.2s ease;
+        }
+
+            .btn-reader-tool:hover {
+                background-color: rgba(150, 150, 150, 0.1);
+                color: var(--primary);
+            }
+
+            .btn-reader-tool.active {
+                background-color: var(--primary) !important;
+                color: white !important;
+                box-shadow: 0 2px 6px rgba(106, 156, 120, 0.3);
+            }
+
+        /* МАХАНЕ НА ПОДСКАЧАНЕТО */
+        .custom-card {
+            transform: none !important;
+            transition: max-width 0.4s ease-in-out !important;
+        }
+
+        /* ФИКС ЗА BACK БУТОНА */
+        .btn-outline-cancel {
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+            .btn-outline-cancel:hover {
+                background-color: rgba(150, 150, 150, 0.1) !important;
+                color: var(--text-main) !important;
+                border-color: var(--text-muted) !important;
+            }
+
+        #reading-content {
+            text-align: justify;
+            text-justify: inter-word;
+        }
+
+        /* МОБИЛНИ ОПТИМИЗАЦИИ - Фиксиран @@media таг и махнат !important */
+        @@media (max-width: 576px) {
+            .book-reader-container {
+                margin-top: 1.5rem !important;
+            }
+
+                .book-reader-container h1 {
+                    font-size: 1.8rem !important;
+                }
+
+                .book-reader-container .custom-card {
+                    padding: 1.25rem !important;
+                    border-radius: 12px !important;
+                }
+
+            #reading-content {
+                font-size: 1.05rem; /* Позволяваме на JS да го променя */
+            }
+        }
+    </style>
+}

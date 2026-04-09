@@ -1,0 +1,207 @@
+﻿@model IEnumerable<ProjectLibrary.Models.Book>
+
+@{
+    ViewData["Title"] = "Библиотека";
+}
+
+<div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+            background: linear-gradient(rgba(15, 15, 15, 0.85), rgba(15, 15, 15, 0.85)),
+            url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2500&auto=format&fit=crop');
+            background-size: cover; background-position: center; background-attachment: fixed;">
+</div>
+
+<div class="d-flex align-items-center mb-4 mt-3">
+    <div class="p-2 rounded-3 me-3" style="background-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <i data-lucide="library" style="width: 28px; height: 28px;"></i>
+    </div>
+    <h2 class="fw-bold mb-0 text-white" style="text-shadow: 0 2px 8px rgba(0,0,0,0.8); letter-spacing: 1px;">Библиотека</h2>
+</div>
+
+@if (User.Identity.IsAuthenticated && ViewBag.OverallMaturaProgress != null)
+{
+    int overallProgress = (int)ViewBag.OverallMaturaProgress;
+    <div class="card p-4 mb-4 border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 2px solid var(--border-color) !important;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <h5 class="fw-bold mb-0 d-flex align-items-center" style="color: var(--text-main);">
+                <i data-lucide="graduation-cap" class="me-2 text-success" style="width: 24px; height: 24px;"></i> Готовност за матура
+            </h5>
+            <span class="badge bg-success rounded-pill px-3 py-2 fs-6 shadow-sm">@overallProgress / 100</span>
+        </div>
+        <div class="progress shadow-sm" style="height: 14px; border-radius: 10px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: @overallProgress%; transition: width 1s ease-in-out;" aria-valuenow="@overallProgress" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="text-end mt-2">
+            <small class="fw-bold text-success">@overallProgress% Усвоени материали</small>
+        </div>
+    </div>
+}
+
+<div class="card p-3 mb-5 border-0 shadow" style="background-color: var(--bg-card); border-radius: 16px;">
+    <div class="p-3 rounded-4" style="border: 2px solid var(--border-color); background-color: rgba(150, 150, 150, 0.03);">
+        <form asp-action="Index" method="get">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <input type="text" name="searchString" class="form-control rounded-pill px-3" placeholder="Търсене по заглавие..." value="@ViewContext.HttpContext.Request.Query["searchString"]" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" />
+                </div>
+                <div class="col-md-2">
+                    <select name="author" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                        <option value="">Всички автори</option>
+                        @foreach (var author in ViewBag.Authors)
+                        {
+                            <option value="@author" selected="@(ViewContext.HttpContext.Request.Query["author"] == author)">@author</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="genre" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                        <option value="">Всички жанрове</option>
+                        @foreach (var genre in ViewBag.Genres)
+                        {
+                            <option value="@genre" selected="@(ViewContext.HttpContext.Request.Query["genre"] == genre)">@genre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="studyYear" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                        <option value="">Всяка година</option>
+                        @foreach (var year in ViewBag.StudyYears)
+                        {
+                            <option value="@year" selected="@(ViewContext.HttpContext.Request.Query["studyYear"] == year.ToString())">@year клас</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="forMatura" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                        <option value="">За матура?</option>
+                        <option value="true" selected="@(ViewContext.HttpContext.Request.Query["forMatura"] == "true")">Да</option>
+                        <option value="false" selected="@(ViewContext.HttpContext.Request.Query["forMatura"] == "false")">Не</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn text-white w-100 fw-bold rounded-pill d-flex justify-content-center align-items-center shadow-sm" style="background-color: var(--primary); height: 38px;">
+                        <i data-lucide="search" style="width: 18px;"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4 position-relative z-1">
+    @{
+        var progressDict = ViewBag.UserProgresses as Dictionary<int, int>;
+    }
+
+    @foreach (var book in Model)
+    {
+        // Проверяваме прогреса за конкретната книга
+        int bookProgress = 0;
+        if (progressDict != null && progressDict.ContainsKey(book.Id))
+        {
+            bookProgress = progressDict[book.Id];
+        }
+
+        <div class="col-md-6 col-lg-4 mb-2">
+            <div class="card h-100 border-0 shadow" style="background-color: var(--bg-card); border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+                @if (bookProgress == 100)
+                {
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background-color: #10b981;"></div>
+                }
+
+                <div class="card-body p-4" style="flex: 1;">
+                    <h3 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.4rem;">@book.Title</h3>
+                    <h5 class="mb-3" style="color: var(--primary); font-weight: 500; font-size: 1rem;">от @book.Author.Name</h5>
+
+                    <p class="text-muted mb-3" style="font-size: 1rem; line-height: 1.4; min-height: 45px; overflow: hidden;">
+                        @(book.Description?.Length > 110 ? book.Description.Substring(0, 110) + "..." : book.Description)
+                    </p>
+
+                    <div class="mb-3 d-flex flex-wrap gap-2">
+                        @if (book.IsForMatura)
+                        {
+                            <span class="badge bg-success shadow-sm rounded-pill px-3 py-2" style="font-size: 0.85rem; font-weight: 600;">🎓 За матура</span>
+                        }
+
+                        <span class="badge text-dark shadow-sm rounded-pill px-3 py-2" style="background-color: #e2e8f0; font-size: 0.85rem; font-weight: 600;">@book.Genre</span>
+                        <span class="badge bg-secondary shadow-sm rounded-pill px-3 py-2" style="font-size: 0.85rem; font-weight: 600;">@book.StudyYear клас</span>
+
+                        @if (bookProgress == 100)
+                        {
+                            <span class="badge shadow-sm rounded-pill px-3 py-2" style="background-color: #10b981; color: white; font-size: 0.85rem; font-weight: 600;">
+                                <i data-lucide="check-circle-2" class="me-1" style="width: 14px; margin-top:-2px;"></i> Усвоено
+                            </span>
+                        }
+                        else if (bookProgress > 0)
+                        {
+                            <span class="badge shadow-sm rounded-pill px-3 py-2" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; font-size: 0.85rem; font-weight: 600;">
+                                Прогрес: @bookProgress%
+                            </span>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(book.Tags))
+                    {
+                        <div class="mt-2 d-flex flex-wrap gap-2 p-2 rounded-4" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            @foreach (var tag in book.Tags.Split(','))
+                            {
+                                <span class="fw-bold" style="color: #5d4037; font-size: 0.9rem; margin-right: 4px;">#@tag.Trim()</span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer bg-transparent border-0 px-4 pb-4 pt-0 d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between px-1">
+                        @if (book.Analyses.Any())
+                        {
+                            <span class="small fw-bold text-success" style="font-size: 0.85rem;"><i data-lucide="bar-chart-2" style="width: 14px;" class="me-1"></i> Анализи (@book.Analyses.Count)</span>
+                        }
+                        @if (book.Tests.Any())
+                        {
+                            <span class="small fw-bold text-info" style="font-size: 0.85rem;"><i data-lucide="check-square" style="width: 14px;" class="me-1"></i> Тестове (@book.Tests.Count)</span>
+                        }
+                    </div>
+
+                    <a href="@Url.Action("Details", new { id = book.Id })" class="btn btn-solid-premium w-100 py-2 fw-bold text-uppercase shadow-sm" style="letter-spacing: 1px; font-size: 0.9rem; border-radius: 12px;">
+                        Виж произведението
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert text-center p-5 rounded-4 shadow mt-4 border-0" style="background-color: var(--bg-card); color: var(--text-muted);">
+        <i data-lucide="search-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
+        <h5 class="fw-bold">Няма намерени книги</h5>
+        <p class="mb-0">Опитайте с различни филтри за търсене.</p>
+    </div>
+}
+
+<style>
+    /* ПРЕМАХВАМЕ ПОДСКАЧАНЕТО */
+    .card {
+        transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+        transform: none !important;
+    }
+
+        .card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+        }
+
+    /* Иконките вътре в картите */
+    .btn i {
+        stroke-width: 2.5px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "Сравнение";
+}
+
+<h2>📊 Сравнение с други потребители</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>👤 Вашата статистика</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Колекции:</strong> @ViewBag.UserStats.Collections</p>
+                <p><strong>Книги:</strong> @ViewBag.UserStats.Books</p>
+                <p><strong>Коментари:</strong> @ViewBag.UserStats.Comments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>👥 Средно за системата</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Колекции:</strong> @Math.Round(ViewBag.AverageStats.AvgCollections, 1)</p>
+                <p><strong>Книги:</strong> @Math.Round(ViewBag.AverageStats.AvgBooks, 1)</p>
+                <p><strong>Коментари:</strong> @Math.Round(ViewBag.AverageStats.AvgComments, 1)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5>📈 Сравнителна графика</h5>
+    </div>
+    <div class="card-body">
+        <div class="text-center">
+            <p class="text-muted">📊 Визуализацията на графики ще бъде добавена в бъдеща версия.</p>
+            <div class="alert alert-info">
+                <strong>💡 Съвет:</strong> Продължете да добавяте книги в колекциите си,
+                за да подобрите статистиката си!
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="@Url.Action("Index")" class="btn btn-secondary">← Назад към статистиката</a>
+</div>

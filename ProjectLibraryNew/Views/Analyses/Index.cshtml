@@ -1,0 +1,62 @@
+﻿@model IEnumerable<ProjectLibrary.Models.Analysis>
+
+@{
+    ViewData["Title"] = "Анализи за " + ViewBag.BookTitle;
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-3 gap-3">
+    <div class="d-flex align-items-center">
+        <i data-lucide="bar-chart-2" class="me-2 text-info" style="width: 28px; height: 28px;"></i>
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Анализи: <span class="text-primary">@ViewBag.BookTitle</span></h2>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-controller="Admin" asp-action="Books" class="btn btn-outline-secondary fw-bold rounded-pill px-4 shadow-sm hover-scale d-flex align-items-center">
+            <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> Назад
+        </a>
+        <a asp-action="Create" asp-route-bookId="@ViewBag.BookId" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm hover-scale d-flex align-items-center">
+            <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Добави анализ
+        </a>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="row g-4 mb-5">
+        @foreach (var item in Model)
+        {
+            <div class="col-12">
+                <div class="custom-card p-4 shadow-sm" style="background-color: var(--bg-card); border-left: 4px solid var(--primary) !important;">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-3 border-bottom pb-3">
+                        <small class="text-muted fw-bold d-flex align-items-center mb-2 mb-md-0">
+                            <i data-lucide="calendar" class="me-2" style="width: 14px;"></i> Добавен на: @item.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                        </small>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-solid-premium px-3 py-1">
+                                <i data-lucide="edit-3" style="width: 14px;"></i> Редактирай
+                            </a>
+                            <form asp-action="Delete" method="post" class="m-0" onsubmit="return confirm('Сигурни ли сте, че искате да изтриете този анализ?');">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center" style="border-radius: 8px;">
+                                    <i data-lucide="trash-2" style="width: 14px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <p class="mb-0" style="color: var(--text-main); line-height: 1.6; white-space: pre-wrap; font-size: 1.05rem;">@item.Content</p>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm mb-5 text-center py-5" style="background-color: var(--bg-card); border-radius: 16px;">
+        <i data-lucide="file-x" class="mb-3 opacity-50 mx-auto" style="width: 48px; height: 48px; color: var(--text-muted);"></i>
+        <h5 class="fw-bold" style="color: var(--text-main);">Няма добавени анализи</h5>
+        <p class="text-muted mb-4">Все още няма въведени анализи за това произведение.</p>
+        <a asp-action="Create" asp-route-bookId="@ViewBag.BookId" class="btn btn-primary fw-bold rounded-pill px-4 mx-auto d-inline-flex align-items-center" style="width: fit-content;">
+            <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Добави първия анализ
+        </a>
+    </div>
+}

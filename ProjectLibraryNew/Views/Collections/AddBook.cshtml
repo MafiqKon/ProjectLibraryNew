@@ -1,0 +1,119 @@
+﻿@{
+    ViewData["Title"] = "Добави книга в колекция";
+}
+
+@{
+    var collection = ViewBag.Collection as ProjectLibrary.Models.BookCollection;
+    var books = ViewBag.Books as List<ProjectLibrary.Models.Book>;
+    var existingBookIds = ViewBag.ExistingBookIds as List<int> ?? new List<int>();
+    var searchQuery = ViewBag.SearchQuery as string;
+}
+
+<h2>➕ Добави книга в колекция: <span class="text-primary">@collection?.Name</span></h2>
+
+<!-- SEARCH BAR ЗА КНИГИ -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <input type="hidden" name="collectionId" value="@collection?.Id" />
+            <div class="col-md-8">
+                <input type="text" name="search" class="form-control"
+                       placeholder="🔍 Търсене по заглавие, автор или жанр..."
+                       value="@searchQuery">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Търси</button>
+            </div>
+            <div class="col-md-2">
+                <a href="@Url.Action("AddBook", new { collectionId = collection?.Id })"
+                   class="btn btn-outline-secondary w-100">Изчисти</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(searchQuery))
+{
+    <div class="alert alert-info">
+        📋 Показване на резултати за: "<strong>@searchQuery</strong>"
+        <a href="@Url.Action("AddBook", new { collectionId = collection?.Id })" class="float-end">Покажи всички книги</a>
+    </div>
+}
+
+@if (books != null && books.Any())
+{
+    <div class="row">
+        @foreach (var book in books)
+        {
+            var isAlreadyAdded = existingBookIds.Contains(book.Id);
+
+            <div class="col-md-6 mb-3">
+                <div class="card @(isAlreadyAdded ? "border-secondary bg-light" : "border-primary") h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@book.Title</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">@book.Author.Name</h6>
+                        <p class="card-text">
+                            <span class="badge bg-info">@book.Genre</span>
+                            <span class="badge bg-secondary">@book.StudyYear клас</span>
+                            @if (book.IsForMatura)
+                            {
+                                <span class="badge bg-success">🎓 За матура</span>
+                            }
+                        </p>
+                        <p class="card-text small text-muted">
+                            @book.Description
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        @if (isAlreadyAdded)
+                        {
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary">✅ Вече добавена</span>
+                                <button class="btn btn-outline-secondary btn-sm" disabled>➕ Добавена</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <form method="post" asp-action="AddBookToCollection" class="d-inline">
+                                <input type="hidden" name="collectionId" value="@collection.Id" />
+                                <input type="hidden" name="bookId" value="@book.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">➕ Добави в колекция</button>
+                            </form>
+                            <a href="@Url.Action("Details", "Books", new { id = book.Id })"
+                               class="btn btn-outline-primary btn-sm ms-1" target="_blank">👀 Детайли</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-3 text-center">
+        <p class="text-muted">Показани <strong>@books.Count</strong> книги</p>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center">
+        <h5>📭 Няма намерени книги</h5>
+        <p>
+            @if (!string.IsNullOrEmpty(searchQuery))
+            {
+                <text>Не са намерени книги за "<strong>@searchQuery</strong>"</text>
+            }
+            else
+            {
+                <text>Все още няма книги в библиотеката.</text>
+            }
+        </p>
+        @if (!string.IsNullOrEmpty(searchQuery))
+        {
+            <a href="@Url.Action("AddBook", new { collectionId = collection?.Id })" class="btn btn-primary">Покажи всички книги</a>
+        }
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">← Назад към колекциите</a>
+    <a href="@Url.Action("Details", new { id = collection?.Id })" class="btn btn-outline-primary">👁️ Преглед на колекцията</a>
+</div>

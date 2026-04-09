@@ -1,0 +1,107 @@
+﻿@model IEnumerable<ProjectLibrary.Models.Author>
+
+@{
+    ViewData["Title"] = "Управление на автори";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-3 gap-3">
+    <div class="d-flex align-items-center">
+        <i data-lucide="users" class="me-2 text-primary" style="width: 28px; height: 28px;"></i>
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Управление на автори</h2>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-3">
+        <form asp-action="Authors" method="get" class="m-0">
+            <div class="input-group shadow-sm" style="border-radius: 50px; overflow: hidden; background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                <span class="input-group-text bg-transparent border-0 pe-1" style="color: var(--text-muted);">
+                    <i data-lucide="search" style="width: 18px;"></i>
+                </span>
+                <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control border-0 shadow-none bg-transparent" placeholder="Търси автор..." style="color: var(--text-main); min-width: 220px;" />
+                <button type="submit" class="btn fw-bold px-3" style="background-color: var(--bg-card-nested); color: var(--text-main); border-left: 1px solid var(--border-color);">
+                    Търси
+                </button>
+                @if (ViewData["CurrentFilter"] != null)
+                {
+                    <a asp-action="Authors" class="btn btn-danger d-flex align-items-center px-3" title="Изчисти">
+                        <i data-lucide="x" style="width: 16px; margin:0;"></i>
+                    </a>
+                }
+            </div>
+        </form>
+
+        <a asp-controller="Authors" asp-action="Create" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm hover-scale d-flex align-items-center justify-content-center">
+            <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Добави автор
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm overflow-hidden mb-5" style="background-color: var(--bg-card); border: 2px solid var(--border-color) !important; border-radius: 16px; transform: none !important; transition: none !important;">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0" style="color: var(--text-main);">
+            <thead style="background-color: rgba(150, 150, 150, 0.05);">
+                <tr>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold">Автор</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold">Биография</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold text-center">Брой</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold text-end">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td class="py-3 px-4">
+                                <div class="d-flex align-items-center">
+                                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" : item.ImageUrl)"
+                                         class="rounded-circle me-3 object-fit-cover shadow-sm" style="width: 45px; height: 45px; border: 2px solid var(--bg-body);" />
+                                    <span class="fw-bold" style="font-size: 1.05rem;">@item.Name</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 text-muted" style="max-width: 300px;">
+                                <div class="text-truncate">
+                                    @(string.IsNullOrEmpty(item.Biography) ? "Няма биография" : item.Biography)
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 text-center">
+
+                                @{
+                                    var booksCount = item.Books != null ? item.Books.Count : 0;
+                                    var booksWord = booksCount == 1 ? "произведение" : "произведения";
+                                }
+                                <span class="badge rounded-pill shadow-sm" style="background-color: var(--bg-body); color: var(--text-main); border: 2px solid var(--border-color); padding: 8px 15px; font-size: 0.85rem;">
+                                    @booksCount @booksWord
+                                </span>
+
+                            </td>
+                            <td class="py-3 px-4 text-end">
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+
+                                    <a asp-controller="Authors" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-solid-premium btn-sm d-flex align-items-center m-0" style="padding: 6px 14px !important; font-size: 0.85rem !important;">
+                                        <i data-lucide="edit-3" class="me-1" style="width: 14px;"></i> Редактирай
+                                    </a>
+
+                                    <a asp-controller="Authors" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center hover-scale m-0" style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;">
+                                        <i data-lucide="trash-2" style="width: 16px; margin: 0;"></i>
+                                    </a>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i data-lucide="user-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
+                            <h5 class="fw-bold">Няма намерени автори</h5>
+                            <p class="mb-0">Опитайте с друго търсене или добавете нов автор.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

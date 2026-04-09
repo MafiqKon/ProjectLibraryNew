@@ -1,0 +1,212 @@
+﻿@model ProjectLibrary.Models.QuizViewModel
+
+@{
+    ViewData["Title"] = Model.BookTitle;
+}
+
+<div class="container mt-5 pt-4 mb-5">
+    <div class="custom-card p-4 p-md-5 mx-auto shadow-lg" style="max-width: 800px; border-top: 4px solid var(--primary) !important;">
+
+        <div class="text-center mb-4">
+            <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style="width: 60px; height: 60px; background-color: var(--bg-body); border: 2px solid var(--primary);">
+                <i data-lucide="brain-circuit" style="color: var(--primary); width: 32px; height: 32px;"></i>
+            </div>
+            <h2 class="fw-bold" style="color: var(--text-main);">@Model.BookTitle</h2>
+            <p class="text-muted">Провери знанията си с тези @Model.Questions.Count въпроса</p>
+        </div>
+
+        @if (Model.IsSubmitted)
+        {
+            <div class="alert mb-5 text-center rounded-4 shadow-sm" style="background-color: var(--bg-body); border: 2px dashed var(--primary);">
+                <h3 class="mb-0" style="color: var(--text-main);">Твоят резултат: <strong style="color: var(--primary); font-size: 2rem;">@Model.Score / @Model.Questions.Count</strong></h3>
+            </div>
+        }
+
+        <form asp-action="PracticeTest" method="post" id="quizForm">
+            <input type="hidden" asp-for="QuizId" value="@Model.QuizId" />
+
+            @for (int i = 0; i < Model.Questions.Count; i++)
+            {
+                <div class="mb-4 p-4 rounded-4 shadow-sm" style="background-color: var(--bg-card-nested); border: 1px solid var(--border-color);">
+                    <h5 class="fw-bold mb-4" style="color: var(--text-main);">@(i + 1). @Model.Questions[i].Text</h5>
+                    <input type="hidden" asp-for="Questions[i].Id" />
+
+                    @if (Model.Questions[i].IsOpenEnded)
+                    {
+                        <div class="form-group">
+                            <input type="text" asp-for="Questions[i].UserTextAnswer" class="form-control p-3 test-input" placeholder="Въведи своя отговор тук..." disabled="@(Model.IsSubmitted ? "disabled" : null)" style="background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 12px; font-size: 1.1rem;" />
+                        </div>
+
+                        // ПРОВЕРКА ЗА ОТВОРЕН ВЪПРОС СЛЕД ПРЕДАВАНЕ
+                        @if (Model.IsSubmitted)
+                        {
+                            if (Model.Questions[i].IsAnswerCorrect == true)
+                            {
+                                <div class="mt-3 p-3 rounded-3 d-flex align-items-center" style="background-color: rgba(25, 135, 84, 0.1); border-left: 4px solid #198754;">
+                                    <i data-lucide="check-circle-2" class="me-2" style="color: #198754; width: 20px; height: 20px;"></i>
+                                    <span style="color: #198754; font-weight: 600;">Отличен! Верен отговор.</span>
+                                </div>
+                            }
+                            else if (string.IsNullOrWhiteSpace(Model.Questions[i].UserTextAnswer))
+                            {
+                                <div class="mt-3 p-3 rounded-3 d-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.08); border-left: 4px solid #dc3545;">
+                                    <i data-lucide="alert-circle" class="me-2" style="color: #dc3545; width: 20px; height: 20px;"></i>
+                                    <span style="color: #dc3545; font-weight: 600;">Липсва отговор! <span class="ms-1" style="opacity: 0.9; font-weight: normal;">(Примерни верни: @string.Join(", ", Model.Questions[i].AcceptableAnswers))</span></span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mt-3 p-3 rounded-3 d-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.08); border-left: 4px solid #dc3545;">
+                                    <i data-lucide="x-circle" class="me-2" style="color: #dc3545; width: 20px; height: 20px;"></i>
+                                    <span style="color: #dc3545; font-weight: 600;">Грешен отговор. <span class="ms-1" style="opacity: 0.9; font-weight: normal;">(Примерни верни: @string.Join(", ", Model.Questions[i].AcceptableAnswers))</span></span>
+                                </div>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var option in Model.Questions[i].Options)
+                            {
+                                string labelStyle = "border: 1px solid var(--border-color); background-color: var(--bg-card);";
+
+                                if (Model.IsSubmitted)
+                                {
+                                    if (option.Id == Model.Questions[i].CorrectOptionId)
+                                    {
+                                        labelStyle = "border: 2px solid #198754; background-color: rgba(25, 135, 84, 0.1); font-weight: bold;";
+                                    }
+                                    else if (option.Id == Model.Questions[i].SelectedOptionId && option.Id != Model.Questions[i].CorrectOptionId)
+                                    {
+                                        labelStyle = "border: 2px solid #dc3545; background-color: rgba(220, 53, 69, 0.1); text-decoration: line-through; opacity: 0.7;";
+                                    }
+                                }
+
+                                <label class="p-3 rounded-3 d-flex align-items-center" style="cursor: pointer; transition: all 0.2s ease; @labelStyle">
+                                    <input type="radio" asp-for="Questions[i].SelectedOptionId" value="@option.Id" class="form-check-input me-3 mt-0 test-input" style="transform: scale(1.2);" disabled="@(Model.IsSubmitted ? "disabled" : null)" />
+                                    <span style="color: var(--text-main); font-size: 1.05rem;">@option.Text</span>
+
+                                    @if (Model.IsSubmitted && option.Id == Model.Questions[i].CorrectOptionId)
+                                    {
+                                        <i data-lucide="check-circle-2" class="ms-auto" style="color: #198754; width: 24px; height: 24px;"></i>
+                                    }
+                                    @if (Model.IsSubmitted && option.Id == Model.Questions[i].SelectedOptionId && option.Id != Model.Questions[i].CorrectOptionId)
+                                    {
+                                        <i data-lucide="x-circle" class="ms-auto" style="color: #dc3545; width: 24px; height: 24px;"></i>
+                                    }
+                                </label>
+                            }
+                        </div>
+
+                        // Съобщение Липсва Отговор за Затворени
+                        @if (Model.IsSubmitted && !Model.Questions[i].SelectedOptionId.HasValue)
+                        {
+                            <div class="mt-3 p-3 rounded-3 d-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.08); border-left: 4px solid #dc3545;">
+                                <i data-lucide="alert-circle" class="me-2" style="color: #dc3545; width: 20px; height: 20px;"></i>
+                                <span style="color: #dc3545; font-weight: 600; font-size: 0.95rem;">Липсва отговор! Верният отговор е маркиран в зелено.</span>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+
+            @if (!Model.IsSubmitted)
+            {
+                <div class="text-center mt-5">
+                    <button type="submit" id="submitBtn" class="btn btn-solid-premium w-100 py-3" style="max-width: 350px; font-size: 1.1rem;">
+                        <i data-lucide="send" class="me-2"></i> Предай теста за проверка
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="text-center mt-5 d-flex justify-content-center gap-3 flex-wrap">
+                    <a asp-action="PracticeTest" asp-route-id="@Model.QuizId" class="btn btn-solid-premium py-3 px-4 no-warn">
+                        <i data-lucide="refresh-cw" class="me-2"></i> Реши отново
+                    </a>
+                    <a asp-action="MyResults" class="btn py-3 px-4 no-warn" style="background-color: var(--bg-card-nested); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 12px; font-weight: bold;">
+                        <i data-lucide="bar-chart-3" class="me-2"></i> Към моите статистики
+                    </a>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold d-flex align-items-center" style="color: var(--text-main);">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background-color: rgba(245, 158, 11, 0.1);">
+                        <i data-lucide="alert-triangle" style="color: #f59e0b; width: 24px; height: 24px;"></i>
+                    </div>
+                    Внимание!
+                </h4>
+            </div>
+            <div class="modal-body text-muted pt-4 pb-4 px-4" style="font-size: 1.05rem;">
+                Имате незавършен тест. Сигурни ли сте, че искате да напуснете тази страница? <br><br>
+                <strong style="color: var(--text-main);">Ако продължите, всички немаркирани отговори ще бъдат загубени!</strong>
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                <button type="button" class="btn fw-bold px-4 py-2" data-bs-dismiss="modal" style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px;">Остани тук</button>
+                <a href="#" id="confirmLeaveBtn" class="btn fw-bold px-4 py-2 no-warn" onclick="isFormDirty = false; window.onbeforeunload = null;" style="background-color: #dc3545; border: 1px solid #dc3545; color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);">Да, напусни</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ЛОГИКА ЗА ПРЕДУПРЕЖДЕНИЕ ПРИ НАПУСКАНЕ
+        let isFormDirty = false;
+        let isSubmitting = false;
+        const isAlreadySubmitted = @Model.IsSubmitted.ToString().ToLower();
+
+        // Ако тестът не е предаден, следим дали потребителят е кликнал нещо
+        if (!isAlreadySubmitted) {
+            document.querySelectorAll('.test-input').forEach(input => {
+                input.addEventListener('change', () => { isFormDirty = true; });
+                input.addEventListener('input', () => { isFormDirty = true; });
+            });
+
+            document.getElementById('quizForm').addEventListener('submit', () => {
+                isSubmitting = true;
+            });
+
+            // 1. Стандартно браузърно предупреждение (Действа САМО ако затвориш целия таб от Х-а или натиснеш F5)
+            window.addEventListener('beforeunload', function (e) {
+                if (isFormDirty && !isSubmitting) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // 2. Нашият Custom Modal за кликане на линкове вътре в сайта
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    // Ако не сме пипали нищо, или бутонът има клас 'no-warn', си минаваме
+                    if (!isFormDirty || this.classList.contains('no-warn') || this.hasAttribute('data-bs-toggle') || this.getAttribute('target') === '_blank') {
+                        return;
+                    }
+
+                    let targetUrl = this.getAttribute('href');
+                    if (targetUrl && !targetUrl.startsWith('#') && !targetUrl.startsWith('javascript')) {
+                        e.preventDefault(); // Спираме напускането
+
+                        // Отваряме красивия модал
+                        let leaveModal = new bootstrap.Modal(document.getElementById('leaveModal'));
+                        document.getElementById('confirmLeaveBtn').setAttribute('href', targetUrl);
+                        leaveModal.show();
+                    }
+                });
+            });
+
+            // 3. ФИКСЪТ: Когато потребителят цъкне "Да, напусни" в нашия модал,
+            // "излъгваме" браузъра, че формата е чиста, за да не вади своето досадно съобщение!
+            document.getElementById('confirmLeaveBtn').addEventListener('click', function() {
+                isFormDirty = false;
+            });
+        }
+    </script>
+}

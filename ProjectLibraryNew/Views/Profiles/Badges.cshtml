@@ -1,0 +1,103 @@
+﻿@model IEnumerable<ProjectLibrary.Models.Badge>
+
+@{
+    ViewData["Title"] = "Моите постижения";
+    var earnedIds = ViewBag.EarnedBadgeIds as List<int> ?? new List<int>();
+    var earnedCount = ViewBag.EarnedCount ?? 0;
+    var totalCount = ViewBag.TotalCount ?? 1;
+    var progress = (int)Math.Round((double)earnedCount / totalCount * 100);
+}
+
+<div class="container mt-4 mb-5 pt-3">
+
+    <div class="custom-card p-4 p-md-5 mb-5 position-relative overflow-hidden" style="border-left: 4px solid #eab308 !important;">
+        <i data-lucide="trophy" class="position-absolute" style="color: #eab308; opacity: 0.05; width: 180px; height: 180px; right: -20px; bottom: -40px;"></i>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div>
+                <a asp-action="MyProfile" class="btn btn-sm btn-outline-secondary rounded-pill mb-3 fw-bold d-inline-flex align-items-center btn-outline-cancel">
+                    <i data-lucide="arrow-left" style="width: 14px;"></i> Назад към профила
+                </a>
+                <h2 class="fw-bold mb-1 d-flex align-items-center" style="color: var(--text-main);">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm" style="width: 50px; height: 50px; background-color: rgba(234, 179, 8, 0.1);">
+                        <i data-lucide="award" style="color: #eab308; width: 28px; height: 28px;"></i>
+                    </div>
+                    Стена на славата
+                </h2>
+                <p class="text-muted mb-0">Събирай значки като четеш, решаваш тестове и дискутираш!</p>
+            </div>
+
+            <div class="text-md-end text-start min-w-200">
+                <div class="d-flex justify-content-between align-items-end mb-2">
+                    <span class="text-muted fw-bold small text-uppercase">Прогрес</span>
+                    <span class="badge rounded-pill fw-bold" style="background-color: #eab308; color: white;">@earnedCount / @totalCount</span>
+                </div>
+                <div class="progress rounded-pill shadow-sm" style="height: 12px; background-color: var(--bg-card-nested);">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @progress%; background-color: #eab308;" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="fw-bold mb-4 d-flex align-items-center" style="color: var(--text-main);">
+        <i data-lucide="unlock" class="me-2" style="color: #10b981;"></i> Отключени постижения
+    </h4>
+
+    <div class="row g-4 mb-5">
+        @foreach (var badge in Model.Where(b => earnedIds.Contains(b.Id)))
+        {
+            <div class="col-sm-6 col-lg-4">
+                <div class="custom-card h-100 p-4 text-center position-relative hover-scale" style="border: 2px solid #eab308 !important; background: linear-gradient(145deg, var(--bg-card) 0%, rgba(234, 179, 8, 0.03) 100%);">
+                    <div class="position-absolute top-0 end-0 p-3">
+                        <i data-lucide="check-circle-2" style="color: #10b981; width: 20px;"></i>
+                    </div>
+
+                    <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow-sm" style="width: 80px; height: 80px; background-color: var(--bg-body); border: 2px solid #eab308;">
+                        <i data-lucide="star" style="color: #eab308; width: 40px; height: 40px; fill: rgba(234, 179, 8, 0.2);"></i>
+                    </div>
+
+                    <h5 class="fw-bold mb-2" style="color: var(--text-main);">@badge.Name</h5>
+                    <p class="text-muted small mb-0">Постижението е отключено! Продължавай все така.</p>
+                </div>
+            </div>
+        }
+
+        @if (!Model.Any(b => earnedIds.Contains(b.Id)))
+        {
+            <div class="col-12">
+                <div class="alert text-center border-0 rounded-4 py-4" style="background-color: var(--bg-card-nested); color: var(--text-muted);">
+                    Все още нямаш отключени значки. Започни да четеш и коментираш, за да спечелиш първата си!
+                </div>
+            </div>
+        }
+    </div>
+
+    <h4 class="fw-bold mb-4 d-flex align-items-center" style="color: var(--text-muted); opacity: 0.8;">
+        <i data-lucide="lock" class="me-2"></i> Очакват те
+    </h4>
+
+    <div class="row g-4 mb-5">
+        @foreach (var badge in Model.Where(b => !earnedIds.Contains(b.Id)))
+        {
+            <div class="col-sm-6 col-lg-4">
+                <div class="custom-card h-100 p-4 text-center" style="background-color: var(--bg-card-nested); filter: grayscale(100%); opacity: 0.7; border-style: dashed !important;">
+
+                    <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px; background-color: var(--bg-body); border: 2px solid var(--border-color);">
+                        <i data-lucide="lock" style="color: var(--text-muted); width: 32px; height: 32px;"></i>
+                    </div>
+
+                    <h5 class="fw-bold mb-2" style="color: var(--text-muted);">@badge.Name</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Продължавай да бъдеш активен в библиотеката, за да отключиш.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

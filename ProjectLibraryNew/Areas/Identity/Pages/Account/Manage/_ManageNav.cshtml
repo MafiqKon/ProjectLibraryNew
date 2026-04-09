@@ -1,0 +1,65 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using ProjectLibrary.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+
+<ul class="nav nav-pills flex-column gap-2 custom-manage-nav">
+    <li class="nav-item">
+        <a class="nav-link rounded-pill fw-bold d-flex align-items-center @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">
+            <i data-lucide="user" class="me-2" style="width: 18px;"></i> Профил
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link rounded-pill fw-bold d-flex align-items-center @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">
+            <i data-lucide="mail" class="me-2" style="width: 18px;"></i> Имейл
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link rounded-pill fw-bold d-flex align-items-center @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">
+            <i data-lucide="key" class="me-2" style="width: 18px;"></i> Парола
+        </a>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li class="nav-item">
+            <a class="nav-link rounded-pill fw-bold d-flex align-items-center @ManageNavPages.ExternalLoginsNavClass(ViewContext)" id="external-login" asp-page="./ExternalLogins">
+                <i data-lucide="link" class="me-2" style="width: 18px;"></i> Външни входове
+            </a>
+        </li>
+    }
+    <li class="nav-item">
+        <a class="nav-link rounded-pill fw-bold d-flex align-items-center @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">
+            <i data-lucide="shield" class="me-2" style="width: 18px;"></i> Двуфакторна защита
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link rounded-pill fw-bold d-flex align-items-center @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">
+            <i data-lucide="database" class="me-2" style="width: 18px;"></i> Лични данни
+        </a>
+    </li>
+</ul>
+
+<style>
+    .custom-manage-nav .nav-link {
+        color: var(--text-main) !important; /* ВАЖНО: Форсираме тъмния цвят за да се вижда! */
+        background-color: transparent !important;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+        padding: 12px 20px;
+    }
+
+        .custom-manage-nav .nav-link:hover {
+            background-color: rgba(106, 156, 120, 0.1) !important;
+            color: var(--primary) !important;
+            transform: translateX(5px); /* Плавно мърдане надясно, вместо грозен квадрат */
+        }
+
+        .custom-manage-nav .nav-link.active {
+            background-color: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 4px 10px rgba(106, 156, 120, 0.3);
+            transform: none; /* Активният бутон стои мирно */
+        }
+</style>

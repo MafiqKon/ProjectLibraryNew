@@ -1,0 +1,424 @@
+﻿@model ProjectLibrary.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Моят профил";
+}
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@@fullcalendar/core@6.1.11/locales/bg.global.min.js'></script>
+
+<div class="container mt-5 mb-5">
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="custom-card text-center p-4 p-md-5 mb-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+                <div class="d-inline-block p-1 rounded-circle mb-4" style="border: 3px solid var(--border-color); transition: border-color 0.3s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                    {
+                        <img src="@Model.ProfilePictureUrl" alt="Профилна снимка" class="rounded-circle shadow-sm" style="width: 120px; height: 120px; object-fit: cover; background-color: var(--bg-body);" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle d-flex justify-content-center align-items-center overflow-hidden shadow-sm" style="width: 120px; height: 120px; background-color: var(--bg-body); color: var(--primary);">
+                            <i data-lucide="user" style="width: 60px; height: 60px; stroke-width: 1.5;"></i>
+                        </div>
+                    }
+                </div>
+                <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.FirstName @Model.LastName</h3>
+                <p class="text-muted mb-4 fs-6">@Model.Email</p>
+                <div class="mb-4">
+                    <span class="badge bg-primary text-white px-4 py-2 rounded-pill shadow-sm text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">
+                        <i data-lucide="shield" class="me-1 d-inline" style="width: 14px; margin-top: -3px;"></i> @Model.UserType
+                    </span>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+                <a href="/Identity/Account/Manage" class="btn text-white w-100 rounded-pill fw-bold py-3 mb-3 hover-scale d-flex justify-content-center align-items-center" style="background-color: #6a9c78;">
+                    <i data-lucide="pen-tool" class="me-2" style="width: 18px; height: 18px;"></i> Редактирай профила
+                </a>
+                <a href="/Identity/Account/Manage/ChangePassword" class="btn w-100 rounded-pill fw-bold py-2 hover-scale d-flex justify-content-center align-items-center" style="background-color: transparent; border: 1px solid var(--text-muted); color: var(--text-main);">
+                    <i data-lucide="key-round" class="me-2" style="width: 18px; height: 18px;"></i> Смяна на парола
+                </a>
+            </div>
+            <div class="custom-card p-4 d-flex flex-row justify-content-between align-items-center shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+                <span class="text-muted fw-bold d-flex align-items-center">
+                    <i data-lucide="calendar-heart" class="me-2 text-primary" style="width: 20px;"></i> В системата от:
+                </span>
+                <span class="fw-bold fs-5" style="color: var(--text-main);">@Model.RegistrationDate.ToString("yyyy")</span>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="custom-card p-4 p-md-5 mb-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+                <h4 class="fw-bold d-flex align-items-center mb-4 pb-3" style="color: var(--text-main); border-bottom: 2px dashed var(--border-color);">
+                    <div class="p-2 rounded-3 text-white me-3 d-flex align-items-center justify-content-center" style="background-color: #6a9c78; width: 40px; height: 40px;">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    Твоята Активност
+                </h4>
+
+                <div class="row g-3 mb-5">
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="Collections" asp-action="Index" class="stat-box-modern p-3 text-center d-block text-decoration-none hover-scale h-100" style="color: inherit; background-color: var(--bg-body); border: 1px dashed var(--border-color); border-radius: 16px;">
+                            <i data-lucide="layers" class="mb-2" style="color: #3b82f6; width: 28px; height: 28px;"></i>
+                            <h3 class="fw-bold mb-0" style="color: var(--text-main);">@ViewBag.CollectionsCount</h3>
+                            <span class="small text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Колекции</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="Books" asp-action="Index" class="stat-box-modern p-3 text-center d-block text-decoration-none hover-scale h-100" style="color: inherit; background-color: var(--bg-body); border: 1px dashed var(--border-color); border-radius: 16px;">
+                            <i data-lucide="book-open" class="mb-2" style="color: #10b981; width: 28px; height: 28px;"></i>
+                            <h3 class="fw-bold mb-0" style="color: var(--text-main);">@ViewBag.BooksCount</h3>
+                            <span class="small text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Произведения</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="Tests" asp-action="MyResults" class="stat-box-modern p-3 text-center d-block text-decoration-none hover-scale h-100" style="color: inherit; background-color: var(--bg-body); border: 1px dashed var(--border-color); border-radius: 16px;">
+                            <i data-lucide="check-square" class="mb-2" style="color: #06b6d4; width: 28px; height: 28px;"></i>
+                            <h3 class="fw-bold mb-0" style="color: var(--text-main);">@ViewBag.TestsCount</h3>
+                            <span class="small text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Тестове</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="Profiles" asp-action="Badges" class="stat-box-modern p-3 text-center d-block text-decoration-none hover-scale h-100" style="color: inherit; border: 1px dashed #eab308; background-color: rgba(234, 179, 8, 0.05); border-radius: 16px;">
+                            <i data-lucide="award" class="mb-2" style="color: #eab308; width: 28px; height: 28px;"></i>
+                            <h3 class="fw-bold mb-0" style="color: var(--text-main);">@ViewBag.BadgesCount</h3>
+                            <span class="small text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Значки</span>
+                        </a>
+                    </div>
+                </div>
+
+                @{
+                    int maturaProgress = ViewBag.OverallMaturaProgress != null ? (int)ViewBag.OverallMaturaProgress : 0;
+                }
+
+                <div class="p-4 rounded-4 shadow-sm" style="background: rgba(40,167,69,0.05); border: 1px solid rgba(40,167,69,0.2);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold fs-5 d-flex align-items-center" style="color: var(--text-main);">
+                            <i data-lucide="graduation-cap" class="me-2" style="color: #6a9c78; width: 24px; height: 24px;"></i> Готовност за матура
+                        </span>
+                        <span class="badge text-white px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm" style="background-color: #6a9c78;">
+                            @maturaProgress / 100
+                        </span>
+                    </div>
+                    <div class="progress rounded-pill shadow-inner" style="height: 14px; background-color: var(--border-color);">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated rounded-pill" role="progressbar" style="width: @maturaProgress%; background-color: #6a9c78; transition: width 1.5s ease-in-out;"></div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <span class="fw-bold" style="color: #6a9c78;">@maturaProgress% Усвоени материали</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="custom-card p-4 mb-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 2px dashed var(--border-color);">
+                    <h4 class="fw-bold d-flex align-items-center m-0" style="color: var(--text-main);">
+                        <div class="p-2 rounded-3 text-white me-3 d-flex align-items-center justify-content-center" style="background-color: #3b82f6; width: 40px; height: 40px;">
+                            <i data-lucide="calendar-clock"></i>
+                        </div>
+                        Учебен планьор
+                    </h4>
+                    <span class="small text-muted fw-bold d-none d-md-inline">Кликни на ден, за да добавиш задача</span>
+                </div>
+
+                <div id="calendar" style="min-height: 500px; color: var(--text-main);"></div>
+            </div>
+
+            <div class="custom-card p-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+                <h5 class="fw-bold d-flex align-items-center mb-3" style="color: var(--text-main);">
+                    <i data-lucide="zap" class="me-2 text-warning" style="width: 24px; height: 24px; fill: var(--warning);"></i> Навигация
+                </h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="@Url.Action("Index", "Collections")" class="btn rounded-pill px-4 py-2 fw-bold d-flex align-items-center hover-scale" style="border: 2px solid #0d6efd; color: #0d6efd; background: transparent;">
+                        <i data-lucide="library" class="me-2" style="width: 18px;"></i> Към колекциите
+                    </a>
+                    <a href="@Url.Action("Index", "Statistics")" class="btn rounded-pill px-4 py-2 fw-bold d-flex align-items-center hover-scale" style="border: 2px solid #0dcaf0; color: #0dcaf0; background: transparent;">
+                        <i data-lucide="pie-chart" class="me-2" style="width: 18px;"></i> Подробни графики
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px; background-color: var(--bg-card);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--text-main);">Добави нова задача</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEventForm">
+                    <input type="hidden" id="eventDate" name="EventDate">
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Заглавие</label>
+                        <input type="text" class="form-control rounded-3" id="eventTitle" placeholder="Напр. Подготовка за класно..." required style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Тип задача</label>
+                        <select class="form-select rounded-3" id="eventType" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);">
+                            <option value="Reading">📘 Четене на текст</option>
+                            <option value="Analysis">🔬 Запознаване с анализ</option>
+                            <option value="Test">⚡ Решаване на тест</option>
+                            <option value="General" selected>📌 Обща бележка</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Свържи с произведение (По желание)</label>
+                        <select class="form-select rounded-3" id="eventBook" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);">
+                            <option value="0">--- Без връзка с конкретна книга ---</option>
+                            @if (ViewBag.AllBooks != null)
+                            {
+                                foreach (var book in ViewBag.AllBooks)
+                                {
+                                    <option value="@book.Id">@book.Title</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">
+                        <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Запази в календара
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="eventActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px; background-color: var(--bg-card);">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3">
+                    <span id="displayEventIcon" class="d-inline-block p-3 rounded-circle text-white mb-2" style="background-color: var(--primary);">
+                        <i data-lucide="bookmark" style="width: 32px; height: 32px;"></i>
+                    </span>
+                    <h5 class="fw-bold mb-1" id="displayEventTitle" style="color: var(--text-main);">Заглавие</h5>
+                    <p class="text-muted small mb-0" id="displayEventBook">Книга</p>
+                </div>
+
+                <input type="hidden" id="actionEventId">
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-success rounded-pill fw-bold shadow-sm" id="btnToggleComplete">
+                        <i data-lucide="check" class="me-2" style="width: 18px;"></i> <span id="textToggleComplete">Отбележи като готово</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger rounded-pill fw-bold" id="btnDeleteEvent" style="border-width: 2px;">
+                        <i data-lucide="trash-2" class="me-2" style="width: 18px;"></i> Изтрий
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            // Инициализация на FullCalendar
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'bg',
+                initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listWeek'
+                },
+                buttonText: {
+                    today: 'Днес',
+                    month: 'Месец',
+                    list: 'Списък'
+                },
+                events: '/Profiles/GetEvents',
+
+                dateClick: function(info) {
+                    document.getElementById('eventDate').value = info.dateStr;
+                    document.getElementById('eventTitle').value = '';
+                    var modal = new bootstrap.Modal(document.getElementById('addEventModal'));
+                    modal.show();
+                },
+
+                eventClick: function(info) {
+                    var ev = info.event;
+                    document.getElementById('actionEventId').value = ev.id;
+                    document.getElementById('displayEventTitle').innerText = ev.title;
+
+                    if(ev.extendedProps.bookTitle) {
+                        document.getElementById('displayEventBook').innerText = '📚 ' + ev.extendedProps.bookTitle;
+                        document.getElementById('displayEventBook').style.display = 'block';
+                    } else {
+                        document.getElementById('displayEventBook').style.display = 'none';
+                    }
+
+                    var toggleBtnText = ev.extendedProps.isCompleted ? 'Маркирай като незавършено' : 'Отбележи като готово';
+                    document.getElementById('textToggleComplete').innerText = toggleBtnText;
+
+                    var modal = new bootstrap.Modal(document.getElementById('eventActionModal'));
+                    modal.show();
+                },
+
+                windowResize: function(view) {
+                    if (window.innerWidth < 768) {
+                        calendar.changeView('listWeek');
+                    } else {
+                        calendar.changeView('dayGridMonth');
+                    }
+                }
+            });
+
+            calendar.render();
+
+            // ==============================================================
+            // ОБНОВЕНА ЛОГИКА ЗА ЗАПАЗВАНЕ СЪС ЗАЩИТА ОТ ГРЕШКИ
+            // ==============================================================
+            document.getElementById('addEventForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Променяме текста на бутона, за да видим, че работи
+                var submitBtn = this.querySelector('button[type="submit"]');
+                var originalBtnHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Запазване...';
+
+                var bookIdValue = parseInt(document.getElementById('eventBook').value);
+
+                var newEvent = {
+                    UserId: "temp",
+                    Title: document.getElementById('eventTitle').value,
+                    EventType: document.getElementById('eventType').value,
+                    BookId: bookIdValue > 0 ? bookIdValue : null,
+                    EventDate: document.getElementById('eventDate').value,
+                    Description: "" // <--- ДОБАВИ ТОЗИ РЕД!
+                };
+
+                fetch('/Profiles/CreateEvent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(newEvent)
+                })
+                .then(async response => {
+                    // Ако сървърът върне грешка 400 или 500, я хващаме тук
+                    if (!response.ok) {
+                        var errText = await response.text();
+                        throw new Error(errText || "Сървърна грешка статус: " + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data.success) {
+                        // Затваряме модала и презареждаме календара
+                        var myModalEl = document.getElementById('addEventModal');
+                        var modalInstance = bootstrap.Modal.getInstance(myModalEl);
+                        modalInstance.hide();
+                        calendar.refetchEvents();
+                    } else {
+                        alert("Възникна проблем: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Грешка:", error);
+                    alert("Грешка при запазване! Отворете конзолата (F12) за повече детайли. Съобщение: " + error.message);
+                })
+                .finally(() => {
+                    // Връщаме бутона в първоначален вид
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                });
+            });
+
+            // Логика за отмятане на събитие
+            document.getElementById('btnToggleComplete').addEventListener('click', function() {
+                var id = document.getElementById('actionEventId').value;
+                fetch('/Profiles/ToggleEventStatus?id=' + id, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    bootstrap.Modal.getInstance(document.getElementById('eventActionModal')).hide();
+                    calendar.refetchEvents();
+                });
+            });
+
+            // Логика за изтриване на събитие
+            document.getElementById('btnDeleteEvent').addEventListener('click', function() {
+                if(confirm("Сигурен ли си, че искаш да изтриеш тази задача?")) {
+                    var id = document.getElementById('actionEventId').value;
+                    fetch('/Profiles/DeleteEvent?id=' + id, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        bootstrap.Modal.getInstance(document.getElementById('eventActionModal')).hide();
+                        calendar.refetchEvents();
+                    });
+                }
+            });
+        });
+    </script>
+
+    <style>
+        /* Разкрасяване на календара да съвпадне с темата */
+        .fc {
+            font-family: inherit;
+        }
+
+        .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid {
+            border-color: var(--border-color) !important;
+        }
+
+        .fc-col-header-cell {
+            background-color: rgba(150, 150, 150, 0.05);
+            padding: 10px 0 !important;
+        }
+
+        .fc .fc-button-primary {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+            .fc .fc-button-primary:hover {
+                background-color: var(--primary);
+                color: white;
+            }
+
+            .fc .fc-button-primary:not(:disabled).fc-button-active {
+                background-color: var(--primary);
+                color: white;
+            }
+
+        .fc-event {
+            cursor: pointer;
+            border-radius: 6px;
+            padding: 2px 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+            .fc-event:hover {
+                transform: scale(1.02);
+            }
+
+        .fc-list-event {
+            cursor: pointer;
+        }
+
+            .fc-list-event:hover td {
+                background-color: rgba(150, 150, 150, 0.1) !important;
+            }
+    </style>
+}

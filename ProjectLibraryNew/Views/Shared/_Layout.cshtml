@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ProjectLibrary</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProjectLibraryNew.styles.css" asp-append-version="true" />
+
+    <style>
+        body {
+            padding-top: 76px; /* Прави място за менюто, за да не крие съдържанието */
+        }
+
+        .smart-scroll {
+            transition: transform 0.3s ease-in-out !important;
+        }
+
+        .scrolled-down {
+            transform: translateY(-100%); /* Скрива менюто при скрол надолу */
+        }
+
+        .scrolled-up {
+            transform: translateY(0); /* Показва менюто при скрол нагоре */
+        }
+    </style>
+
+    <script>
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            if (theme === 'dark' || theme === 'grey') {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+            }
+        }
+        var savedTheme = localStorage.getItem('selectedTheme') || 'light';
+        applyTheme(savedTheme);
+        window.addEventListener('DOMContentLoaded', () => {
+            applyTheme(localStorage.getItem('selectedTheme') || 'light');
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg custom-navbar fixed-top smart-scroll shadow-sm mb-0">
+            <div class="container">
+
+                <a class="navbar-brand fw-bold d-flex align-items-center brand-logo" asp-area="" asp-controller="Home" asp-action="Index">
+                    <div class="d-flex justify-content-center align-items-center rounded-3 me-2" style="width: 36px; height: 36px; background-color: var(--primary); color: white; line-height: 0;">
+                        <i data-lucide="book-open" class="d-flex" style="width: 20px; height: 20px; margin: 0; padding: 0;"></i>
+                    </div>
+                    ProjectLibrary
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation" style="color: var(--text-main);">
+                    <i data-lucide="menu" style="width: 28px; height: 28px;"></i>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-custom" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i data-lucide="home" class="me-2" style="width: 18px; height: 18px; margin-top: -2px;"></i> Начало
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-custom" asp-area="" asp-controller="Books" asp-action="Index">
+                                <i data-lucide="library" class="me-2" style="width: 18px; height: 18px; margin-top: -2px;"></i> Библиотека
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0 custom-dropdown">
+
+                        <div class="nav-item dropdown">
+                            <a class="nav-link nav-link-custom dropdown-toggle" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i data-lucide="palette" class="me-2" style="width: 18px; height: 18px; margin-top: -2px;"></i> Тема
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="themeDropdown" style="background-color: var(--bg-card); min-width: 150px;">
+                                <li><a class="dropdown-item d-flex align-items-center mb-1" href="#" onclick="changeTheme('light')">Светла</a></li>
+                                <li><a class="dropdown-item d-flex align-items-center mb-1" href="#" onclick="changeTheme('dark')">Тъмна</a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="changeTheme('eco')">Еко (Зелена)</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="vr d-none d-lg-block mx-2" style="color: var(--text-muted);"></div>
+
+                        <partial name="_LoginPartial" />
+                    </div>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container main-container">
+        <main role="main" class="pb-5">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="custom-footer mt-auto py-5">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-md-5">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center">
+                        <i data-lucide="book-open" class="me-2" style="color: var(--primary);"></i> ProjectLibrary
+                    </h5>
+                    <p class="text-muted pe-4">Модерната училищна библиотека. Пространство за четене, дискусии и развиване на знанията по литература по иновативен начин.</p>
+                </div>
+
+                <div class="col-md-3">
+                    <h5 class="fw-bold mb-3">Бързи връзки</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Index"><i data-lucide="home"></i> Начало</a></li>
+                        <li class="mb-2"><a asp-area="" asp-controller="Books" asp-action="Index"><i data-lucide="library"></i> Библиотека</a></li>
+                        <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Privacy"><i data-lucide="shield"></i> Поверителност</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">Контакти</h5>
+                    <ul class="list-unstyled text-muted">
+                        <li class="mb-2"><i data-lucide="map-pin"></i> гр. Варна, България</li>
+                        <li class="mb-2"><i data-lucide="mail"></i> info@projectlibrary.bg</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-4 footer-divider">
+
+            <div class="text-center text-muted">
+                <small>&copy; @DateTime.Now.Year - ProjectLibrary. Всички права запазени.</small>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        function changeTheme(themeName) {
+            localStorage.setItem('selectedTheme', themeName);
+            applyTheme(themeName);
+        }
+
+        // НОВО: Скриптът, който управлява "Умната навигация" (Скрива при скрол надолу, показва при скрол нагоре)
+        document.addEventListener("DOMContentLoaded", function () {
+            const el_autohide = document.querySelector('.smart-scroll');
+
+            if (el_autohide) {
+                let last_scroll_top = 0;
+                window.addEventListener('scroll', function () {
+                    let scroll_top = window.scrollY;
+
+                    if (scroll_top < last_scroll_top) {
+                        // Скролираме НАГОРЕ -> Показваме менюто
+                        el_autohide.classList.remove('scrolled-down');
+                        el_autohide.classList.add('scrolled-up');
+                    }
+                    else if (scroll_top > 80) {
+                        // Скролираме НАДОЛУ (след първите 80px) -> Скриваме менюто
+                        el_autohide.classList.remove('scrolled-up');
+                        el_autohide.classList.add('scrolled-down');
+                    }
+
+                    last_scroll_top = scroll_top;
+                });
+            }
+        });
+    </script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    @if (TempData["BadgeUnlocked"] != null)
+    {
+        <div class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index: 10000;">
+            <div id="badgeToast" class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="background: linear-gradient(135deg, #FFD700, #FFB300); border-radius: 16px;">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center py-3 px-4">
+                        <div class="rounded-circle bg-white d-flex justify-content-center align-items-center me-3 shadow-sm" style="width: 50px; height: 50px; flex-shrink: 0;">
+                            <i data-lucide="award" style="color: #FFB300; width: 28px; height: 28px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark" style="font-size: 1.1rem; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Честито постижение! 🏆</h6>
+                            <p class="mb-0 text-dark fw-medium" style="font-size: 0.95rem;">@TempData["BadgeUnlocked"]</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-dark me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // 1. Показваме златното балонче (Toast), което ще стои 8 секунди
+                var toastEl = document.getElementById('badgeToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 8000 });
+                toast.show();
+
+                // 2. Гърмим конфети от двата края на екрана! 🎉
+                var duration = 3 * 1000; // 3 секунди конфети
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10001 };
+
+                function randomInRange(min, max) {
+                    return Math.random() * (max - min) + min;
+                }
+
+                var interval = setInterval(function() {
+                    var timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    var particleCount = 50 * (timeLeft / duration);
+
+                    // Изстрел от ляво
+                    confetti(Object.assign({}, defaults, {
+                        particleCount,
+                        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                    }));
+                    // Изстрел от дясно
+                    confetti(Object.assign({}, defaults, {
+                        particleCount,
+                        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                    }));
+                }, 250);
+            });
+        </script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

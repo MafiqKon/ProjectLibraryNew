@@ -1,0 +1,91 @@
+﻿@model ProjectLibrary.Models.Book
+
+@{
+    ViewData["Title"] = "Редактиране на книга";
+}
+
+<div class="container mt-5 mb-5" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold" style="color: var(--primary);">
+            <i data-lucide="edit-3" class="me-2"></i> Редактирай "@Model.Title"
+        </h2>
+        <a asp-controller="Admin" asp-action="Books" class="btn btn-outline-secondary rounded-pill fw-bold">
+            <i data-lucide="arrow-left" class="me-1"></i> Назад
+        </a>
+    </div>
+
+    <div class="custom-card p-4 p-md-5">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="row g-4">
+                <div class="col-md-8">
+                    <div class="form-group mb-3">
+                        <label asp-for="Title" class="form-label fw-bold" style="color: var(--text-main);">Заглавие</label>
+                        <input asp-for="Title" class="form-control rounded-pill" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="AuthorId" class="form-label fw-bold" style="color: var(--text-main);">Автор</label>
+                        <select asp-for="AuthorId" class="form-select rounded-pill" asp-items="@(new SelectList(ViewBag.Authors, "Id", "Name"))" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);"></select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Genre" class="form-label fw-bold" style="color: var(--text-main);">Жанр</label>
+                        <input asp-for="Genre" class="form-control rounded-pill" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="StudyYear" class="form-label fw-bold" style="color: var(--text-main);">Клас (Учебна година)</label>
+                        <input asp-for="StudyYear" class="form-control rounded-pill" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label fw-bold" style="color: var(--text-main);">Описание / Сюжет</label>
+                        <textarea asp-for="Description" class="form-control rounded-4" rows="5" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-group mb-3">
+                        <label asp-for="FullText" class="form-label fw-bold" style="color: var(--text-main);">Пълен текст на произведението</label>
+                        <textarea asp-for="FullText" class="form-control rounded-4" rows="15" placeholder="Постави целия текст тук..." style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-group form-check">
+                        <input class="form-check-input" asp-for="IsForMatura" />
+                        <label class="form-check-label fw-bold" style="color: var(--text-main);" asp-for="IsForMatura">
+                            Произведението е част от матурата
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border-color: var(--border-color);" class="my-4" />
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm hover-scale">
+                    <i data-lucide="save" class="me-2" style="width: 18px;"></i> Запази промените
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

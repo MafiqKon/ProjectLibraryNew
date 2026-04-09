@@ -1,0 +1,76 @@
+﻿@model IEnumerable<ProjectLibrary.Models.BookCollection>
+
+@{
+    ViewData["Title"] = "Моите колекции";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📚 Моите колекции</h2>
+    <a asp-action="Create" class="btn btn-primary">➕ Нова колекция</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<!-- SEARCH BAR -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" name="search" class="form-control" placeholder="🔍 Търсене по име на колекция..." value="@ViewContext.HttpContext.Request.Query["search"]">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Търси</button>
+            </div>
+            <div class="col-md-2">
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100">Изчисти</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var collection in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@collection.Name</h5>
+                        <p class="card-text">@collection.Description</p>
+                        <p class="text-muted">
+                            📖 @collection.Books.Count книги<br>
+                            📅 Създадена на: @collection.CreatedDate.ToString("dd.MM.yyyy")<br>
+                            🌐 @(collection.IsPublic ? "Публична" : "Частна")
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="@Url.Action("AddBook", new { collectionId = collection.Id })" class="btn btn-sm btn-outline-primary">➕ Добави книга</a>
+                        <a asp-action="Details" asp-route-id="@collection.Id" class="btn btn-sm btn-outline-secondary">👁️ Преглед</a>
+                        <a asp-action="Delete" asp-route-id="@collection.Id" class="btn btn-sm btn-outline-danger">🗑️ Изтрий</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info text-center">
+        <h4>📭 Все още нямате колекции</h4>
+        <p>Създайте първата си колекция с любими произведения!</p>
+        <a asp-action="Create" class="btn btn-primary">➕ Създай първа колекция</a>
+    </div>
+}

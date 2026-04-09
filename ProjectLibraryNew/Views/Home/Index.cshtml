@@ -1,0 +1,175 @@
+﻿@{
+    ViewData["Title"] = "Начало";
+}
+
+<div class="position-relative hero-section"
+     style="height: 160vh; /* Запазваме дългата секция за ефекта */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2500&auto=format&fit=crop');
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            margin-top: -25px; /* Компенсира за навигацията */
+            overflow: hidden;">
+
+    <div class="d-flex align-items-center justify-content-center" style="height: 90vh; position: relative; z-index: 2;">
+        <div class="p-3 p-md-4 text-center mx-3" style="max-width: 800px;">
+            <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+                Добре дошли в ProjectLibrary!
+            </h1>
+            <p class="mb-5 fs-4 text-white" style="line-height: 1.4; text-shadow: 0 2px 10px rgba(0,0,0,0.6);">
+                Вашата онлайн библиотека с всички необходими произведения за успешна матура.
+            </p>
+            <a asp-controller="Books" asp-action="Index" class="btn btn-primary btn-lg fw-bold px-5 py-3 rounded-pill shadow-lg d-inline-flex align-items-center" style="font-size: 1.2rem; transition: all 0.3s ease;">
+                <i data-lucide="book-open" class="me-2" style="width: 24px; height: 24px;"></i> Към библиотеката
+            </a>
+        </div>
+    </div>
+
+    <div class="position-absolute start-50 translate-middle-x scroll-indicator text-white"
+         style="top: 85vh; cursor: pointer; z-index: 10;"
+         onclick="document.getElementById('features-section').scrollIntoView({ behavior: 'smooth' });">
+        <i data-lucide="chevrons-down" style="width: 40px; height: 40px;"></i>
+    </div>
+
+    <div style="position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 100%;
+                height: 120vh; /* Преливката вече покрива почти цялото скролиране! */
+                background: linear-gradient(
+                    to bottom,
+                    rgba(43, 24, 16, 0) 0%,      /* Напълно прозрачно */
+                    rgba(43, 24, 16, 0.1) 30%,   /* Едва забележимо започва... */
+                    rgba(43, 24, 16, 0.3) 55%,   /* Лека мъгла в средата */
+                    rgba(43, 24, 16, 0.7) 80%,   /* Става плътно чак към края */
+                    rgba(43, 24, 16, 0.95) 95%,  /* Почти солидно */
+                    #2b1810 100%                 /* Перфектно сливане с долната част */
+                );
+                z-index: 1;
+                pointer-events: none;">
+    </div>
+</div>
+
+<div style="background-color: #2b1810; /* Секцията запазва твърдия си цвят */
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            position: relative;
+            z-index: 5;
+            padding-top: 2rem;
+            padding-bottom: 4rem;">
+
+    <div class="container pb-5 mb-2 pt-2" id="features-section">
+        <div class="row g-4 justify-content-center">
+
+            <div class="col-md-4">
+                <div class="d-flex flex-row align-items-start p-4 h-100 feature-card shadow-sm"
+                     style="background-color: var(--bg-card); border-radius: 20px; border: 2px solid var(--border-color); cursor: pointer;">
+                    <div class="icon-box flex-shrink-0 d-flex justify-content-center align-items-center rounded-4 shadow-sm"
+                         style="width: 64px; height: 64px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                        <i data-lucide="library" style="color: var(--primary); width: 28px; height: 28px; stroke-width: 1.5;"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="fw-bold mb-2" style="color: var(--text-main);">Библиотека</h5>
+                        <p class="text-muted mb-0 small">Разгледайте всички произведения с умно търсене и филтри.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex flex-row align-items-start p-4 h-100 feature-card shadow-sm"
+                     style="background-color: var(--bg-card); border-radius: 20px; border: 2px solid var(--border-color); cursor: pointer;">
+                    <div class="icon-box flex-shrink-0 d-flex justify-content-center align-items-center rounded-4 shadow-sm"
+                         style="width: 64px; height: 64px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                        <i data-lucide="search" style="color: var(--primary); width: 28px; height: 28px; stroke-width: 1.5;"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="fw-bold mb-2" style="color: var(--text-main);">Търсене</h5>
+                        <p class="text-muted mb-0 small">Намерете произведения бързо по автор, жанр или година.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex flex-row align-items-start p-4 h-100 feature-card shadow-sm"
+                     style="background-color: var(--bg-card); border-radius: 20px; border: 2px solid var(--border-color); cursor: pointer;">
+                    <div class="icon-box flex-shrink-0 d-flex justify-content-center align-items-center rounded-4 shadow-sm"
+                         style="width: 64px; height: 64px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                        <i data-lucide="bar-chart-2" style="color: var(--primary); width: 28px; height: 28px; stroke-width: 1.5;"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="fw-bold mb-2" style="color: var(--text-main);">Анализи</h5>
+                        <p class="text-muted mb-0 small">Прочетете задълбочени анализи и се подгответе отлично.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ГЛАВНИ СТИЛОВЕ ЗА КАРТАТА */
+    .feature-card {
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+        border: 2px solid var(--border-color) !important;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* ЕФЕКТ ПРИ ПОСОЧВАНЕ НА ЦЯЛОТО ПОЛЕ */
+        .feature-card:hover {
+            transform: translateY(-8px) !important;
+            border-color: transparent !important;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
+            background-color: var(--bg-card) !important;
+        }
+
+        /* ИКОНАТА ВЕЧЕ НЕ СТАВА ПЛЪТНО ЗЕЛЕНА */
+        .feature-card .icon-box {
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+            background-color: var(--bg-body) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        /* ЕФЕКТЪТ ВЪРХУ ИКОНАТА, КОГАТО ХОВЪРНЕМ ЦЯЛАТА КАРТА */
+        .feature-card:hover .icon-box {
+            background-color: white !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 5px 15px rgba(106, 156, 120, 0.15) !important;
+            transform: translateY(-2px) scale(1.02);
+        }
+
+            /* Иконката вътре запазва цвета си */
+            .feature-card:hover .icon-box i {
+                color: var(--primary) !important;
+                stroke-width: 2px;
+            }
+
+    /* АНИМАЦИИ (Запазени) */
+    @@keyframes myBounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        40% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+        60% {
+            transform: translateX(-50%) translateY(-5px);
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

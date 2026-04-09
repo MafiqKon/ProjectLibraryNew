@@ -1,0 +1,151 @@
+﻿@model IEnumerable<ProjectLibrary.Models.TestResult>
+
+@{
+    ViewData["Title"] = "Моите резултати";
+}
+
+<div class="container mt-4 mb-5 pt-3">
+
+    <div class="d-flex align-items-center mb-4 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
+        <i data-lucide="bar-chart-big" class="me-3" style="color: var(--primary); width: 32px; height: 32px;"></i>
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Моето ученическо табло</h2>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row g-4 mb-5">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-box-modern p-4 h-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
+                    <i data-lucide="target" class="position-absolute" style="color: var(--primary); opacity: 0.1; width: 100px; height: 100px; right: -20px; bottom: -20px;"></i>
+                    <h3 class="display-5 fw-bold mb-1" style="color: var(--primary);">@ViewBag.TotalTestsTaken</h3>
+                    <span class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">Общо тестове</span>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-box-modern p-4 h-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
+                    <i data-lucide="percent" class="position-absolute" style="color: var(--primary); opacity: 0.1; width: 100px; height: 100px; right: -20px; bottom: -20px;"></i>
+                    <h3 class="display-5 fw-bold mb-1" style="color: var(--text-main);">@ViewBag.AverageScore%</h3>
+                    <span class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">Среден успех</span>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-box-modern p-4 h-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
+                    <i data-lucide="check-circle" class="position-absolute" style="color: var(--primary); opacity: 0.1; width: 100px; height: 100px; right: -20px; bottom: -20px;"></i>
+                    <h3 class="display-5 fw-bold mb-1" style="color: #198754;">@ViewBag.Passed</h3>
+                    <span class="text-muted fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">Успешни (над 60%)</span>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-box-modern p-4 h-100 d-flex flex-column align-items-center justify-content-center text-center position-relative overflow-hidden">
+                    <i data-lucide="book-heart" class="position-absolute" style="color: var(--primary); opacity: 0.1; width: 100px; height: 100px; right: -20px; bottom: -20px;"></i>
+                    <h5 class="fw-bold mb-1" style="color: var(--text-main);">@ViewBag.MostPracticedBook</h5>
+                    <span class="text-muted fw-bold text-uppercase mt-2" style="letter-spacing: 1px; font-size: 0.8rem;">Любимо произведение</span>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="fw-bold mb-3" style="color: var(--text-main);">История на решаванията</h4>
+
+        <div class="row">
+            @foreach (var result in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="custom-card h-100 p-4" style="border-left: 4px solid @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "#198754" : "#dc3545") !important;">
+
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1" style="color: var(--text-main);">@(result.Test?.Title ?? "Тренировъчен тест")</h5>
+                                <p class="text-muted small mb-0">@(result.Test?.Book?.Title ?? "Железният светилник") @(result.Test?.Book?.Author?.Name != null ? $"- {result.Test.Book.Author.Name}" : "")</p>
+                            </div>
+                            <span class="badge rounded-pill" style="font-size: 1rem; background-color: @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "rgba(25, 135, 84, 0.1)" : "rgba(220, 53, 69, 0.1)"); color: @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "#198754" : "#dc3545"); border: 1px solid @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "#198754" : "#dc3545");">
+                                @result.Percentage.ToString("0.0")%
+                            </span>
+                        </div>
+
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="fw-bold" style="color: var(--primary);">@result.CorrectAnswers / @result.TotalQuestions</div>
+                                <small class="text-muted">Верни</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold" style="color: var(--primary);">@result.Score</div>
+                                <small class="text-muted">Точки</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold" style="color: @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "#198754" : "#dc3545");">
+                                    @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "Успех" : "Слаб")
+                                </div>
+                                <small class="text-muted">Статус</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted fw-bold">Прогрес:</small>
+                            <div class="progress mt-1" style="height: 8px; background-color: var(--bg-body);">
+                                <div class="progress-bar rounded-pill"
+                                     style="width: @result.Percentage%; background-color: @(result.Percentage >= (result.Test?.PassingScore ?? 60) ? "#198754" : "#dc3545");">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+                            <small class="text-muted">
+                                <i data-lucide="calendar" style="width: 14px; height: 14px;"></i> @result.CompletedAt.ToString("dd.MM.yyyy HH:mm")
+                            </small>
+
+                            <div class="d-flex gap-2">
+                                @if (result.TestId > 0)
+                                {
+                                    <a href="@Url.Action("Start", new { id = result.TestId })" class="btn btn-sm" style="background-color: var(--bg-body); color: var(--primary); border: 1px solid var(--border-color);">
+                                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Пак
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-action="PracticeTest" class="btn btn-sm" style="background-color: var(--bg-body); color: var(--primary); border: 1px solid var(--border-color);">
+                                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Пак
+                                    </a>
+                                }
+
+                                <a href="@Url.Action("Results", new { id = result.Id })" class="btn btn-sm" style="background-color: var(--primary); color: white; border: none;">
+                                    Детайли
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="custom-card p-5 text-center shadow-sm">
+            <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-4" style="width: 80px; height: 80px; background-color: var(--bg-body); border: 2px dashed var(--border-color);">
+                <i data-lucide="ghost" style="color: var(--text-muted); width: 40px; height: 40px;"></i>
+            </div>
+            <h4 class="fw-bold mb-3" style="color: var(--text-main);">Все още нямаш решени тестове</h4>
+            <p class="text-muted mb-4">Време е да провериш знанията си и да напълниш това табло със статистики!</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="@Url.Action("Index")" class="btn btn-solid-premium py-2 px-4">
+                    <i data-lucide="library" class="me-2"></i> Към всички тестове
+                </a>
+                <a asp-action="PracticeTest" class="btn py-2 px-4" style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); font-weight: bold; border-radius: 12px;">
+                    <i data-lucide="zap" class="me-2"></i> Бърза тренировка
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Преначертаваме иконите, за да се покажат навсякъде
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

@@ -1,0 +1,124 @@
+﻿@model ProjectLibrary.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Моят профил";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="animated-card text-center p-4 p-md-5">
+
+                <div class="d-inline-block p-1 rounded-circle mb-4 avatar-glow" style="background-color: var(--bg-body);">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center" style="width: 130px; height: 130px; background-color: var(--bg-card); color: var(--primary);">
+                        <i data-lucide="user" style="width: 65px; height: 65px; stroke-width: 1.5;"></i>
+                    </div>
+                </div>
+
+                <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.User.FirstName @Model.User.LastName</h3>
+                <p class="text-muted mb-4 fs-6">@Model.User.Email</p>
+
+                <div class="mb-4">
+                    <span class="badge bg-primary text-white px-4 py-2 rounded-pill shadow-sm text-uppercase" style="font-size: 0.9rem; letter-spacing: 1px;">
+                        <i data-lucide="shield" class="me-1 d-inline" style="width: 14px; margin-top: -3px;"></i> @Model.User.UserType
+                    </span>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 2rem 0;">
+
+                <button class="btn btn-primary w-100 rounded-pill fw-bold py-3 mb-3 shadow-sm d-flex justify-content-center align-items-center" style="transition: transform 0.2s;">
+                    <i data-lucide="pen-tool" class="me-2" style="width: 20px; height: 20px;"></i> Редактирай профила
+                </button>
+                <button class="btn w-100 rounded-pill fw-bold py-2 d-flex justify-content-center align-items-center" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); transition: background-color 0.2s;">
+                    <i data-lucide="key-round" class="me-2" style="width: 18px; height: 18px;"></i> Смяна на парола
+                </button>
+            </div>
+
+            <div class="animated-card mt-4 p-4 d-flex flex-row justify-content-between align-items-center" style="border-top-color: var(--text-muted);">
+                <span class="text-muted fw-bold d-flex align-items-center">
+                    <i data-lucide="calendar-heart" class="me-2 text-primary" style="width: 20px;"></i> В системата от:
+                </span>
+                <span class="fw-bold fs-5" style="color: var(--text-main);">@Model.Statistics.MemberSince.ToString("dd.MM.yyyy")</span>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+
+            <div class="animated-card p-4 p-md-5 mb-4">
+                <h4 class="fw-bold d-flex align-items-center mb-4 pb-3" style="color: var(--text-main); border-bottom: 2px dashed var(--border-color);">
+                    <i data-lucide="activity" class="me-3 p-2 rounded-3 text-white" style="width: 40px; height: 40px; background-color: var(--primary);"></i>
+                    Твоята Активност
+                </h4>
+
+                <div class="row g-3 text-center mb-5">
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box p-4 h-100">
+                            <i data-lucide="layers" class="mb-3 text-primary" style="width: 32px; height: 32px;"></i>
+                            <h2 class="fw-bold mb-1" style="color: var(--text-main);">@Model.Statistics.TotalCollections</h2>
+                            <p class="text-muted small fw-bold text-uppercase mb-0">Колекции</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box p-4 h-100">
+                            <i data-lucide="book-open" class="mb-3 text-success" style="width: 32px; height: 32px;"></i>
+                            <h2 class="fw-bold mb-1 text-success">@Model.Statistics.TotalBooksInCollections</h2>
+                            <p class="text-muted small fw-bold text-uppercase mb-0">Книги</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box p-4 h-100">
+                            <i data-lucide="check-square" class="mb-3 text-info" style="width: 32px; height: 32px;"></i>
+                            <h2 class="fw-bold mb-1 text-info">@Model.Statistics.TestsCompleted</h2>
+                            <p class="text-muted small fw-bold text-uppercase mb-0">Тестове</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box p-4 h-100">
+                            <i data-lucide="award" class="mb-3 text-warning" style="width: 32px; height: 32px;"></i>
+                            <h2 class="fw-bold mb-1 text-warning">@Model.Statistics.AchievementsEarned</h2>
+                            <p class="text-muted small fw-bold text-uppercase mb-0">Значки</p>
+                        </div>
+                    </div>
+                </div>
+
+                @{
+                    int maturaProgress = ViewBag.OverallMaturaProgress != null ? (int)ViewBag.OverallMaturaProgress : 0;
+                }
+
+                <div class="p-4 rounded-4 shadow-sm" style="background: rgba(40,167,69,0.05); border: 1px solid rgba(40,167,69,0.2);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold fs-5 d-flex align-items-center" style="color: var(--text-main);">
+                            <i data-lucide="graduation-cap" class="me-2 text-success" style="width: 24px; height: 24px;"></i> Готовност за матура
+                        </span>
+                        <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm">
+                            @maturaProgress / 100
+                        </span>
+                    </div>
+
+                    <div class="progress rounded-pill shadow-inner" style="height: 16px; background-color: rgba(0,0,0,0.1);">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success rounded-pill" role="progressbar" style="width: @maturaProgress%; transition: width 1.5s ease-in-out;"></div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <span class="text-success fw-bold">@maturaProgress% Усвоени материали</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="animated-card p-4" style="border-top-color: var(--warning);">
+                <h5 class="fw-bold d-flex align-items-center mb-3" style="color: var(--text-main);">
+                    <i data-lucide="zap" class="me-2 text-warning" style="width: 24px; height: 24px; fill: var(--warning);"></i> Навигация
+                </h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="@Url.Action("Index", "Collections")" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center" style="border-width: 2px;">
+                        <i data-lucide="library" class="me-2" style="width: 18px;"></i> Към колекциите
+                    </a>
+                    <a href="@Url.Action("Index", "Statistics")" class="btn btn-outline-info rounded-pill px-4 py-2 fw-bold d-flex align-items-center" style="border-width: 2px;">
+                        <i data-lucide="pie-chart" class="me-2" style="width: 18px;"></i> Подробни графики
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

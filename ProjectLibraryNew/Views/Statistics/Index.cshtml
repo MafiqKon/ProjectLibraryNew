@@ -1,0 +1,102 @@
+﻿@{
+    ViewData["Title"] = "Детайлна статистика";
+}
+
+<div class="container mt-4 mb-5">
+
+    <h3 class="fw-bold mb-4 d-flex align-items-center" style="color: var(--text-main);">
+        <i data-lucide="line-chart" class="me-3 text-primary" style="width: 28px; height: 28px;"></i> Детайлна статистика
+    </h3>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color: var(--bg-card); border-radius: 20px;">
+                <h1 class="display-5 fw-bold mb-1" style="color: var(--primary);">0</h1>
+                <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Колекции</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color: var(--bg-card); border-radius: 20px;">
+                <h1 class="display-5 fw-bold mb-1" style="color: var(--text-main);">0</h1>
+                <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Книги</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color: var(--bg-card); border-radius: 20px;">
+                <h1 class="display-5 fw-bold mb-1" style="color: var(--text-main);">0</h1>
+                <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">За матура</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-4" style="background-color: var(--bg-card); border-radius: 20px;">
+                <h1 class="display-5 fw-bold mb-1" style="color: var(--text-main);">1</h1>
+                <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Коментара</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 h-100" style="background-color: var(--bg-card); border-radius: 20px;">
+                <h6 class="fw-bold d-flex align-items-center mb-4" style="color: var(--text-main);">
+                    <i data-lucide="pie-chart" class="me-2 text-primary" style="width: 20px; height: 20px;"></i> Жанрове
+                </h6>
+                <div class="d-flex flex-column align-items-center justify-content-center text-center h-100 py-5">
+                    <i data-lucide="inbox" class="text-muted mb-3" style="width: 40px; height: 40px; opacity: 0.5;"></i>
+                    <p class="text-muted small mb-4">Все още няма статистика по жанрове.</p>
+                    <a asp-controller="Collections" asp-action="Index" class="btn btn-outline-primary rounded-pill btn-sm px-4 fw-bold">Създай първата колекция</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 h-100" style="background-color: var(--bg-card); border-radius: 20px;">
+                <h6 class="fw-bold d-flex align-items-center mb-4" style="color: var(--text-main);">
+                    <i data-lucide="calendar-days" class="me-2 text-primary" style="width: 20px; height: 20px;"></i> Периоди
+                </h6>
+                <div class="d-flex flex-column align-items-center justify-content-center text-center h-100 py-5">
+                    <i data-lucide="calendar-x" class="text-muted mb-3" style="width: 40px; height: 40px; opacity: 0.5;"></i>
+                    <p class="text-muted small mb-0">Все още няма статистика по периоди.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-card); border-radius: 20px;">
+        <h6 class="fw-bold d-flex align-items-center mb-4" style="color: var(--text-main);">
+            <i data-lucide="activity" class="me-2 text-primary" style="width: 20px; height: 20px;"></i> Информация за активност
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <p class="mb-2"><i data-lucide="calendar" class="me-2 text-muted" style="width: 16px;"></i> <span class="fw-bold text-muted small">Член от:</span> <span style="color: var(--text-main);">22.02.2026</span></p>
+                <p class="mb-0"><i class="me-2 text-muted" data-lucide="clock" style="width: 16px;"></i> <span class="fw-bold text-muted small">Период:</span> <span style="color: var(--text-main);">3 дни</span></p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-2"><i data-lucide="bell" class="me-2 text-warning" style="width: 16px;"></i> <span class="fw-bold text-muted small">Последна активност:</span> <span style="color: var(--text-main);">26.02.2026 13:25</span></p>
+                <p class="mb-0"><i data-lucide="message-square" class="me-2 text-muted" style="width: 16px;"></i> <span class="fw-bold text-muted small">Коментари:</span> <span style="color: var(--text-main);">1 написани</span></p>
+            </div>
+        </div>
+
+        <hr class="my-4" style="border-color: var(--border-color);">
+
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="Statistics" asp-action="MaturaProgress" class="btn btn-primary rounded-pill px-4 fw-bold text-white shadow-sm d-flex align-items-center">
+                <i data-lucide="target" class="me-2" style="width: 18px;"></i> Прогрес по учебни години
+            </a>
+            <a asp-controller="Profiles" asp-action="MyProfile" class="btn text-white rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center" style="background-color: #6c757d;">
+                <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> Назад към профила
+            </a>
+            <a asp-controller="Collections" asp-action="Index" class="btn btn-outline-primary rounded-pill px-4 fw-bold d-flex align-items-center" style="background-color: var(--bg-body);">
+                <i data-lucide="library" class="me-2" style="width: 18px;"></i> Към колекциите
+            </a>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

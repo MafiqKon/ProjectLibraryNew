@@ -1,0 +1,199 @@
+﻿@model ProjectLibrary.Controllers.TestStatistics
+
+@{
+    ViewData["Title"] = "Статистика за тест";
+}
+
+<h2>📊 Статистика за тест: @Model.Test.Title</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h3>@Model.Results.Count</h3>
+                <p class="mb-0">👥 Участници</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3>@Model.AverageScore.ToString("0.0")</h3>
+                <p class="mb-0">📈 Среден успех</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3>@Model.HighestScore</h3>
+                <p class="mb-0">⭐ Най-добър</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <h3>@Model.PassRate.ToString("0.0")%</h3>
+                <p class="mb-0">🎯 Преминаване</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Детайлни резултати -->
+        <div class="card">
+            <div class="card-header">
+                <h5>📋 Детайлни резултати</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Results.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Ученик</th>
+                                    <th>Резултат</th>
+                                    <th>Успех</th>
+                                    <th>Време</th>
+                                    <th>Дата</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var result in Model.Results)
+                                {
+                                    <tr>
+                                        <td>@result.User.FirstName @result.User.LastName</td>
+                                        <td>@result.Score/@result.Test.TotalPoints</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px; width: 100px;">
+                                                <div class="progress-bar @(result.Percentage >= result.Test.PassingScore ? "bg-success" : "bg-warning")"
+                                                     style="width: @result.Percentage%">
+                                                    @result.Percentage.ToString("0.0")%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@result.TimeSpent.ToString(@"mm\:ss")</td>
+                                        <td>@result.CompletedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>
+                                            @if (result.Percentage >= result.Test.PassingScore)
+                                            {
+                                                <span class="badge bg-success">✅ Преминат</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">📚 Непреминат</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info text-center">
+                        <h5>📭 Все още няма резултати</h5>
+                        <p>Учениците все още не са започнали да решават този тест.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Информация за теста -->
+        <div class="card">
+            <div class="card-header">
+                <h5>📝 Информация за теста</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>📚 Тест:</strong> @Model.Test.Title</p>
+                <p><strong>📖 Произведение:</strong> @Model.Test.Book.Title</p>
+                <p><strong>👨‍🎓 Автор:</strong> @Model.Test.Book.Author.Name</p>
+                <p><strong>⏱️ Време:</strong> @Model.Test.TimeLimitMinutes минути</p>
+                <p><strong>🎯 Минимум:</strong> @Model.Test.PassingScore%</p>
+                <p><strong>📊 Точки:</strong> @Model.Test.TotalPoints</p>
+                <p><strong>📅 Създаден:</strong> @Model.Test.CreatedDate.ToString("dd.MM.yyyy")</p>
+            </div>
+        </div>
+
+        <!-- Разпределение на резултатите -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>📈 Разпределение</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Results.Any())
+                {
+                    var scoreRanges = new[]
+                    {
+                                new { Range = "0-49%", Min = 0, Max = 49 },
+                                new { Range = "50-69%", Min = 50, Max = 69 },
+                                new { Range = "70-84%", Min = 70, Max = 84 },
+                                new { Range = "85-100%", Min = 85, Max = 100 }
+                                };
+
+                    foreach (var range in scoreRanges)
+                    {
+                        var count = Model.Results.Count(r => r.Percentage >= range.Min && r.Percentage <= range.Max);
+                        var percentage = (double)count / Model.Results.Count * 100;
+
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>@range.Range</span>
+                                <span>@count (@percentage.ToString("0.0")%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @GetRangeColor(range.Min)"
+                                     style="width: @percentage%"></div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center">Няма данни за разпределение</p>
+                }
+            </div>
+        </div>
+
+        <!-- Бързи действия -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>🚀 Действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Manage")" class="btn btn-outline-primary">
+                        📋 Управление на тестове
+                    </a>
+                    <a href="@Url.Action("Details", new { id = Model.Test.Id })" class="btn btn-outline-info">
+                        👁️ Преглед на теста
+                    </a>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        ← Към тестовете
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetRangeColor(int minScore)
+    {
+        return minScore switch
+        {
+            >= 85 => "bg-success",
+            >= 70 => "bg-info",
+            >= 50 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+}

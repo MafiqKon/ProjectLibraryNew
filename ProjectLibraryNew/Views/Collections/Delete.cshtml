@@ -1,0 +1,30 @@
+﻿@model ProjectLibrary.Models.BookCollection
+
+@{
+    ViewData["Title"] = "Изтриване на колекция";
+}
+
+<h2>🗑️ Изтриване на колекция</h2>
+
+<div class="alert alert-danger">
+    <h4>Сигурни ли сте, че искате да изтриете тази колекция?</h4>
+    <p>Това действие не може да бъде отменено!</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <p class="card-text">@Model.Description</p>
+        <p class="text-muted">
+            📖 @Model.Books.Count книги в колекцията<br>
+            📅 Създадена на: @Model.CreatedDate.ToString("dd.MM.yyyy")
+        </p>
+    </div>
+</div>
+
+<!-- ПРОМЕНЕТЕ ФОРМАТА ТУК -->
+<form asp-action="Delete" method="post" class="mt-4">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">🗑️ Изтрий колекцията</button>
+    <a asp-action="Index" class="btn btn-secondary">← Отмени</a>
+</form>

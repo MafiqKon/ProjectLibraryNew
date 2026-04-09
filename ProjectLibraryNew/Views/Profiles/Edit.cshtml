@@ -1,0 +1,53 @@
+﻿@model ProjectLibrary.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Редактиране на профил";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">✏️ Редактиране на профил</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label class="form-label">Име</label>
+                            <input type="text" name="firstName" class="form-control" value="@Model.FirstName" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" name="lastName" class="form-control" value="@Model.LastName" required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Профилна снимка</label>
+
+                            <div class="mb-2">
+                                @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                                {
+                                    <img src="@Model.ProfilePictureUrl" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" />
+                                    <span class="text-muted ms-2">Текуща снимка</span>
+                                }
+                            </div>
+
+                            <input type="file" name="profilePicture" class="form-control" accept="image/*" />
+                            <div class="form-text">Поддържани формати: .jpg, .jpeg, .png.</div>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="MyProfile" class="btn btn-outline-secondary">❌ Отказ</a>
+                            <button type="submit" class="btn btn-success">💾 Запази промените</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

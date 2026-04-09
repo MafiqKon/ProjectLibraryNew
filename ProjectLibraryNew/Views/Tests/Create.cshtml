@@ -1,0 +1,401 @@
+﻿@model ProjectLibrary.Models.Test
+@{
+    ViewData["Title"] = "Създаване на нов тест";
+    var books = ViewBag.Books as List<ProjectLibrary.Models.Book> ?? new List<ProjectLibrary.Models.Book>();
+}
+
+<div class="d-flex align-items-center mb-4 mt-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+    <div class="d-flex justify-content-center align-items-center rounded-3 me-3 shadow-sm" style="width: 50px; height: 50px; background-color: var(--primary); color: white;">
+        <i data-lucide="file-plus-2" style="width: 28px; height: 28px;"></i>
+    </div>
+    <div>
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Създаване на нов тест</h2>
+        <p class="text-muted mb-0">Попълнете данните и добавете въпроси за вашите студенти</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <form id="createTestForm" method="post" asp-action="Create">
+            @Html.AntiForgeryToken()
+
+            <div class="card mb-4 border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
+                <div class="card-header border-0 bg-transparent pt-4 pb-2">
+                    <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                        <i data-lucide="clipboard-list" class="me-2 text-primary" style="width: 22px;"></i> Основна информация
+                    </h5>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-1">Заглавие на теста <span class="text-danger">*</span></label>
+                                <input asp-for="Title" type="text" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" required placeholder="Напр.: Тест по 'Под игото'">
+                                <span asp-validation-for="Title" class="text-danger small mt-1 d-block ms-2"></span>
+                            </div>
+
+                            <div class="form-group mt-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-1">Произведение <span class="text-danger">*</span></label>
+                                <select asp-for="BookId" class="form-select rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" required>
+                                    <option value="">-- Изберете произведение --</option>
+                                    @foreach (var book in books)
+                                    {
+                                        <option value="@book.Id">@book.Title - @book.Author.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="BookId" class="text-danger small mt-1 d-block ms-2"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-1">Време (минути) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text rounded-start-pill border-end-0" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-muted);"><i data-lucide="clock" style="width: 16px;"></i></span>
+                                    <input asp-for="TimeLimitMinutes" type="number" class="form-control rounded-end-pill border-start-0 px-2 py-2" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="45" min="5" max="180" required>
+                                </div>
+                                <span asp-validation-for="TimeLimitMinutes" class="text-danger small mt-1 d-block ms-2"></span>
+                            </div>
+
+                            <div class="row g-2 mt-2">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold text-muted small text-uppercase mb-1">Общо точки <span class="text-danger">*</span></label>
+                                        <input asp-for="TotalPoints" type="number" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="100" min="10" max="200" required>
+                                        <span asp-validation-for="TotalPoints" class="text-danger small mt-1 d-block ms-2"></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold text-muted small text-uppercase mb-1">Мин. успех (%) <span class="text-danger">*</span></label>
+                                        <input asp-for="PassingScore" type="number" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="60" min="0" max="100" required>
+                                        <span asp-validation-for="PassingScore" class="text-danger small mt-1 d-block ms-2"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase mb-1">Описание на теста</label>
+                        <textarea asp-for="Description" class="form-control rounded-4 p-3 border" rows="3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" placeholder="Кратко описание на теста..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small mt-1 d-block ms-2"></span>
+                    </div>
+
+                    <div class="form-check form-switch mt-4 mb-2 d-flex align-items-center">
+                        <input asp-for="IsPublished" class="form-check-input me-2" type="checkbox" checked style="width: 2.5rem; height: 1.25rem; cursor: pointer;">
+                        <label class="form-check-label fw-bold" style="color: var(--text-main); cursor: pointer;">Публикувай теста веднага</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4 border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
+                <div class="card-header border-0 bg-transparent pt-4 pb-3">
+                    <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                        <i data-lucide="help-circle" class="me-2 text-primary" style="width: 22px;"></i> Въпроси към теста
+                    </h5>
+                </div>
+
+                <div class="card-body pt-0">
+                    <div id="questionsContainer">
+                        <div class="alert border-0 rounded-4 d-flex align-items-center p-3 mb-4" style="background-color: rgba(106, 156, 120, 0.1); color: var(--primary);">
+                            <i data-lucide="lightbulb" class="me-3" style="width: 24px; height: 24px;"></i>
+                            <div>
+                                <strong>Насоки:</strong> Добавете въпросите си с бутоните по-долу. Всеки тест трябва да има поне 1 въпрос.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center flex-wrap gap-3 mt-4 mb-3 border-top pt-4" style="border-color: var(--border-color) !important;">
+                        <button type="button" class="btn btn-solid-premium rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center" style="padding: 12px 24px; font-size: 0.9rem; letter-spacing: 0.5px; min-width: 280px; border: 2px solid transparent;" onclick="addMultipleChoiceQuestion()">
+                            <i data-lucide="plus-circle" class="me-2" style="width: 18px;"></i> Добави затворен въпрос
+                        </button>
+
+                        <button type="button" class="btn rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center custom-outline-green" style="padding: 12px 24px; font-size: 0.9rem; letter-spacing: 0.5px; min-width: 280px;" onclick="addOpenEndedQuestion()">
+                            <i data-lucide="plus-circle" class="me-2" style="width: 18px;"></i> Добави отворен въпрос
+                        </button>
+                    </div>
+
+                    <div class="question-stats mt-4 p-4 rounded-4 shadow-sm d-flex justify-content-between align-items-center" style="background-color: rgba(150, 150, 150, 0.05); border: 1px solid var(--border-color);">
+                        <div class="d-flex align-items-center">
+                            <i data-lucide="bar-chart-2" class="me-2 text-primary" style="width: 20px;"></i>
+                            <strong style="color: var(--text-main);">Текуща статистика:</strong>
+                        </div>
+                        <div class="d-flex gap-4 text-center">
+                            <div>
+                                <h5 class="fw-bold mb-0 text-primary" id="questionCount">0</h5>
+                                <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Въпроса</small>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-success" id="totalPoints">0</h5>
+                                <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Точки</small>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-warning" id="timeEstimate">0</h5>
+                                <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Минути</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 mb-5">
+                <a href="@Url.Action("Index", "Tests")" class="btn rounded-pill fw-bold text-uppercase d-flex align-items-center btn-outline-cancel shadow-sm" style="padding: 12px 24px; font-size: 0.9rem; letter-spacing: 0.5px;">
+                    <i data-lucide="x-circle" class="me-2" style="width: 18px;"></i> Отмени
+                </a>
+                <button type="submit" class="btn btn-solid-premium rounded-pill fw-bold text-uppercase d-flex align-items-center shadow-sm" id="submitBtn" style="padding: 12px 24px; font-size: 0.9rem; letter-spacing: 0.5px; border: 2px solid transparent;">
+                    <i data-lucide="save" class="me-2" style="width: 18px;"></i> Запази теста
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-2">
+                <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                    <i data-lucide="eye" class="me-2 text-primary" style="width: 20px;"></i> Бърз преглед
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="testPreview">
+                    <p class="text-muted small mb-0"><i data-lucide="info" style="width: 14px;" class="me-1"></i> Добавете въпроси, за да видите преглед тук.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-0">
+                <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                    <i data-lucide="check-circle" class="me-2 text-success" style="width: 20px;"></i> Добри практики
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                    <li class="d-flex align-items-start text-muted small">
+                        <i data-lucide="target" class="text-primary me-2 mt-1" style="width: 16px;"></i>
+                        <span>Оптимално: 10-15 въпроса за един стандартен тест.</span>
+                    </li>
+                    <li class="d-flex align-items-start text-muted small">
+                        <i data-lucide="clock" class="text-warning me-2 mt-1" style="width: 16px;"></i>
+                        <span>Предвидете около 1-2 минути за решаване на всеки въпрос.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let questionIdCounter = 1;
+
+        function addMultipleChoiceQuestion() {
+            const questionId = questionIdCounter++;
+            const questionHtml = `
+                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid var(--primary) !important;">
+                    <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Въпрос ${questionId} <span class="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1 rounded-pill fw-normal">Затворен</span></h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 d-flex align-items-center" onclick="removeQuestion(${questionId})">
+                            <i data-lucide="trash-2" class="me-1" style="width: 14px;"></i> Изтрий
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Текст на въпроса *</label>
+                            <textarea class="form-control question-text rounded-4 p-3 border" rows="2" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" placeholder="Въведете текста на въпроса..." required></textarea>
+                        </div>
+                        <div class="form-group mb-4 w-50">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Точки за въпроса *</label>
+                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="1" min="1" max="10" required>
+                        </div>
+                        <div class="options-container p-4 rounded-4" style="background-color: rgba(150,150,150,0.05); border: 1px solid var(--border-color);">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-3">Опции за отговор *</label>
+                            ${['а', 'б', 'в', 'г'].map((l, i) => `
+                                <div class="input-group mb-2 shadow-sm rounded-pill overflow-hidden">
+                                    <span class="input-group-text border-0" style="width:40px; justify-content:center; font-weight:bold;">${l}</span>
+                                    <input type="text" class="form-control option-text border-0 px-3" style="background-color: var(--bg-card); color: var(--text-main);" placeholder="Текст на опция ${l}" required>
+                                </div>`).join('')}
+                            <div class="form-group mt-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Верен отговор *</label>
+                                <select class="form-select correct-option rounded-pill px-3 border shadow-sm w-50" required>
+                                    <option value="1">а</option><option value="2">б</option><option value="3">в</option><option value="4">г</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            updateQuestionStats();
+        }
+
+        function addOpenEndedQuestion() {
+            const questionId = questionIdCounter++;
+            const questionHtml = `
+                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid #0dcaf0 !important;">
+                    <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Въпрос ${questionId} <span class="badge bg-info bg-opacity-10 text-info ms-2 px-2 py-1 rounded-pill fw-normal">Отворен</span></h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 d-flex align-items-center" onclick="removeQuestion(${questionId})">
+                            <i data-lucide="trash-2" class="me-1" style="width: 14px;"></i> Изтрий
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Текст на въпроса *</label>
+                            <textarea class="form-control question-text rounded-4 p-3 border" rows="2" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" required></textarea>
+                        </div>
+                        <div class="form-group mb-4 w-50">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Точки *</label>
+                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="2" min="1" max="10" required>
+                        </div>
+                        <div class="p-4 rounded-4" style="background-color: rgba(150,150,150,0.05); border: 1px solid var(--border-color);">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-2">Приемливи верни отговори *</label>
+                            <div class="acceptable-answers d-flex flex-column gap-2">
+                                <input type="text" class="form-control acceptable-answer rounded-pill px-3 py-2 border shadow-sm" placeholder="Първи верен отговор" required>
+                                <input type="text" class="form-control acceptable-answer rounded-pill px-3 py-2 border shadow-sm" placeholder="Втори верен отговор (по избор)">
+                            </div>
+                            <div class="form-check mt-3">
+                                <input class="form-check-input case-sensitive" type="checkbox" style="cursor:pointer;">
+                                <label class="form-check-label small text-muted">Проверявай главни/малки букви</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            updateQuestionStats();
+        }
+
+        function removeQuestion(questionId) {
+            const el = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (el) { el.remove(); updateQuestionStats(); }
+        }
+
+        function updateQuestionStats() {
+            const cards = document.querySelectorAll('.question-card');
+            let pts = 0;
+            cards.forEach(c => { pts += parseInt(c.querySelector('.question-points')?.value) || 0; });
+            document.getElementById('questionCount').textContent = cards.length;
+            document.getElementById('totalPoints').textContent = pts;
+            document.getElementById('timeEstimate').textContent = Math.ceil(cards.length * 1.5);
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = cards.length === 0;
+        }
+
+        document.getElementById('createTestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const questions = collectAllQuestions();
+            if (questions.length === 0) { alert('❌ Добавете поне един въпрос!'); return; }
+            const questionsInput = document.createElement('input');
+            questionsInput.type = 'hidden';
+            questionsInput.name = 'questionsJson';
+            questionsInput.value = JSON.stringify(questions);
+            addQuestionFormData(this, questions);
+            this.appendChild(questionsInput);
+            this.submit();
+        });
+
+        function collectAllQuestions() {
+            const questions = [];
+            document.querySelectorAll('.question-card').forEach((card, index) => {
+                const questionText = card.querySelector('.question-text')?.value.trim();
+                const points = parseInt(card.querySelector('.question-points')?.value) || 1;
+                if (!questionText) return;
+                const question = {
+                    Id: index + 1,
+                    QuestionText: questionText,
+                    Points: points,
+                    Type: card.querySelector('.options-container') ? 0 : 1
+                };
+                if (question.Type === 0) {
+                    const options = [];
+                    card.querySelectorAll('.option-text').forEach((input, optIndex) => {
+                        if (input.value.trim()) options.push({ Id: optIndex + 1, Text: input.value.trim() });
+                    });
+                    question.Options = options;
+                    question.CorrectOptionId = parseInt(card.querySelector('.correct-option')?.value) || 1;
+                } else {
+                    const answers = [];
+                    card.querySelectorAll('.acceptable-answer').forEach(input => {
+                        if (input.value.trim()) answers.push(input.value.trim());
+                    });
+                    question.AcceptableAnswers = answers;
+                    question.IsCaseSensitive = card.querySelector('.case-sensitive')?.checked || false;
+                }
+                questions.push(question);
+            });
+            return questions;
+        }
+
+        function addQuestionFormData(form, questions) {
+            questions.forEach((q, i) => {
+                addHiddenField(form, `questions[${i}].QuestionText`, q.QuestionText);
+                addHiddenField(form, `questions[${i}].Type`, q.Type);
+                addHiddenField(form, `questions[${i}].Points`, q.Points);
+                if (q.Type === 0) {
+                    q.Options.forEach((o, oi) => addHiddenField(form, `questions[${i}].Options[${oi}].Text`, o.Text));
+                    addHiddenField(form, `questions[${i}].CorrectOptionId`, q.CorrectOptionId);
+                } else {
+                    addHiddenField(form, `questions[${i}].AcceptableAnswers`, q.AcceptableAnswers?.join(';') || '');
+                }
+            });
+        }
+
+        function addHiddenField(form, name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addMultipleChoiceQuestion();
+            document.addEventListener('input', e => { if (e.target.classList.contains('question-points')) updateQuestionStats(); });
+        });
+    </script>
+
+    <style>
+        /* 1. Блокираме подскачането на ВСИЧКИ карти и елементи */
+        .card:hover, .question-card:hover, #testPreview:hover, .btn:hover {
+            transform: none !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* 2. Професионален ховър за "Добави отворен въпрос" */
+        .custom-outline-green {
+            border: 2px solid var(--primary) !important;
+            color: var(--primary) !important;
+            background-color: transparent !important;
+            transition: all 0.3s ease;
+        }
+
+            .custom-outline-green:hover {
+                background-color: var(--primary) !important;
+                color: white !important;
+                box-shadow: 0 4px 12px rgba(106, 156, 120, 0.3) !important;
+            }
+
+        /* 3. Професионален ховър за бутона "Отмени" */
+        .btn-outline-cancel {
+            background-color: var(--bg-card) !important;
+            color: var(--text-muted) !important;
+            border: 2px solid var(--border-color) !important;
+            transition: all 0.3s ease;
+        }
+
+            .btn-outline-cancel:hover {
+                background-color: rgba(150, 150, 150, 0.1) !important;
+                color: var(--text-main) !important;
+                border-color: #6c757d !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+            }
+
+        .btn i {
+            stroke-width: 2.5px;
+        }
+    </style>
+}
