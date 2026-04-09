@@ -4,7 +4,13 @@
     var books = ViewBag.Books as List<ProjectLibrary.Models.Book> ?? new List<ProjectLibrary.Models.Book>();
 }
 
-<div class="d-flex align-items-center mb-4 mt-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+<div class="mb-2 mt-3 d-flex align-items-center">
+    <button onclick="history.back()" class="btn btn-sm rounded-pill fw-bold d-inline-flex align-items-center shadow-sm px-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); transition: all 0.2s ease-in-out;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='white'; this.style.borderColor='var(--primary)';" onmouseout="this.style.backgroundColor='var(--bg-body)'; this.style.color='var(--text-main)'; this.style.borderColor='var(--border-color)';">
+        <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i> Назад
+    </button>
+</div>
+
+<div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
     <div class="d-flex justify-content-center align-items-center rounded-3 me-3 shadow-sm" style="width: 50px; height: 50px; background-color: var(--primary); color: white;">
         <i data-lucide="file-plus-2" style="width: 28px; height: 28px;"></i>
     </div>
@@ -359,13 +365,11 @@
     </script>
 
     <style>
-        /* 1. Блокираме подскачането на ВСИЧКИ карти и елементи */
         .card:hover, .question-card:hover, #testPreview:hover, .btn:hover {
             transform: none !important;
             transition: all 0.3s ease !important;
         }
 
-        /* 2. Професионален ховър за "Добави отворен въпрос" */
         .custom-outline-green {
             border: 2px solid var(--primary) !important;
             color: var(--primary) !important;
@@ -379,7 +383,6 @@
                 box-shadow: 0 4px 12px rgba(106, 156, 120, 0.3) !important;
             }
 
-        /* 3. Професионален ховър за бутона "Отмени" */
         .btn-outline-cancel {
             background-color: var(--bg-card) !important;
             color: var(--text-muted) !important;
