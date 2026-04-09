@@ -28,7 +28,7 @@
                 <h5 class="fw-bold mb-1" style="color: var(--text-main);">Железният светилник</h5>
                 <p class="text-muted small mb-4">Само затворени въпроси. Провери знанията си веднага, без таймер и напрежение!</p>
 
-                <a asp-action="PracticeTest" asp-route-id="1" class="btn btn-solid-premium w-100 mt-auto">
+                <a asp-action="PracticeTest" asp-route-id="1" class="btn btn-hover-green w-100 mt-auto fw-bold">
                     <i data-lucide="play" class="me-2"></i> Започни тренировка
                 </a>
             </div>
@@ -91,7 +91,7 @@
                             @test.Description
                         </p>
 
-                        <a asp-action="Start" asp-route-id="@test.Id" class="btn w-100 mt-auto" style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); font-weight: 600; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='white';" onmouseout="this.style.backgroundColor='var(--bg-body)'; this.style.color='var(--text-main)';">
+                        <a asp-action="Start" asp-route-id="@test.Id" class="btn btn-hover-gray w-100 mt-auto fw-bold">
                             <i data-lucide="edit-3" class="me-2"></i> Реши теста
                         </a>
                     </div>
@@ -100,6 +100,37 @@
         </div>
     }
 </div>
+
+<style>
+    /* Нови класове за красиви бутони без onmouseover */
+    .btn-hover-green {
+        background-color: #6a9c78;
+        color: white;
+        border: 1px solid #6a9c78;
+        border-radius: 12px;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn-hover-green:hover {
+            background-color: #558061; /* Тъмно зелено */
+            border-color: #558061;
+            color: white;
+        }
+
+    .btn-hover-gray {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn-hover-gray:hover {
+            background-color: #f3f4f6; /* Леко сиво */
+            border-color: #d1d5db;
+            color: var(--text-main);
+        }
+</style>
 
 @section Scripts {
     <script>

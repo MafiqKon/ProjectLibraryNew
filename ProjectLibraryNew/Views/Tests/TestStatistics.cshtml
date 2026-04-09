@@ -4,13 +4,13 @@
     ViewData["Title"] = "Статистика за тест";
 }
 
-<h2>📊 Статистика за тест: @Model.Test.Title</h2>
+<h2>📊 Статистика за тест: @(Model.Test?.Title ?? "Неизвестен тест")</h2>
 
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card text-center bg-primary text-white">
             <div class="card-body">
-                <h3>@Model.Results.Count</h3>
+                <h3>@(Model.Results?.Count ?? 0)</h3>
                 <p class="mb-0">👥 Участници</p>
             </div>
         </div>
@@ -43,13 +43,12 @@
 
 <div class="row">
     <div class="col-md-8">
-        <!-- Детайлни резултати -->
         <div class="card">
             <div class="card-header">
                 <h5>📋 Детайлни резултати</h5>
             </div>
             <div class="card-body">
-                @if (Model.Results.Any())
+                @if (Model.Results != null && Model.Results.Any())
                 {
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -67,11 +66,11 @@
                                 @foreach (var result in Model.Results)
                                 {
                                     <tr>
-                                        <td>@result.User.FirstName @result.User.LastName</td>
-                                        <td>@result.Score/@result.Test.TotalPoints</td>
+                                        <td>@(result.User?.FirstName) @(result.User?.LastName)</td>
+                                        <td>@result.Score/@(result.Test?.TotalPoints ?? 0)</td>
                                         <td>
                                             <div class="progress" style="height: 20px; width: 100px;">
-                                                <div class="progress-bar @(result.Percentage >= result.Test.PassingScore ? "bg-success" : "bg-warning")"
+                                                <div class="progress-bar @(result.Percentage >= (result.Test?.PassingScore ?? 0) ? "bg-success" : "bg-warning")"
                                                      style="width: @result.Percentage%">
                                                     @result.Percentage.ToString("0.0")%
                                                 </div>
@@ -80,7 +79,7 @@
                                         <td>@result.TimeSpent.ToString(@"mm\:ss")</td>
                                         <td>@result.CompletedAt.ToString("dd.MM.yyyy HH:mm")</td>
                                         <td>
-                                            @if (result.Percentage >= result.Test.PassingScore)
+                                            @if (result.Percentage >= (result.Test?.PassingScore ?? 0))
                                             {
                                                 <span class="badge bg-success">✅ Преминат</span>
                                             }
@@ -107,29 +106,27 @@
     </div>
 
     <div class="col-md-4">
-        <!-- Информация за теста -->
         <div class="card">
             <div class="card-header">
                 <h5>📝 Информация за теста</h5>
             </div>
             <div class="card-body">
-                <p><strong>📚 Тест:</strong> @Model.Test.Title</p>
-                <p><strong>📖 Произведение:</strong> @Model.Test.Book.Title</p>
-                <p><strong>👨‍🎓 Автор:</strong> @Model.Test.Book.Author.Name</p>
-                <p><strong>⏱️ Време:</strong> @Model.Test.TimeLimitMinutes минути</p>
-                <p><strong>🎯 Минимум:</strong> @Model.Test.PassingScore%</p>
-                <p><strong>📊 Точки:</strong> @Model.Test.TotalPoints</p>
-                <p><strong>📅 Създаден:</strong> @Model.Test.CreatedDate.ToString("dd.MM.yyyy")</p>
+                <p><strong>📚 Тест:</strong> @(Model.Test?.Title ?? "-")</p>
+                <p><strong>📖 Произведение:</strong> @(Model.Test?.Book?.Title ?? "Общ тест")</p>
+                <p><strong>👨‍🎓 Автор:</strong> @(Model.Test?.Book?.Author?.Name ?? "-")</p>
+                <p><strong>⏱️ Време:</strong> @(Model.Test?.TimeLimitMinutes ?? 0) минути</p>
+                <p><strong>🎯 Минимум:</strong> @(Model.Test?.PassingScore ?? 0)%</p>
+                <p><strong>📊 Точки:</strong> @(Model.Test?.TotalPoints ?? 0)</p>
+                <p><strong>📅 Създаден:</strong> @(Model.Test?.CreatedDate.ToString("dd.MM.yyyy") ?? "-")</p>
             </div>
         </div>
 
-        <!-- Разпределение на резултатите -->
         <div class="card mt-3">
             <div class="card-header">
                 <h5>📈 Разпределение</h5>
             </div>
             <div class="card-body">
-                @if (Model.Results.Any())
+                @if (Model.Results != null && Model.Results.Any())
                 {
                     var scoreRanges = new[]
                     {
@@ -139,10 +136,12 @@
                                 new { Range = "85-100%", Min = 85, Max = 100 }
                                 };
 
+                    var totalCount = Model.Results.Count;
+
                     foreach (var range in scoreRanges)
                     {
                         var count = Model.Results.Count(r => r.Percentage >= range.Min && r.Percentage <= range.Max);
-                        var percentage = (double)count / Model.Results.Count * 100;
+                        var percentage = totalCount > 0 ? ((double)count / totalCount * 100) : 0;
 
                         <div class="mb-2">
                             <div class="d-flex justify-content-between mb-1">
@@ -163,7 +162,6 @@
             </div>
         </div>
 
-        <!-- Бързи действия -->
         <div class="card mt-3">
             <div class="card-header">
                 <h5>🚀 Действия</h5>
@@ -173,9 +171,12 @@
                     <a href="@Url.Action("Manage")" class="btn btn-outline-primary">
                         📋 Управление на тестове
                     </a>
-                    <a href="@Url.Action("Details", new { id = Model.Test.Id })" class="btn btn-outline-info">
-                        👁️ Преглед на теста
-                    </a>
+                    @if (Model.Test != null)
+                    {
+                        <a href="@Url.Action("Details", new { id = Model.Test.Id })" class="btn btn-outline-info">
+                            👁️ Преглед на теста
+                        </a>
+                    }
                     <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
                         ← Към тестовете
                     </a>
