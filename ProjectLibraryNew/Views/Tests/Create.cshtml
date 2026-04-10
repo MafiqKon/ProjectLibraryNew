@@ -291,19 +291,6 @@
             submitBtn.disabled = cards.length === 0;
         }
 
-        document.getElementById('createTestForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const questions = collectAllQuestions();
-            if (questions.length === 0) { alert('❌ Добавете поне един въпрос!'); return; }
-            const questionsInput = document.createElement('input');
-            questionsInput.type = 'hidden';
-            questionsInput.name = 'questionsJson';
-            questionsInput.value = JSON.stringify(questions);
-            addQuestionFormData(this, questions);
-            this.appendChild(questionsInput);
-            this.submit();
-        });
-
         function collectAllQuestions() {
             const questions = [];
             document.querySelectorAll('.question-card').forEach((card, index) => {
@@ -357,6 +344,38 @@
             input.value = value;
             form.appendChild(input);
         }
+
+        document.getElementById('createTestForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Спираме стандартното изпращане
+
+            // 1. ПРОВЕРКА НА ОПИСАНИЕТО
+            const descInput = document.querySelector('textarea[name="Description"]');
+            if (descInput && descInput.value.trim() === '') {
+                const proceed = confirm("⚠️ Внимание: Оставили сте 'Описание на теста' празно.\n\nИскате ли въпреки това да продължите и да го запазите?");
+                if (!proceed) {
+                    return; // Спираме, ако потребителят цъкне "Cancel"
+                } else {
+                    descInput.value = " "; // Лъжем валидацията с един интервал
+                }
+            }
+
+            // 2. СЪБИРАНЕ НА ВЪПРОСИТЕ
+            const questions = collectAllQuestions();
+            if (questions.length === 0) {
+                alert('❌ Добавете поне един въпрос!');
+                return;
+            }
+
+            // 3. ИЗПРАЩАНЕ КЪМ СЪРВЪРА
+            const questionsInput = document.createElement('input');
+            questionsInput.type = 'hidden';
+            questionsInput.name = 'questionsJson';
+            questionsInput.value = JSON.stringify(questions);
+            addQuestionFormData(this, questions);
+            this.appendChild(questionsInput);
+
+            this.submit(); // Реалното изпращане
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             addMultipleChoiceQuestion();

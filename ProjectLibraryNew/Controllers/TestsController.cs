@@ -25,10 +25,9 @@ namespace ProjectLibrary.Controllers
         }
 
         // ==========================================
-        // 1. СЪЩЕСТВУВАЩИ МЕТОДИ (Твоят оригинален код)
+        // 1. СЪЩЕСТВУВАЩИ МЕТОДИ
         // ==========================================
 
-        // GET: Списък с тестове
         public async Task<IActionResult> Index()
         {
             try
@@ -36,14 +35,12 @@ namespace ProjectLibrary.Controllers
                 var tests = await _context.Tests
                     .Include(t => t.Book)
                     .Include(t => t.Book.Author)
-                    .Where(t => t.IsPublished) // Само публикувани тестове
+                    .Where(t => t.IsPublished)
                     .OrderByDescending(t => t.CreatedDate)
                     .ToListAsync();
 
-                // Ако няма тестове, създаваме примерен
                 if (!tests.Any())
                 {
-                    // Създаваме примерен тест
                     var sampleTest = new Test
                     {
                         Title = "Примерен тест по българска литература",
@@ -78,7 +75,6 @@ namespace ProjectLibrary.Controllers
                     _context.Tests.Add(sampleTest);
                     await _context.SaveChangesAsync();
 
-                    // Презареждаме тестовете
                     tests = await _context.Tests
                         .Include(t => t.Book)
                         .Include(t => t.Book.Author)
@@ -91,12 +87,10 @@ namespace ProjectLibrary.Controllers
             }
             catch (Exception ex)
             {
-                // В случай на грешка, връщаме празен списък
                 return View(new List<Test>());
             }
         }
 
-        // GET: Детайли за тест
         public async Task<IActionResult> Details(int id)
         {
             var test = await _context.Tests
@@ -104,15 +98,11 @@ namespace ProjectLibrary.Controllers
                 .Include(t => t.Book.Author)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (test == null)
-            {
-                return NotFound();
-            }
+            if (test == null) return NotFound();
 
             return View(test);
         }
 
-        // GET: Стартиране на тест
         public async Task<IActionResult> Start(int id)
         {
             var test = await _context.Tests
@@ -120,10 +110,7 @@ namespace ProjectLibrary.Controllers
                     .ThenInclude(b => b.Author)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (test == null)
-            {
-                return NotFound();
-            }
+            if (test == null) return NotFound();
 
             ViewBag.Test = test;
             ViewBag.Questions = test.GetQuestions();
@@ -131,24 +118,19 @@ namespace ProjectLibrary.Controllers
             return View();
         }
 
-        // POST: Изпращане на тест
         [HttpPost]
         public async Task<IActionResult> Submit(int testId, Dictionary<int, string> answers)
         {
             var test = await _context.Tests.FindAsync(testId);
             var user = await _userManager.GetUserAsync(User);
 
-            if (test == null || user == null)
-            {
-                return NotFound();
-            }
+            if (test == null || user == null) return NotFound();
 
             var questions = test.GetQuestions();
             var resultDetails = new List<QuestionResult>();
             int totalScore = 0;
             int correctAnswers = 0;
 
-            // Оценяване на отговорите
             foreach (var question in questions)
             {
                 var userAnswer = answers.ContainsKey(question.Id) ? (answers[question.Id] ?? string.Empty) : string.Empty;
@@ -166,10 +148,7 @@ namespace ProjectLibrary.Controllers
                 }
                 else if (question.Type == QuestionType.OpenEnded)
                 {
-                    var normalizedUserAnswer = question.IsCaseSensitive ?
-                        userAnswer.Trim() :
-                        userAnswer.Trim().ToLower();
-
+                    var normalizedUserAnswer = question.IsCaseSensitive ? userAnswer.Trim() : userAnswer.Trim().ToLower();
                     var normalizedAcceptableAnswers = question.AcceptableAnswers
                         .Select(a => question.IsCaseSensitive ? a.Trim() : a.Trim().ToLower())
                         .ToList();
@@ -197,7 +176,6 @@ namespace ProjectLibrary.Controllers
                 });
             }
 
-            // Създаване на резултата
             double finalPercentage = (double)correctAnswers / questions.Count * 100;
 
             var testResult = new TestResult
@@ -208,22 +186,17 @@ namespace ProjectLibrary.Controllers
                 TotalQuestions = questions.Count,
                 CorrectAnswers = correctAnswers,
                 Percentage = finalPercentage,
-                TimeSpent = TimeSpan.FromMinutes(45) // Временно - ще добавим таймер
+                TimeSpent = TimeSpan.FromMinutes(45)
             };
 
             testResult.SetResultDetails(resultDetails);
             _context.TestResults.Add(testResult);
 
-            // ====================================================================
-            // НОВО: АВТОМАТИЧНО ОТБЕЛЯЗВАНЕ НА "ВЗЕТ ТЕСТ" ПРИ НАД 50%
-            // ====================================================================
             if (finalPercentage >= 50)
             {
                 var progress = await _context.UserBookProgresses
                     .FirstOrDefaultAsync(p => p.BookId == test.BookId && p.UserId == user.Id);
 
-                // Ако ученикът досега не е имал никакъв прогрес (не е чел текста и анализа), 
-                // му създаваме запис само с отметнат тест.
                 if (progress == null)
                 {
                     progress = new UserBookProgress
@@ -238,18 +211,14 @@ namespace ProjectLibrary.Controllers
                 }
                 else
                 {
-                    // Ако вече има запис, просто му отмятаме теста
                     progress.HasPassedTest = true;
                 }
             }
-            // ====================================================================
 
             await _context.SaveChangesAsync();
-
             return RedirectToAction(nameof(Results), new { id = testResult.Id });
         }
 
-        // GET: Резултати от тест
         public async Task<IActionResult> Results(int id)
         {
             var result = await _context.TestResults
@@ -259,10 +228,7 @@ namespace ProjectLibrary.Controllers
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (result == null || result.UserId != _userManager.GetUserId(User))
-            {
-                return NotFound();
-            }
+            if (result == null || result.UserId != _userManager.GetUserId(User)) return NotFound();
 
             ViewBag.ResultDetails = result.GetResultDetails();
             ViewBag.TestQuestions = result.Test.GetQuestions();
@@ -274,12 +240,9 @@ namespace ProjectLibrary.Controllers
         // 2. ЪПГРЕЙДНАТО СТУДЕНТСКО ТАБЛО (MyResults)
         // ==========================================
 
-        // GET: Моите резултати
         public async Task<IActionResult> MyResults()
         {
             var user = await _userManager.GetUserAsync(User);
-
-            // Вземаме всички резултати на този ученик
             var results = await _context.TestResults
                 .Include(r => r.Test)
                 .Include(r => r.Test.Book)
@@ -287,19 +250,14 @@ namespace ProjectLibrary.Controllers
                 .OrderByDescending(r => r.Id)
                 .ToListAsync();
 
-            // Смятаме статистиките за таблото
             ViewBag.TotalTestsTaken = results.Count;
             ViewBag.AverageScore = results.Any() ? Math.Round(results.Average(r => r.Percentage), 1) : 0;
-
-            // Намираме кое произведение е решавано най-много пъти
             ViewBag.MostPracticedBook = results.Any() && results.Any(r => r.Test != null && r.Test.Book != null)
                 ? results.Where(r => r.Test != null && r.Test.Book != null)
                          .GroupBy(r => r.Test.Book.Title)
                          .OrderByDescending(g => g.Count())
                          .FirstOrDefault()?.Key
                 : "Няма данни";
-
-            // Брой тестове, взети с над 60%
             ViewBag.Passed = results.Count(r => r.Percentage >= 60);
 
             return View(results);
@@ -309,16 +267,13 @@ namespace ProjectLibrary.Controllers
         // 3. НОВИ МЕТОДИ ЗА СТАТИЧНИТЕ ТРЕНИРОВЪЧНИ ТЕСТОВЕ
         // ==========================================
 
-        // GET: Статичен тренировъчен тест (Специален)
         public IActionResult PracticeTest(int id = 1)
         {
             var quiz = GenerateStaticQuiz(id);
             if (quiz == null) return NotFound();
-
             return View(quiz);
         }
 
-        // POST: Проверка на статичния тренировъчен тест
         [HttpPost]
         public async Task<IActionResult> PracticeTest(int id, QuizViewModel model)
         {
@@ -332,20 +287,17 @@ namespace ProjectLibrary.Controllers
 
             for (int i = 0; i < originalQuiz.Questions.Count; i++)
             {
-                // Възстановяваме оригиналните данни, защото от HTML идват само отговорите
                 model.Questions[i].Text = originalQuiz.Questions[i].Text;
                 model.Questions[i].IsOpenEnded = originalQuiz.Questions[i].IsOpenEnded;
                 model.Questions[i].Options = originalQuiz.Questions[i].Options;
                 model.Questions[i].CorrectOptionId = originalQuiz.Questions[i].CorrectOptionId;
                 model.Questions[i].AcceptableAnswers = originalQuiz.Questions[i].AcceptableAnswers;
 
-                // ПРОВЕРКА НА ОТГОВОРА
                 if (originalQuiz.Questions[i].IsOpenEnded)
                 {
                     var userAnswer = model.Questions[i].UserTextAnswer?.Trim().ToLower();
                     var isCorrect = !string.IsNullOrEmpty(userAnswer) &&
                                     originalQuiz.Questions[i].AcceptableAnswers.Any(a => a.ToLower() == userAnswer);
-
                     model.Questions[i].IsAnswerCorrect = isCorrect;
                     if (isCorrect) model.Score++;
                 }
@@ -360,9 +312,7 @@ namespace ProjectLibrary.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user != null)
             {
-                // Намираме първия тест в базата (като фиктивен запис, за да запазим резултата)
                 var dummyTest = await _context.Tests.FirstOrDefaultAsync();
-
                 if (dummyTest != null)
                 {
                     var resultRecord = new TestResult
@@ -373,9 +323,8 @@ namespace ProjectLibrary.Controllers
                         TotalQuestions = originalQuiz.Questions.Count,
                         CorrectAnswers = model.Score,
                         Percentage = ((double)model.Score / originalQuiz.Questions.Count) * 100,
-                        TimeSpent = TimeSpan.FromMinutes(5) // Примерно време за бързия тест
+                        TimeSpent = TimeSpan.FromMinutes(5)
                     };
-
                     _context.TestResults.Add(resultRecord);
                     await _context.SaveChangesAsync();
                 }
@@ -384,7 +333,6 @@ namespace ProjectLibrary.Controllers
             return View(model);
         }
 
-        // Помощен метод за генериране на тренировъчните тестове
         private QuizViewModel GenerateStaticQuiz(int id)
         {
             if (id == 1)
@@ -410,7 +358,6 @@ namespace ProjectLibrary.Controllers
             }
             else if (id == 2)
             {
-                // НОВИЯТ ТЕСТ: 8 ЗАТВОРЕНИ И 2 ОТВОРЕНИ ВЪПРОСА
                 return new QuizViewModel
                 {
                     QuizId = 2,
@@ -425,20 +372,8 @@ namespace ProjectLibrary.Controllers
                         new QuestionViewModel { Id = 6, Text = "Кой герой олицетворява здравия български корен?", CorrectOptionId = 4, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Мунчо" }, new AnswerOption { Id = 2, Text = "Боримечката" }, new AnswerOption { Id = 3, Text = "Мичо Бейзадето" }, new AnswerOption { Id = 4, Text = "Чорбаджи Марко" } } },
                         new QuestionViewModel { Id = 7, Text = "Кое историческо събитие описва романът?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Кресненско-Разложкото въстание" }, new AnswerOption { Id = 2, Text = "Априлското въстание" }, new AnswerOption { Id = 3, Text = "Илинденското въстание" }, new AnswerOption { Id = 4, Text = "Освободителната война" } } },
                         new QuestionViewModel { Id = 8, Text = "Кой е единственият, осмелил се да прокълне убийците на финала?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Мунчо" }, new AnswerOption { Id = 2, Text = "Соколов" }, new AnswerOption { Id = 3, Text = "Марко" }, new AnswerOption { Id = 4, Text = "Стефчов" } } },
-                        
-                        // ОТВОРЕНИ ВЪПРОСИ
-                        new QuestionViewModel {
-                            Id = 9,
-                            Text = "Какво е истинското име на Бойчо Огнянов? (въведете 1 дума)",
-                            IsOpenEnded = true,
-                            AcceptableAnswers = new List<string> { "Иван", "Кралича", "Иван Кралича" }
-                        },
-                        new QuestionViewModel {
-                            Id = 10,
-                            Text = "Как се казва докторът, най-добър приятел на Огнянов? (въведете фамилията)",
-                            IsOpenEnded = true,
-                            AcceptableAnswers = new List<string> { "Соколов" }
-                        }
+                        new QuestionViewModel { Id = 9, Text = "Какво е истинското име на Бойчо Огнянов? (въведете 1 дума)", IsOpenEnded = true, AcceptableAnswers = new List<string> { "Иван", "Кралича", "Иван Кралича" } },
+                        new QuestionViewModel { Id = 10, Text = "Как се казва докторът, най-добър приятел на Огнянов? (въведете фамилията)", IsOpenEnded = true, AcceptableAnswers = new List<string> { "Соколов" } }
                     }
                 };
             }
@@ -449,28 +384,19 @@ namespace ProjectLibrary.Controllers
         // 4. ОСТАНАЛИ АДМИН/УЧИТЕЛСКИ МЕТОДИ
         // ==========================================
 
-        // GET: Създаване на нов тест (само за учители и администратори)
         [Authorize(Roles = "Teacher,Admin")]
         public async Task<IActionResult> Create()
         {
-            ViewBag.Books = await _context.Books
-                .Include(b => b.Author)
-                .OrderBy(b => b.Title)
-                .ToListAsync();
-
-            // Създаваме празен Test обект за View-то
-            var test = new Test();
-            return View(test);
+            ViewBag.Books = await _context.Books.Include(b => b.Author).OrderBy(b => b.Title).ToListAsync();
+            return View(new Test());
         }
 
-        // POST: Създаване на нов тест
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Teacher,Admin")]
         public async Task<IActionResult> Create(Test test, string questionsJson)
         {
             var user = await _userManager.GetUserAsync(User);
-
             test.CreatedByUserId = user.Id;
             test.CreatedDate = DateTime.Now;
 
@@ -515,10 +441,43 @@ namespace ProjectLibrary.Controllers
             }
         }
 
+        // ==============================================================
+        // НОВО: МЕТОД ЗА ИМПОРТИРАНЕ НА JSON (Bulk Import)
+        // ==============================================================
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        public async Task<IActionResult> BulkImport(int testId, string jsonQuestions)
+        {
+            var test = await _context.Tests.FindAsync(testId);
+            if (test == null) return NotFound("Тестът не е намерен.");
+
+            try
+            {
+                var questions = JsonSerializer.Deserialize<List<TestQuestion>>(jsonQuestions);
+                if (questions != null && questions.Any())
+                {
+                    test.SetQuestions(questions);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"Успешно добавени {questions.Count} въпроса чрез JSON импорт!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Списъкът с въпроси е празен или JSON кодът е невалиден.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Грешка при импорт на JSON: " + ex.Message;
+            }
+
+            // ФИКСЪТ: Вече те връщаме към страницата Manage, която съществува!
+            return RedirectToAction(nameof(Manage));
+        }
+        // ==============================================================
+
         private List<TestQuestion> GetQuestionsFromForm(Microsoft.AspNetCore.Http.IFormCollection form)
         {
             var questions = new List<TestQuestion>();
-
             var questionIndexes = form.Keys
                 .Where(k => k.StartsWith("questions["))
                 .Select(k => {
@@ -592,42 +551,6 @@ namespace ProjectLibrary.Controllers
             }
 
             return questions;
-        }
-
-        private List<TestQuestion> CreateSampleQuestions()
-        {
-            return new List<TestQuestion>
-            {
-                new TestQuestion
-                {
-                    Id = 1,
-                    QuestionText = "Кой е авторът на 'Под игото'?",
-                    Type = QuestionType.MultipleChoice,
-                    Points = 2,
-                    Options = new List<QuestionOption>
-                    {
-                        new QuestionOption { Id = 1, Text = "Иван Вазов" },
-                        new QuestionOption { Id = 2, Text = "Христо Ботев" },
-                        new QuestionOption { Id = 3, Text = "Пейо Яворов" },
-                        new QuestionOption { Id = 4, Text = "Елин Пелин" }
-                    },
-                    CorrectOptionId = 1
-                },
-                new TestQuestion
-                {
-                    Id = 2,
-                    QuestionText = "Опишете основната тема на 'Под игото'",
-                    Type = QuestionType.OpenEnded,
-                    Points = 5,
-                    AcceptableAnswers = new List<string>
-                    {
-                        "Борбата за освобождение от османско владичество",
-                        "Възрожденският дух и националното пробуждане",
-                        "Животът на българския народ по време на Възраждането"
-                    },
-                    IsCaseSensitive = false
-                }
-            };
         }
 
         [HttpPost]
@@ -755,28 +678,22 @@ namespace ProjectLibrary.Controllers
             return RedirectToAction(nameof(Manage));
         }
 
-        // ==========================================
-        // НОВИЯТ И СИГУРЕН МЕТОД ЗА ИЗТРИВАНЕ
-        // ==========================================
         [HttpPost]
         [Authorize(Roles = "Admin,Teacher")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTest(int id)
         {
-            // Взимаме теста ЗАЕДНО с неговите резултати
             var test = await _context.Tests
                 .Include(t => t.TestResults)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (test != null)
             {
-                // 1. Първо трием всички резултати на учениците към този тест
                 if (test.TestResults.Any())
                 {
                     _context.TestResults.RemoveRange(test.TestResults);
                 }
 
-                // 2. След това трием самия тест
                 _context.Tests.Remove(test);
                 await _context.SaveChangesAsync();
 
@@ -786,14 +703,12 @@ namespace ProjectLibrary.Controllers
             return RedirectToAction(nameof(Manage));
         }
 
-        // --- Сложи го точно над този ред ---
         private bool TestExists(int id)
         {
             return _context.Tests.Any(e => e.Id == id);
         }
     }
 
-    // МОДЕЛ ЗА СТАТИСТИКИ НА ТЕСТ
     public class TestStatistics
     {
         public Test Test { get; set; }
