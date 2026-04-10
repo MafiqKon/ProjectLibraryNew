@@ -240,9 +240,12 @@ namespace ProjectLibrary.Controllers
         // 2. ЪПГРЕЙДНАТО СТУДЕНТСКО ТАБЛО (MyResults)
         // ==========================================
 
+        // GET: Моите резултати
         public async Task<IActionResult> MyResults()
         {
             var user = await _userManager.GetUserAsync(User);
+
+            // Вземаме всички резултати на този ученик
             var results = await _context.TestResults
                 .Include(r => r.Test)
                 .Include(r => r.Test.Book)
@@ -250,15 +253,38 @@ namespace ProjectLibrary.Controllers
                 .OrderByDescending(r => r.Id)
                 .ToListAsync();
 
+            // Смятаме статистиките за таблото
             ViewBag.TotalTestsTaken = results.Count;
             ViewBag.AverageScore = results.Any() ? Math.Round(results.Average(r => r.Percentage), 1) : 0;
+
+            // Намираме кое произведение е решавано най-много пъти
             ViewBag.MostPracticedBook = results.Any() && results.Any(r => r.Test != null && r.Test.Book != null)
                 ? results.Where(r => r.Test != null && r.Test.Book != null)
                          .GroupBy(r => r.Test.Book.Title)
                          .OrderByDescending(g => g.Count())
                          .FirstOrDefault()?.Key
                 : "Няма данни";
+
+            // Брой тестове, взети с над 60%
             ViewBag.Passed = results.Count(r => r.Percentage >= 60);
+
+            // ==========================================
+            // НОВО: АЛГОРИТЪМ ЗА ПРЕПОРЪЧАНА КНИГА
+            // ==========================================
+            // 1. Намираме ID-тата на книгите, които ученикът вече е започнал/решавал
+            var interactedBookIds = await _context.UserBookProgresses
+                .Where(p => p.UserId == user.Id && (p.IsTextRead || p.IsAnalysisRead || p.HasPassedTest))
+                .Select(p => p.BookId)
+                .ToListAsync();
+
+            // 2. Избираме първата книга от базата, с която все още няма взаимодействие
+            var recommendedBook = await _context.Books
+                .Include(b => b.Author)
+                .Where(b => !interactedBookIds.Contains(b.Id))
+                .FirstOrDefaultAsync();
+
+            ViewBag.RecommendedBook = recommendedBook;
+            // ==========================================
 
             return View(results);
         }
