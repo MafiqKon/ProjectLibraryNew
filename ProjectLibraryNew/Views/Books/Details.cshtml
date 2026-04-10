@@ -49,7 +49,7 @@
                             <span class="text-muted small fw-bold text-uppercase d-block mb-1">Налични</span>
                             <h5 class="fw-bold mb-0" style="color: var(--primary);">@Model.Analyses.Count анализ(а)</h5>
                         </div>
-                        <button type="button" class="btn btn-outline-primary rounded-pill fw-bold px-4 py-2 hover-scale custom-outline-btn" data-bs-toggle="modal" data-bs-target="#analysesModal">
+                        <button type="button" class="btn rounded-pill fw-bold px-4 py-2 hover-scale custom-outline-btn" data-bs-toggle="modal" data-bs-target="#analysesModal">
                             <i data-lucide="book-open" class="me-1" style="width: 16px;"></i> Отвори
                         </button>
                     </div>
@@ -76,7 +76,7 @@
                         <div class="mb-3 d-flex justify-content-between align-items-center p-3 border rounded-4 shadow-sm" style="border-color: var(--border-color) !important; background-color: var(--bg-body);">
                             <h6 class="mb-0 fw-bold ms-2">@test.Title</h6>
                             <a href="@Url.Action("Start", "Tests", new { id = test.Id })"
-                               class="btn btn-outline-primary btn-sm rounded-pill fw-bold px-4 py-2 hover-scale custom-outline-btn"
+                               class="btn btn-sm rounded-pill fw-bold px-4 py-2 hover-scale custom-outline-btn"
                                onclick="return confirm('Искате ли да започнете този тест?')">
                                 Започни тест
                             </a>
@@ -152,7 +152,7 @@
                         </button>
                     }
 
-                    <a href="@Url.Action("Index", "Collections")" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale custom-outline-btn" style="background-color: transparent; border: 2px solid var(--primary); color: var(--primary);">
+                    <a href="@Url.Action("Index", "Collections")" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale custom-outline-btn" style="background-color: transparent;">
                         <i data-lucide="bookmark-plus" class="me-2" style="width: 18px;"></i> Добави в моя списък
                     </a>
 
@@ -163,7 +163,7 @@
                     @if (Model.Tests.Any(t => t.IsPublished))
                     {
                         var firstTest = Model.Tests.FirstOrDefault(t => t.IsPublished);
-                        <a href="@Url.Action("Start", "Tests", new { id = firstTest.Id })" class="btn btn-primary text-white w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale mt-2">
+                        <a href="@Url.Action("Start", "Tests", new { id = firstTest.Id })" class="btn btn-solid-premium text-white w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale mt-2">
                             <i data-lucide="pen-tool" class="me-2" style="width: 18px;"></i> Започни тест
                         </a>
                     }
@@ -174,7 +174,7 @@
         <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
             <div class="card-header border-0 pb-0 bg-transparent pt-4 text-center">
                 <h5 class="mb-0 fw-bold" style="color: var(--text-main);">
-                    <i data-lucide="user" class="me-1"></i> За автора
+                    <i data-lucide="user" class="me-1 text-primary"></i> За автора
                 </h5>
             </div>
             <div class="card-body text-center pt-3 pb-4">
@@ -194,7 +194,7 @@
 
                 <p class="small text-muted mb-4 text-start px-2" style="line-height: 1.6;">@shortBio</p>
 
-                <button type="button" class="btn w-100 fw-bold hover-scale rounded-pill py-2" style="background-color: var(--bg-body); color: var(--primary); border: 1px solid var(--border-color);" data-bs-toggle="modal" data-bs-target="#authorModal">
+                <button type="button" class="btn w-100 fw-bold hover-scale rounded-pill py-2 custom-outline-btn" style="background-color: transparent;" data-bs-toggle="modal" data-bs-target="#authorModal">
                     <i data-lucide="book-open" class="me-1" style="width: 16px;"></i> Прочети биографията
                 </button>
             </div>
@@ -305,16 +305,23 @@
 </div>
 
 <style>
-    .custom-outline-btn:focus, .custom-outline-btn:active {
-        outline: none !important;
-        box-shadow: none !important;
-        background-color: rgba(106, 156, 120, 0.1) !important;
+    /* ПЕРФЕКТНИ ЗЕЛЕНИ БУТОНИ ОТ ТВОЯТА ТЕМА */
+    .custom-outline-btn {
+        color: var(--primary) !important;
+        border: 2px solid var(--primary) !important;
+        background-color: transparent !important;
+        transition: all 0.3s ease !important;
     }
 
-    .custom-outline-btn:hover {
-        background-color: var(--primary) !important;
-        color: white !important;
-    }
+        .custom-outline-btn:hover,
+        .custom-outline-btn:focus,
+        .custom-outline-btn:active {
+            background-color: var(--primary) !important;
+            color: white !important;
+            outline: none !important;
+            box-shadow: 0 4px 12px rgba(106, 156, 120, 0.3) !important;
+            transform: translateY(-2px) !important;
+        }
 </style>
 
 @section Scripts {
