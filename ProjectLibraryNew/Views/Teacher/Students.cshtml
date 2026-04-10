@@ -41,7 +41,7 @@
                     <tbody id="studentsTableBody">
                         @foreach (var student in Model)
                         {
-                            <tr class="searchable-item" style="border-bottom: 1px solid var(--border-color); transition: all 0.2s;">
+                            <tr class="searchable-item" style="border-bottom: 1px solid var(--border-color);">
                                 <td class="py-3">
                                     <div class="fw-bold student-name" style="color: var(--text-main);">@student.FirstName @student.LastName</div>
                                     <small class="text-muted student-email">@student.Email</small>
@@ -119,4 +119,22 @@
             });
         }
     </script>
+
+    <style>
+        /* ПЕРФЕКТЕН HOVER ЗА ТАБЛИЦАТА */
+        tbody tr {
+            transition: background-color 0.2s ease-in-out;
+        }
+
+            tbody tr td {
+                /* Премахваме транзициите от самите клетки, за да няма забавяне */
+                transition: none !important;
+                background-color: transparent !important;
+            }
+
+            tbody tr:hover {
+                background-color: rgba(16, 185, 129, 0.08) !important;
+                cursor: pointer;
+            }
+    </style>
 }

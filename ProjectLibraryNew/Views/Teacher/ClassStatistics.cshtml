@@ -1,32 +1,171 @@
 ﻿@{
-    ViewData["Title"] = "Статистика на класа";
+    ViewData["Title"] = "Статистика на класовете";
 }
 
-<div class="container mt-4 mb-5 pt-3">
-    <div class="mb-3 mt-2 d-flex align-items-center">
-        <button onclick="history.back()" class="btn btn-sm rounded-pill fw-bold d-inline-flex align-items-center shadow-sm px-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); transition: all 0.2s ease-in-out;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='white'; this.style.borderColor='var(--primary)';" onmouseout="this.style.backgroundColor='var(--bg-body)'; this.style.color='var(--text-main)'; this.style.borderColor='var(--border-color)';">
-            <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i> Назад
-        </button>
-    </div>
+<div class="mb-2 mt-3 d-flex align-items-center">
+    <button onclick="history.back()" class="btn btn-sm rounded-pill fw-bold d-inline-flex align-items-center shadow-sm px-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main);">
+        <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i> Назад
+    </button>
+</div>
 
-    <div class="d-flex align-items-center mb-4 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
-        <i data-lucide="bar-chart-2" class="me-3" style="color: var(--primary); width: 32px; height: 32px;"></i>
-        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Статистика на класовете</h2>
-    </div>
+<div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+    <i data-lucide="bar-chart-3" class="me-3" style="color: var(--primary); width: 32px; height: 32px;"></i>
+    <h2 class="fw-bold mb-0" style="color: var(--text-main);">Статистика на класовете</h2>
+</div>
 
-    <div class="custom-card p-5 text-center shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
-        <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-4" style="width: 80px; height: 80px; background-color: rgba(150,150,150,0.05); border: 2px dashed var(--border-color);">
-            <i data-lucide="pie-chart" style="color: var(--text-muted); width: 40px; height: 40px;"></i>
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center" style="background-color: var(--bg-card);">
+            <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-3 mx-auto" style="width: 60px; height: 60px; background-color: rgba(59, 130, 246, 0.1);">
+                <i data-lucide="users" style="color: #3b82f6; width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="fw-bold mb-1" style="color: var(--text-main);">142</h3>
+            <span class="text-muted small text-uppercase fw-bold">Активни ученици</span>
         </div>
-        <h4 class="fw-bold mb-3" style="color: var(--text-main);">Модулът с графики е в процес на разработка</h4>
-        <p class="text-muted mb-0">Тук ще виждате детайлни красиви графики за успеваемостта на вашите ученици и разпределението по жанрове.</p>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center" style="background-color: var(--bg-card);">
+            <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-3 mx-auto" style="width: 60px; height: 60px; background-color: rgba(16, 185, 129, 0.1);">
+                <i data-lucide="check-square" style="color: #10b981; width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="fw-bold mb-1" style="color: var(--text-main);">856</h3>
+            <span class="text-muted small text-uppercase fw-bold">Решени тестове</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center" style="background-color: var(--bg-card);">
+            <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-3 mx-auto" style="width: 60px; height: 60px; background-color: rgba(245, 158, 11, 0.1);">
+                <i data-lucide="star" style="color: #f59e0b; width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="fw-bold mb-1" style="color: var(--text-main);">76%</h3>
+            <span class="text-muted small text-uppercase fw-bold">Средна успеваемост</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: var(--bg-card);">
+            <h6 class="fw-bold text-center mb-4" style="color: var(--text-main);">Разпределение на оценките</h6>
+            <div style="position: relative; height: 250px; width: 100%;">
+                <canvas id="gradesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: var(--bg-card);">
+            <h6 class="fw-bold text-center mb-4" style="color: var(--text-main);">Най-решавани тестове</h6>
+            <div style="position: relative; height: 250px; width: 100%;">
+                <canvas id="topTestsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 p-4" style="background-color: var(--bg-card);">
+            <h6 class="fw-bold text-center mb-4" style="color: var(--text-main);">Активност през последните 7 дни</h6>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+        // Общи настройки за графиките, за да изглеждат красиво
+        Chart.defaults.color = '#888';
+        Chart.defaults.font.family = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+        // 1. Графика ТОРТА (Разпределение на оценките)
+        const ctxGrades = document.getElementById('gradesChart').getContext('2d');
+        new Chart(ctxGrades, {
+            type: 'doughnut',
+            data: {
+                labels: ['Отличен (5.50+)', 'Мн. Добър (4.50+)', 'Добър (3.50+)', 'Среден (3.00+)', 'Слаб'],
+                datasets: [{
+                    data: [35, 40, 15, 7, 3],
+                    backgroundColor: [
+                        '#10b981', // Зелено
+                        '#3b82f6', // Синьо
+                        '#f59e0b', // Жълто
+                        '#f97316', // Оранжево
+                        '#ef4444'  // Червено
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+
+        // 2. Графика СТЪЛБЧЕТА (Най-решавани тестове)
+        const ctxTests = document.getElementById('topTestsChart').getContext('2d');
+        new Chart(ctxTests, {
+            type: 'bar',
+            data: {
+                labels: ['Под игото', 'Железният светилник', 'Тютюн', 'Бай Ганьо', 'Крадецът на праскови'],
+                datasets: [{
+                    label: 'Брой решавания',
+                    data: [125, 98, 86, 65, 42],
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // 3. ЛИНЕЙНА Графика (Активност)
+        const ctxActivity = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctxActivity, {
+            type: 'line',
+            data: {
+                labels: ['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'],
+                datasets: [{
+                    label: 'Влизания в системата',
+                    data: [45, 62, 38, 85, 112, 140, 130],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4, // Прави линията заоблена
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
     </script>
 }

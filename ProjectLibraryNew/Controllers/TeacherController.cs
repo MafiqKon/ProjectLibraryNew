@@ -182,10 +182,6 @@ namespace ProjectLibrary.Controllers
                 .OrderByDescending(g => g.Count)
                 .ToListAsync();
 
-            // ========================================================
-            // ТУК Е ПОПРАВКАТА (РАЗДЕЛЯМЕ БАЗАТА ОТ C# ТЕКСТА)
-            // ========================================================
-
             // 1. Взимаме само суровите числа от базата данни
             var monthlyActivityRaw = await _context.BookCollections
                 .Where(bc => bc.User.UserType == UserType.Student && bc.CreatedDate >= DateTime.Now.AddMonths(-6))
@@ -206,7 +202,6 @@ namespace ProjectLibrary.Controllers
                 })
                 .OrderBy(g => g.SortKey)
                 .ToList();
-            // ========================================================
 
             ViewBag.PopularBooks = popularBooks;
             ViewBag.GenreDistribution = genreDistribution;
@@ -265,6 +260,13 @@ namespace ProjectLibrary.Controllers
                 .Select(g => new { Genre = g.Key, Count = g.Count() })
                 .ToList();
 
+            // НОВО: Взимаме решените тестове на ученика!
+            var studentTestResults = await _context.TestResults
+                .Include(r => r.Test)
+                .Where(r => r.UserId == id)
+                .ToListAsync();
+
+            ViewBag.StudentTestResults = studentTestResults;
             ViewBag.StudentBooks = studentBooks;
             ViewBag.StudentGenreStats = studentGenreStats;
 
