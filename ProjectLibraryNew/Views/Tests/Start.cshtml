@@ -10,15 +10,6 @@
 
     <div class="row align-items-start">
         <div class="col-md-8">
-            <div class="card mb-4 shadow-sm border-0 timer-card" style="border-radius: 12px;">
-                <div class="card-header bg-warning text-dark border-0" style="border-radius: 12px 12px 0 0;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold">⏱️ Оставащо време</h5>
-                        <span id="timer" class="h4 mb-0 fw-bold">@test.TimeLimitMinutes:00</span>
-                    </div>
-                </div>
-            </div>
-
             <form id="testForm" method="post" asp-action="Submit">
                 <input type="hidden" name="testId" value="@test.Id" />
 
@@ -90,6 +81,18 @@
         <div class="col-md-4" id="sidebarContainer">
             <div id="stickyNavCard" class="custom-scrollbar pe-2">
 
+                <div class="card mb-4 shadow-sm border-0 timer-card" style="border-radius: 16px; background-color: rgba(245, 158, 11, 0.1); border: 2px solid #f59e0b !important;">
+                    <div class="card-body p-4 text-center">
+                        <div class="d-flex justify-content-center align-items-center mb-2">
+                            <i data-lucide="timer" class="me-2" style="color: #f59e0b; width: 24px; height: 24px;" id="timerIcon"></i>
+                            <h6 class="fw-bold mb-0 text-uppercase" style="color: #f59e0b; letter-spacing: 1px;">Оставащо време</h6>
+                        </div>
+                        <div id="timer" class="display-4 fw-bold" style="color: var(--text-main); font-variant-numeric: tabular-nums;">
+                            @test.TimeLimitMinutes:00
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card mb-4 shadow-sm border-0" style="border-radius: 16px; background-color: var(--bg-card);">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4 text-center" style="color: var(--text-main);">🧭 Навигация</h5>
@@ -134,13 +137,6 @@
                                 <div>
                                     <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Автор</small>
                                     <span style="color: var(--text-main);">@(test.Book?.Author?.Name ?? "Неизвестен автор")</span>
-                                </div>
-                            </li>
-                            <li class="mb-3 d-flex align-items-start">
-                                <i data-lucide="clock" class="me-3 mt-1 text-warning" style="width: 20px;"></i>
-                                <div>
-                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Време за решаване</small>
-                                    <span style="color: var(--text-main);">@test.TimeLimitMinutes минути</span>
                                 </div>
                             </li>
                             <li class="d-flex align-items-start">
@@ -195,7 +191,6 @@
 </div>
 
 <style>
-    /* Дизайн на кутиите за отговори */
     .question-card {
         background-color: var(--bg-card);
     }
@@ -226,7 +221,6 @@
         transition: background-color 0.2s;
     }
 
-    /* Хоувър и Избран статус - ЗЕЛЕНО */
     .custom-option-box:hover {
         border-color: #198754 !important;
         background-color: rgba(25, 135, 84, 0.03) !important;
@@ -246,7 +240,6 @@
             background-color: #198754 !important;
         }
 
-    /* Навигационни бутони - ЗЕЛЕНО */
     .question-nav-btn {
         width: 40px;
         height: 40px;
@@ -260,7 +253,6 @@
             color: white !important;
         }
 
-    /* Отворен отговор */
     .custom-textarea {
         background-color: var(--bg-body);
         color: var(--text-main);
@@ -274,7 +266,6 @@
             box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
         }
 
-    /* Тънък скролбар за плаващото меню */
     .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
     }
@@ -306,22 +297,19 @@
         let isFormDirty = true;
         let targetUrl = '';
 
-        // 1. АБСОЛЮТНО ГАРАНТИРАНО ПЛАВАЩО МЕНЮ (С фикс за ширината под навбара)
+        // 1. АБСОЛЮТНО ГАРАНТИРАНО ПЛАВАЩО МЕНЮ
         const sidebarContainer = document.getElementById('sidebarContainer');
         const stickyNavCard = document.getElementById('stickyNavCard');
-        const topSpacing = 100; // Отстояние от върха на екрана
+        const topSpacing = 100;
 
         function updateStickyNav() {
             if (!sidebarContainer || !stickyNavCard) return;
-
             const compStyle = window.getComputedStyle(sidebarContainer);
             const paddingX = parseFloat(compStyle.paddingLeft) + parseFloat(compStyle.paddingRight);
 
             if (window.scrollY > (sidebarContainer.offsetTop - topSpacing)) {
                 stickyNavCard.style.position = 'fixed';
                 stickyNavCard.style.top = topSpacing + 'px';
-
-                // Изваждаме padding-a, за да стои перфектно прибрано
                 stickyNavCard.style.width = (sidebarContainer.offsetWidth - paddingX) + 'px';
                 stickyNavCard.style.maxHeight = `calc(100vh - ${topSpacing + 20}px)`;
                 stickyNavCard.style.overflowY = 'auto';
@@ -332,14 +320,15 @@
                 stickyNavCard.style.overflowY = 'visible';
             }
         }
-
         window.addEventListener('scroll', updateStickyNav);
         window.addEventListener('resize', updateStickyNav);
         updateStickyNav();
 
-        // 2. ТАЙМЕР ЛОГИКА
+        // 2. ТАЙМЕР ЛОГИКА - ОПРАВЕН ДА ОЦВЕТЯВА ПРАВИЛНАТА КУТИЯ
         let timeLeft = @(test.TimeLimitMinutes * 60);
         const timerElement = document.getElementById('timer');
+        const timerCard = document.querySelector('.timer-card');
+        const timerIcon = document.getElementById('timerIcon');
 
         function updateTimer() {
             if (!timerElement) return;
@@ -347,9 +336,12 @@
             const seconds = timeLeft % 60;
             timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-            if (timeLeft <= 300) {
-                document.querySelector('.timer-card .card-header').classList.remove('bg-warning', 'text-dark');
-                document.querySelector('.timer-card .card-header').classList.add('bg-danger', 'text-white');
+            if (timeLeft <= 300) { // Последни 5 минути става червено
+                timerCard.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+                timerCard.style.borderColor = '#dc3545';
+                timerElement.style.color = '#dc3545';
+                timerIcon.style.color = '#dc3545';
+                timerCard.querySelector('h6').style.color = '#dc3545';
             }
 
             if (timeLeft <= 0) {
@@ -407,7 +399,6 @@
                 $('#submitModalText').html('Отговорили сте на всички въпроси успешно.<br>Да предадем ли теста?');
                 $('#confirmSubmitBtn').removeClass('btn-warning text-dark').addClass('btn-success').text('Да, предай теста');
             }
-
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
             $('#submitConfirmModal').modal('show');
         });
@@ -423,12 +414,10 @@
         function updateProgress() {
             let answeredCount = 0;
             const total = @questions.Count;
-
             document.querySelectorAll('.question-card').forEach((card, index) => {
                 const isRadioAnswered = card.querySelector('input[type="radio"]:checked') !== null;
                 const isTextAnswered = Array.from(card.querySelectorAll('textarea')).some(t => t.value.trim() !== "");
                 const navBtn = document.querySelector(`.question-nav-btn[data-question-index="${index}"]`);
-
                 if (isRadioAnswered || isTextAnswered) {
                     answeredCount++;
                     if(navBtn) navBtn.classList.add('answered');
@@ -436,7 +425,6 @@
                     if(navBtn) navBtn.classList.remove('answered');
                 }
             });
-
             const percentage = (answeredCount / total) * 100;
             document.getElementById('progressBar').style.width = percentage + '%';
             document.getElementById('progressText').textContent = answeredCount + ' / ' + total;
@@ -448,9 +436,7 @@
                 document.querySelectorAll(`input[name="${groupName}"]`).forEach(r => {
                     r.closest('.custom-option-box').classList.remove('selected');
                 });
-                if(this.checked) {
-                    this.closest('.custom-option-box').classList.add('selected');
-                }
+                if(this.checked) this.closest('.custom-option-box').classList.add('selected');
                 updateProgress();
             });
         });
@@ -463,16 +449,12 @@
             btn.addEventListener('click', function() {
                 const idx = this.getAttribute('data-question-index');
                 const targetCard = document.querySelectorAll('.question-card')[idx];
-
                 const y = targetCard.getBoundingClientRect().top + window.scrollY - 120;
                 window.scrollTo({top: y, behavior: 'smooth'});
             });
         });
 
-        window.onbeforeunload = function() {
-            if (isFormDirty) return "Прогресът ще бъде изгубен!";
-        };
-
+        window.onbeforeunload = function() { if (isFormDirty) return "Прогресът ще бъде изгубен!"; };
         updateProgress();
         if (typeof lucide !== 'undefined') { lucide.createIcons(); }
     </script>
@@ -481,13 +463,6 @@
 @functions {
     private string GetOptionLetter(int optionId)
     {
-        return optionId switch
-        {
-            1 => "А",
-            2 => "Б",
-            3 => "В",
-            4 => "Г",
-            _ => optionId.ToString()
-        };
+        return optionId switch { 1 => "А", 2 => "Б", 3 => "В", 4 => "Г", _ => optionId.ToString() };
     }
 }
