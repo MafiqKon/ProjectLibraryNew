@@ -41,7 +41,7 @@ namespace ProjectLibrary.Controllers
                 .Include(u => u.UserBadges).ThenInclude(ub => ub.Badge)
                 .FirstOrDefaultAsync(u => u.Id == user.Id);
 
-            // 2. ИЗЧИСЛЯВАНЕ НА ГОТОВНОСТ ЗА МАТУРА (Синхронизация с Библиотеката)
+            // 2. ИЗЧИСЛЯВАНЕ НА ГОТОВНОСТ ЗА МАТУРА
             var userProgresses = await _context.UserBookProgresses
                 .Where(p => p.UserId == user.Id)
                 .ToListAsync();
@@ -64,7 +64,6 @@ namespace ProjectLibrary.Controllers
                 {
                     if (progressDict.ContainsKey(id)) totalScore += progressDict[id];
                 }
-                // Това е стойността, която пълни бара
                 ViewBag.OverallMaturaProgress = totalScore / allMaturaBooks.Count;
             }
             else
@@ -72,22 +71,36 @@ namespace ProjectLibrary.Controllers
                 ViewBag.OverallMaturaProgress = 0;
             }
 
-            // 3. РЕАЛНИ СТАТИСТИКИ (Заменяме нулите с истински бройки)
+            // 3. РЕАЛНИ СТАТИСТИКИ
             ViewBag.CollectionsCount = await _context.BookCollections.CountAsync(c => c.UserId == user.Id);
             ViewBag.TestsCount = await _context.TestResults.CountAsync(t => t.UserId == user.Id);
             ViewBag.BadgesCount = fullUser?.UserBadges?.Count ?? 0;
 
-            // Броим колко уникални книги има потребителят във всичките си колекции
             ViewBag.BooksCount = await _context.BookCollections
                 .Where(c => c.UserId == user.Id)
                 .SelectMany(c => c.Books)
                 .Distinct()
                 .CountAsync();
 
-            // Взимаме всички книги, за да ги покажем в падащото меню на календара
             ViewBag.AllBooks = await _context.Books
                 .OrderBy(b => b.Title)
                 .ToListAsync();
+
+            // ==========================================
+            // НОВО: АЛГОРИТЪМ ЗА ПРЕПОРЪЧАНА КНИГА
+            // ==========================================
+            var interactedBookIds = userProgresses
+                .Where(p => p.IsTextRead || p.IsAnalysisRead || p.HasPassedTest)
+                .Select(p => p.BookId)
+                .ToList();
+
+            var recommendedBook = await _context.Books
+                .Include(b => b.Author)
+                .Where(b => !interactedBookIds.Contains(b.Id))
+                .FirstOrDefaultAsync();
+
+            ViewBag.RecommendedBook = recommendedBook;
+            // ==========================================
 
             return View(fullUser);
         }

@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Моят профил";
+    var recommendedBook = ViewBag.RecommendedBook as ProjectLibrary.Models.Book;
 }
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -48,6 +49,7 @@
         </div>
 
         <div class="col-lg-8">
+
             <div class="custom-card p-4 p-md-5 mb-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
                 <h4 class="fw-bold d-flex align-items-center mb-4 pb-3" style="color: var(--text-main); border-bottom: 2px dashed var(--border-color);">
                     <div class="p-2 rounded-3 text-white me-3 d-flex align-items-center justify-content-center" style="background-color: #6a9c78; width: 40px; height: 40px;">
@@ -109,6 +111,30 @@
                 </div>
             </div>
 
+            @if (recommendedBook != null)
+            {
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(59,130,246,0.1) 100%); border-left: 5px solid var(--primary) !important;">
+                    <div class="card-body p-4 position-relative">
+                        <i data-lucide="sparkles" class="position-absolute text-success opacity-10" style="width: 120px; height: 120px; top: -20px; right: -20px; transform: rotate(15deg);"></i>
+
+                        <div class="row align-items-center position-relative z-1">
+                            <div class="col-md-8 mb-3 mb-md-0">
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2 fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">
+                                    <i data-lucide="compass" class="me-1 d-inline-block" style="width: 12px; vertical-align: text-bottom;"></i> Предложение
+                                </span>
+                                <h4 class="fw-bold mb-1" style="color: var(--text-main);">Следваща стъпка: <span class="text-primary">"@recommendedBook.Title"</span></h4>
+                                <p class="text-muted mb-0 small">Още не си прегледал това произведение от @(recommendedBook.Author?.Name ?? "автора").</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <a href="@Url.Action("Details", "Books", new { id = recommendedBook.Id })" class="btn btn-solid-premium rounded-pill px-4 py-2 fw-bold shadow hover-scale d-inline-flex align-items-center">
+                                    <i data-lucide="rocket" class="me-2" style="width: 18px;"></i> Виж книгата
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
             <div class="custom-card p-4 mb-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 2px dashed var(--border-color);">
                     <h4 class="fw-bold d-flex align-items-center m-0" style="color: var(--text-main);">
@@ -125,14 +151,14 @@
 
             <div class="custom-card p-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
                 <h5 class="fw-bold d-flex align-items-center mb-3" style="color: var(--text-main);">
-                    <i data-lucide="zap" class="me-2 text-warning" style="width: 24px; height: 24px; fill: var(--warning);"></i> Навигация
+                    <i data-lucide="zap" class="me-2 text-warning" style="width: 24px; height: 24px; fill: var(--warning);"></i> Бързи връзки
                 </h5>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="@Url.Action("Index", "Collections")" class="btn rounded-pill px-4 py-2 fw-bold d-flex align-items-center hover-scale" style="border: 2px solid #0d6efd; color: #0d6efd; background: transparent;">
-                        <i data-lucide="library" class="me-2" style="width: 18px;"></i> Към колекциите
+                    <a href="@Url.Action("Index", "Collections")" class="btn rounded-pill px-4 py-2 fw-bold d-flex align-items-center hover-scale custom-outline-btn" style="border: 2px solid var(--primary); color: var(--primary); background: transparent;">
+                        <i data-lucide="library" class="me-2" style="width: 18px;"></i> Моите колекции
                     </a>
-                    <a href="@Url.Action("Index", "Statistics")" class="btn rounded-pill px-4 py-2 fw-bold d-flex align-items-center hover-scale" style="border: 2px solid #0dcaf0; color: #0dcaf0; background: transparent;">
-                        <i data-lucide="pie-chart" class="me-2" style="width: 18px;"></i> Подробни графики
+                    <a href="@Url.Action("MyResults", "Tests")" class="btn rounded-pill px-4 py-2 fw-bold d-flex align-items-center hover-scale custom-outline-btn" style="border: 2px solid var(--primary); color: var(--primary); background: transparent;">
+                        <i data-lucide="check-square" class="me-2" style="width: 18px;"></i> Резултати от тестове
                     </a>
                 </div>
             </div>
@@ -181,7 +207,7 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">
+                    <button type="submit" class="btn btn-solid-premium w-100 rounded-pill fw-bold shadow-sm">
                         <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Запази в календара
                     </button>
                 </form>
@@ -217,7 +243,6 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script>
         if (typeof lucide !== 'undefined') {
@@ -227,7 +252,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
 
-            // Инициализация на FullCalendar
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'bg',
                 initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
@@ -280,13 +304,9 @@
 
             calendar.render();
 
-            // ==============================================================
-            // ОБНОВЕНА ЛОГИКА ЗА ЗАПАЗВАНЕ СЪС ЗАЩИТА ОТ ГРЕШКИ
-            // ==============================================================
             document.getElementById('addEventForm').addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                // Променяме текста на бутона, за да видим, че работи
                 var submitBtn = this.querySelector('button[type="submit"]');
                 var originalBtnHtml = submitBtn.innerHTML;
                 submitBtn.disabled = true;
@@ -300,7 +320,7 @@
                     EventType: document.getElementById('eventType').value,
                     BookId: bookIdValue > 0 ? bookIdValue : null,
                     EventDate: document.getElementById('eventDate').value,
-                    Description: "" // <--- ДОБАВИ ТОЗИ РЕД!
+                    Description: ""
                 };
 
                 fetch('/Profiles/CreateEvent', {
@@ -312,7 +332,6 @@
                     body: JSON.stringify(newEvent)
                 })
                 .then(async response => {
-                    // Ако сървърът върне грешка 400 или 500, я хващаме тук
                     if (!response.ok) {
                         var errText = await response.text();
                         throw new Error(errText || "Сървърна грешка статус: " + response.status);
@@ -321,7 +340,6 @@
                 })
                 .then(data => {
                     if(data.success) {
-                        // Затваряме модала и презареждаме календара
                         var myModalEl = document.getElementById('addEventModal');
                         var modalInstance = bootstrap.Modal.getInstance(myModalEl);
                         modalInstance.hide();
@@ -335,13 +353,11 @@
                     alert("Грешка при запазване! Отворете конзолата (F12) за повече детайли. Съобщение: " + error.message);
                 })
                 .finally(() => {
-                    // Връщаме бутона в първоначален вид
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHtml;
                 });
             });
 
-            // Логика за отмятане на събитие
             document.getElementById('btnToggleComplete').addEventListener('click', function() {
                 var id = document.getElementById('actionEventId').value;
                 fetch('/Profiles/ToggleEventStatus?id=' + id, { method: 'POST' })
@@ -352,7 +368,6 @@
                 });
             });
 
-            // Логика за изтриване на събитие
             document.getElementById('btnDeleteEvent').addEventListener('click', function() {
                 if(confirm("Сигурен ли си, че искаш да изтриеш тази задача?")) {
                     var id = document.getElementById('actionEventId').value;
@@ -368,7 +383,6 @@
     </script>
 
     <style>
-        /* Разкрасяване на календара да съвпадне с темата */
         .fc {
             font-family: inherit;
         }
@@ -420,5 +434,16 @@
             .fc-list-event:hover td {
                 background-color: rgba(150, 150, 150, 0.1) !important;
             }
+
+        .custom-outline-btn:focus, .custom-outline-btn:active {
+            outline: none !important;
+            box-shadow: none !important;
+            background-color: rgba(106, 156, 120, 0.1) !important;
+        }
+
+        .custom-outline-btn:hover {
+            background-color: var(--primary) !important;
+            color: white !important;
+        }
     </style>
 }
