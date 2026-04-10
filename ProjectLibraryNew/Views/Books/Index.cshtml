@@ -36,54 +36,52 @@
     </div>
 }
 
-<div class="card p-3 mb-5 border-0 shadow" style="background-color: var(--bg-card); border-radius: 16px;">
+<div class="card p-3 mb-5 shadow" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color) !important;">
     <div class="p-3 rounded-4" style="border: 2px solid var(--border-color); background-color: rgba(150, 150, 150, 0.03);">
-        <form asp-action="Index" method="get">
-            <div class="row g-2">
-                <div class="col-md-3 position-relative">
-                    <input type="text" id="liveSearchInput" name="searchString" class="form-control rounded-pill px-3" placeholder="Търсене по заглавие или автор на живо..." value="@ViewContext.HttpContext.Request.Query["searchString"]" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" />
-                </div>
-                <div class="col-md-2">
-                    <select name="author" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="">Всички автори</option>
-                        @foreach (var author in ViewBag.Authors)
-                        {
-                            <option value="@author" selected="@(ViewContext.HttpContext.Request.Query["author"] == author)">@author</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="genre" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="">Всички жанрове</option>
-                        @foreach (var genre in ViewBag.Genres)
-                        {
-                            <option value="@genre" selected="@(ViewContext.HttpContext.Request.Query["genre"] == genre)">@genre</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="studyYear" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="">Всяка година</option>
-                        @foreach (var year in ViewBag.StudyYears)
-                        {
-                            <option value="@year" selected="@(ViewContext.HttpContext.Request.Query["studyYear"] == year.ToString())">@year клас</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="forMatura" class="form-control rounded-pill px-3" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="">За матура?</option>
-                        <option value="true" selected="@(ViewContext.HttpContext.Request.Query["forMatura"] == "true")">Да</option>
-                        <option value="false" selected="@(ViewContext.HttpContext.Request.Query["forMatura"] == "false")">Не</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn text-white w-100 fw-bold rounded-pill d-flex justify-content-center align-items-center shadow-sm" style="background-color: var(--primary); height: 38px;">
-                        <i data-lucide="search" style="width: 18px;"></i>
-                    </button>
-                </div>
+        <div class="row g-2">
+            <div class="col-md-4 position-relative">
+                <i data-lucide="search" class="position-absolute top-50 translate-middle-y ms-3 text-muted" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="filterSearch" class="form-control rounded-pill shadow-sm ps-5 py-2 custom-filter-input" placeholder="Търсене по заглавие или автор..." />
             </div>
-        </form>
+
+            <div class="col-md-2">
+                <select id="filterAuthor" class="form-select rounded-pill px-3 py-2 shadow-sm custom-filter-input">
+                    <option value="">Всички автори</option>
+                    @foreach (var author in ViewBag.Authors)
+                    {
+                        <option value="@author">@author</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select id="filterGenre" class="form-select rounded-pill px-3 py-2 shadow-sm custom-filter-input">
+                    <option value="">Всички жанрове</option>
+                    @foreach (var genre in ViewBag.Genres)
+                    {
+                        <option value="@genre">@genre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select id="filterYear" class="form-select rounded-pill px-3 py-2 shadow-sm custom-filter-input">
+                    <option value="">Всяка година</option>
+                    @foreach (var year in ViewBag.StudyYears)
+                    {
+                        <option value="@year">@year клас</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select id="filterMatura" class="form-select rounded-pill px-3 py-2 shadow-sm custom-filter-input">
+                    <option value="">За матура?</option>
+                    <option value="true">Да</option>
+                    <option value="false">Не</option>
+                </select>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -100,7 +98,13 @@
             bookProgress = progressDict[book.Id];
         }
 
-        <div class="col-md-6 col-lg-4 mb-2 searchable-item">
+        <div class="col-md-6 col-lg-4 mb-2 searchable-item"
+             data-title="@book.Title.ToLower()"
+             data-author="@book.Author.Name.ToLower()"
+             data-genre="@book.Genre.ToLower()"
+             data-year="@book.StudyYear"
+             data-matura="@(book.IsForMatura ? "true" : "false")">
+
             <div class="card h-100 border-0 shadow" style="background-color: var(--bg-card); border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
 
                 @if (bookProgress == 100)
@@ -109,8 +113,8 @@
                 }
 
                 <div class="card-body p-4" style="flex: 1;">
-                    <h3 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.4rem;">@book.Title</h3>
-                    <h5 class="mb-3" style="color: var(--primary); font-weight: 500; font-size: 1rem;">от @book.Author.Name</h5>
+                    <h3 class="fw-bold mb-1 book-title" style="color: var(--text-main); font-size: 1.4rem;">@book.Title</h3>
+                    <h5 class="mb-3 book-author" style="color: var(--primary); font-weight: 500; font-size: 1rem;">от @book.Author.Name</h5>
 
                     <p class="text-muted mb-3" style="font-size: 1rem; line-height: 1.4; min-height: 45px; overflow: hidden;">
                         @(book.Description?.Length > 110 ? book.Description.Substring(0, 110) + "..." : book.Description)
@@ -173,21 +177,24 @@
 
 <div id="noResultsLiveMessage" class="alert text-center p-5 rounded-4 shadow mt-4 border-0 d-none w-100" style="background-color: var(--bg-card); color: var(--text-muted); position: relative; z-index: 1;">
     <i data-lucide="search-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
-    <h5 class="fw-bold">Няма намерени книги по вашето търсене</h5>
-    <p class="mb-0">Опитайте с друга ключова дума.</p>
+    <h5 class="fw-bold">Няма намерени книги</h5>
+    <p class="mb-0">Опитайте с различни филтри.</p>
 </div>
 
-@if (!Model.Any())
-{
-    <div class="alert text-center p-5 rounded-4 shadow mt-4 border-0" style="background-color: var(--bg-card); color: var(--text-muted); position: relative; z-index: 1;">
-        <i data-lucide="search-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
-        <h5 class="fw-bold">Няма намерени книги</h5>
-        <p class="mb-0">Опитайте с различни филтри от падащите менюта.</p>
-    </div>
-}
-
 <style>
-    /* ПРЕМАХВАМЕ ПОДСКАЧАНЕТО */
+    /* Стилизация на филтрите (връщаме рамките) */
+    .custom-filter-input {
+        background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--border-color) !important;
+        transition: all 0.2s ease;
+    }
+
+        .custom-filter-input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 0.25rem rgba(106, 156, 120, 0.25) !important;
+        }
+
     .card {
         transition: box-shadow 0.3s ease, transform 0.3s ease !important;
         transform: none !important;
@@ -197,7 +204,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
         }
 
-    /* Иконките вътре в картите */
     .btn i {
         stroke-width: 2.5px;
     }
@@ -209,40 +215,62 @@
             lucide.createIcons();
         }
 
-        // ЛОГИКА ЗА ТЪРСЕНЕ НА ЖИВО (LIVE SEARCH)
-        const searchInput = document.getElementById('liveSearchInput');
-        const searchableItems = document.querySelectorAll('.searchable-item');
-        const noResultsLiveMessage = document.getElementById('noResultsLiveMessage');
+        // КОМПЛЕКСНО ТЪРСЕНЕ НА ЖИВО (MULTI-FILTER)
+        const filterSearch = document.getElementById('filterSearch');
+        const filterAuthor = document.getElementById('filterAuthor');
+        const filterGenre = document.getElementById('filterGenre');
+        const filterYear = document.getElementById('filterYear');
+        const filterMatura = document.getElementById('filterMatura');
 
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase().trim();
-                let visibleCount = 0;
+        const items = document.querySelectorAll('.searchable-item');
+        const noResultsMsg = document.getElementById('noResultsLiveMessage');
 
-                searchableItems.forEach(item => {
-                    // ФИКСЪТ: Взимаме текста САМО от Заглавието (h3) и Автора (h5)
-                    const titleElement = item.querySelector('h3');
-                    const authorElement = item.querySelector('h5');
+        function applyFilters() {
+            const searchVal = filterSearch.value.toLowerCase().trim();
+            const authorVal = filterAuthor.value.toLowerCase().trim();
+            const genreVal = filterGenre.value.toLowerCase().trim();
+            const yearVal = filterYear.value.trim();
+            const maturaVal = filterMatura.value;
 
-                    const titleText = titleElement ? titleElement.textContent.toLowerCase() : "";
-                    const authorText = authorElement ? authorElement.textContent.toLowerCase() : "";
+            let visibleCount = 0;
 
-                    // Проверяваме дали написаното се съдържа в Заглавието ИЛИ Автора
-                    if (titleText.includes(searchTerm) || authorText.includes(searchTerm)) {
-                        item.style.display = '';
-                        visibleCount++;
-                    } else {
-                        item.style.display = 'none'; // Скриваме
-                    }
-                });
+            items.forEach(item => {
+                // Взимаме данните скрити в data-* атрибутите на всяка кутийка
+                const t = item.dataset.title || "";
+                const a = item.dataset.author || "";
+                const g = item.dataset.genre || "";
+                const y = item.dataset.year || "";
+                const m = item.dataset.matura || "";
 
-                // Показване/скриване на съобщението за липсващи резултати
-                if (visibleCount === 0 && searchableItems.length > 0) {
-                    noResultsLiveMessage.classList.remove('d-none');
+                // За да не става грешка с "би", главното търсене търси САМО в заглавието и автора
+                const matchSearch = searchVal === '' || t.includes(searchVal) || a.includes(searchVal);
+                const matchAuthor = authorVal === '' || a.includes(authorVal);
+                const matchGenre  = genreVal === '' || g.includes(genreVal);
+                const matchYear   = yearVal === '' || y === yearVal || y.includes(yearVal);
+                const matchMatura = maturaVal === '' || m === maturaVal;
+
+                if (matchSearch && matchAuthor && matchGenre && matchYear && matchMatura) {
+                    item.style.display = '';
+                    visibleCount++;
                 } else {
-                    noResultsLiveMessage.classList.add('d-none');
+                    item.style.display = 'none';
                 }
             });
+
+            // Показване/скриване на съобщението
+            if (visibleCount === 0 && items.length > 0) {
+                noResultsMsg.classList.remove('d-none');
+            } else {
+                noResultsMsg.classList.add('d-none');
+            }
         }
+
+        // Закачаме слушатели към всички полета, за да филтрират ВЕДНАГА щом пипнеш нещо
+        [filterSearch, filterAuthor, filterGenre, filterYear, filterMatura].forEach(input => {
+            if(input) {
+                input.addEventListener('input', applyFilters); // За писане
+                input.addEventListener('change', applyFilters); // За цъкане на опция
+            }
+        });
     </script>
 }
