@@ -28,10 +28,15 @@
                         <span asp-validation-for="Input.Email" class="text-danger small"></span>
                     </div>
 
-                    <div class="form-floating mb-3">
-                        <input asp-for="Input.Password" class="form-control rounded-3" autocomplete="current-password" aria-required="true" placeholder="password" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+                    <div class="form-floating mb-3 position-relative">
+                        <input asp-for="Input.Password" id="passwordInput" class="form-control rounded-3 pe-5" autocomplete="current-password" aria-required="true" placeholder="password" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
                         <label asp-for="Input.Password" class="text-muted"><i data-lucide="lock" style="width: 16px; height: 16px; margin-top: -3px;"></i> Парола</label>
-                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+
+                        <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted password-toggle-btn" id="togglePassword" style="cursor: pointer; z-index: 10;">
+                            <i data-lucide="eye" id="eyeIcon" style="width: 20px; height: 20px; transition: color 0.2s;"></i>
+                        </span>
+
+                        <span asp-validation-for="Input.Password" class="text-danger small d-block mt-1"></span>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -63,11 +68,43 @@
     </div>
 </div>
 
+<style>
+    /* Леко светване на иконката, когато се мине с мишката върху нея */
+    .password-toggle-btn:hover #eyeIcon {
+        color: var(--primary) !important;
+    }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+
+        // ЛОГИКА ЗА СКРИВАНЕ/ПОКАЗВАНЕ НА ПАРОЛАТА
+        document.addEventListener('DOMContentLoaded', function () {
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('passwordInput');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function () {
+                    // Проверяваме какъв е типът в момента и го обръщаме
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+
+                    // Сменяме самата иконка (Lucide)
+                    if (type === 'text') {
+                        eyeIcon.setAttribute('data-lucide', 'eye-off');
+                    } else {
+                        eyeIcon.setAttribute('data-lucide', 'eye');
+                    }
+
+                    // Презареждаме иконките, за да се визуализира промяната
+                    lucide.createIcons();
+                });
+            }
+        });
     </script>
 }
