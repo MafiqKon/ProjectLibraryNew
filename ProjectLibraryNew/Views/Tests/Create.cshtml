@@ -192,6 +192,29 @@
     </div>
 </div>
 
+<div class="modal fade" id="missingDescriptionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold d-flex align-items-center" style="color: var(--text-main);">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background-color: rgba(245, 158, 11, 0.1);">
+                        <i data-lucide="alert-triangle" style="color: #f59e0b; width: 24px; height: 24px;"></i>
+                    </div>
+                    Внимание!
+                </h4>
+            </div>
+            <div class="modal-body text-muted pt-4 pb-4 px-4" style="font-size: 1.05rem;">
+                Оставили сте полето <strong style="color: var(--text-main);">"Описание на теста"</strong> празно. <br><br>
+                Искате ли въпреки това да продължите и да запазите теста?
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                <button type="button" class="btn fw-bold px-4 py-2" data-bs-dismiss="modal" style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px;">Върни се</button>
+                <button type="button" id="confirmSaveWithoutDescBtn" class="btn btn-warning fw-bold px-4 py-2 shadow-sm hover-scale" style="border-radius: 10px; color: #000;">Да, запази теста</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let questionIdCounter = 1;
@@ -345,37 +368,52 @@
             form.appendChild(input);
         }
 
+        // НОВАТА ЛОГИКА ЗА СЪБМИТ С CUSTOM МОДАЛ
         document.getElementById('createTestForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Спираме стандартното изпращане
+            e.preventDefault();
 
-            // 1. ПРОВЕРКА НА ОПИСАНИЕТО
             const descInput = document.querySelector('textarea[name="Description"]');
+
             if (descInput && descInput.value.trim() === '') {
-                const proceed = confirm("⚠️ Внимание: Оставили сте 'Описание на теста' празно.\n\nИскате ли въпреки това да продължите и да го запазите?");
-                if (!proceed) {
-                    return; // Спираме, ако потребителят цъкне "Cancel"
-                } else {
-                    descInput.value = " "; // Лъжем валидацията с един интервал
-                }
+                let myModal = new bootstrap.Modal(document.getElementById('missingDescriptionModal'));
+                myModal.show();
+                return;
             }
 
-            // 2. СЪБИРАНЕ НА ВЪПРОСИТЕ
+            proceedWithSubmit(this);
+        });
+
+        document.getElementById('confirmSaveWithoutDescBtn').addEventListener('click', function() {
+            const descInput = document.querySelector('textarea[name="Description"]');
+            if (descInput) {
+                descInput.value = " ";
+            }
+
+            let modalInstance = bootstrap.Modal.getInstance(document.getElementById('missingDescriptionModal'));
+            if(modalInstance) {
+                modalInstance.hide();
+            }
+
+            const form = document.getElementById('createTestForm');
+            proceedWithSubmit(form);
+        });
+
+        function proceedWithSubmit(form) {
             const questions = collectAllQuestions();
             if (questions.length === 0) {
                 alert('❌ Добавете поне един въпрос!');
                 return;
             }
 
-            // 3. ИЗПРАЩАНЕ КЪМ СЪРВЪРА
             const questionsInput = document.createElement('input');
             questionsInput.type = 'hidden';
             questionsInput.name = 'questionsJson';
             questionsInput.value = JSON.stringify(questions);
-            addQuestionFormData(this, questions);
-            this.appendChild(questionsInput);
+            addQuestionFormData(form, questions);
+            form.appendChild(questionsInput);
 
-            this.submit(); // Реалното изпращане
-        });
+            form.submit();
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             addMultipleChoiceQuestion();
