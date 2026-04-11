@@ -1,0 +1,61 @@
+﻿@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Лични данни (GDPR)";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<h4 class="fw-bold mb-4 d-flex align-items-center" style="color: var(--text-main);">
+    <div class="p-2 rounded-3 text-white me-3 d-flex align-items-center justify-content-center" style="background-color: var(--primary); width: 40px; height: 40px;">
+        <i data-lucide="database"></i>
+    </div>
+    @ViewData["Title"]
+</h4>
+
+<div class="custom-card p-4 p-md-5 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+    <p class="text-muted mb-4" style="font-size: 1.05rem;">
+        Вашият акаунт съдържа лични данни, които сте ни предоставили при регистрацията и използването на платформата. Според европейските изисквания, тази страница ви позволява да изтеглите копие на своите данни или напълно да изтриете профила си.
+    </p>
+
+    <div class="alert mb-4 border-0 rounded-4 p-4" style="background-color: rgba(220, 53, 69, 0.08); color: #dc3545; border-left: 5px solid #dc3545 !important;">
+        <h5 class="fw-bold d-flex align-items-center mb-2">
+            <i data-lucide="alert-triangle" class="me-2" style="width: 24px;"></i> Внимание!
+        </h5>
+        <p class="mb-0 text-dark">
+            Изтриването на тези данни ще премахне профила ви, всички ваши колекции и решени тестове <strong>завинаги</strong>. Това действие е необратимо и информацията не може да бъде възстановена.
+        </p>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-3 mt-2">
+        <form id="download-data" asp-page="DownloadPersonalData" method="post">
+            <button class="btn btn-outline-primary rounded-pill fw-bold px-4 py-3 d-flex align-items-center w-100 justify-content-center custom-outline-btn" type="submit" style="border-width: 2px;">
+                <i data-lucide="download-cloud" class="me-2" style="width: 20px;"></i> Изтегли моите данни
+            </button>
+        </form>
+
+        <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger rounded-pill fw-bold px-4 py-3 d-flex align-items-center w-100 justify-content-center shadow-sm hover-scale">
+            <i data-lucide="trash-2" class="me-2" style="width: 20px;"></i> Изтрий акаунта завинаги
+        </a>
+    </div>
+</div>
+
+<style>
+    .custom-outline-btn {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+        .custom-outline-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

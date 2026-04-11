@@ -1,0 +1,63 @@
+﻿@page
+@model EmailModel
+@{
+    ViewData["Title"] = "Управление на имейл";
+    ViewData["ActivePage"] = ManageNavPages.Email;
+}
+
+<h4 class="fw-bold mb-4 d-flex align-items-center" style="color: var(--text-main);">
+    <div class="p-2 rounded-3 text-white me-3 d-flex align-items-center justify-content-center" style="background-color: var(--primary); width: 40px; height: 40px;">
+        <i data-lucide="mail"></i>
+    </div>
+    @ViewData["Title"]
+</h4>
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<div class="custom-card p-4 p-md-5 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
+    <form id="email-form" method="post">
+        <div asp-validation-summary="All" class="text-danger mb-3 fw-bold" role="alert"></div>
+
+        @if (Model.IsEmailConfirmed)
+        {
+            <div class="mb-4">
+                <label asp-for="Email" class="form-label text-muted small fw-bold text-uppercase">Текущ имейл адрес</label>
+                <div class="input-group">
+                    <input asp-for="Email" class="form-control rounded-start-3 py-2" disabled style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-muted);" />
+                    <span class="input-group-text rounded-end-3 bg-success border-success text-white">
+                        <i data-lucide="check" style="width: 20px;"></i>
+                    </span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="mb-4">
+                <label asp-for="Email" class="form-label text-muted small fw-bold text-uppercase">Текущ имейл адрес</label>
+                <input asp-for="Email" class="form-control rounded-3 py-2 mb-2" disabled style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-muted);" />
+                <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-sm btn-outline-warning rounded-pill fw-bold">
+                    <i data-lucide="send" class="me-1" style="width: 14px;"></i> Изпрати линк за потвърждение
+                </button>
+            </div>
+        }
+
+        <div class="form-group mb-4 mt-2">
+            <label asp-for="Input.NewEmail" class="form-label text-muted small fw-bold text-uppercase">Нов имейл адрес</label>
+            <input asp-for="Input.NewEmail" class="form-control rounded-3 py-2" autocomplete="email" aria-required="true" placeholder="Въведете новия си имейл..." style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
+            <span asp-validation-for="Input.NewEmail" class="text-danger small mt-1 d-block"></span>
+        </div>
+
+        <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-solid-premium rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center">
+            <i data-lucide="save" class="me-2" style="width: 18px;"></i> Запази новия имейл
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}
