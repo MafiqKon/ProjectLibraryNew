@@ -22,7 +22,7 @@
 
 <div class="row g-4">
     <div class="col-md-8">
-        <form id="createTestForm" method="post" asp-action="Create">
+        <form id="createTestForm" method="post" asp-action="Create" data-points-confirmed="false">
             @Html.AntiForgeryToken()
 
             <div class="card mb-4 border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
@@ -67,7 +67,7 @@
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="form-label fw-bold text-muted small text-uppercase mb-1">Общо точки <span class="text-danger">*</span></label>
-                                        <input asp-for="TotalPoints" type="number" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="100" min="10" max="200" required>
+                                        <input asp-for="TotalPoints" id="TotalPoints" type="number" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="100" min="10" max="200" required>
                                         <span asp-validation-for="TotalPoints" class="text-danger small mt-1 d-block ms-2"></span>
                                     </div>
                                 </div>
@@ -210,6 +210,33 @@
             <div class="modal-footer border-0 pt-0 px-4 pb-4">
                 <button type="button" class="btn fw-bold px-4 py-2" data-bs-dismiss="modal" style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px;">Върни се</button>
                 <button type="button" id="confirmSaveWithoutDescBtn" class="btn btn-warning fw-bold px-4 py-2 shadow-sm hover-scale" style="border-radius: 10px; color: #000;">Да, запази теста</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="pointsMismatchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; background-color: var(--bg-card);">
+            <div class="modal-body text-center p-4 p-md-5">
+                <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-4" style="width: 70px; height: 70px; background-color: rgba(220, 53, 69, 0.1);">
+                    <i data-lucide="calculator" class="text-danger" style="width: 36px; height: 36px;"></i>
+                </div>
+                <h4 class="fw-bold mb-2" style="color: var(--text-main);">Разминаване в точките</h4>
+                <p class="text-muted mb-2">Общият брой точки на теста не отговаря на сумата от точките на отделните въпроси.</p>
+                <p id="mismatchDetails" class="fw-bold mb-4" style="color: #dc3545;"></p>
+
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-success rounded-pill fw-bold shadow-sm hover-scale d-flex align-items-center justify-content-center" id="btnDistributePoints" style="padding: 12px;">
+                        <i data-lucide="divide" class="me-2" style="width: 18px;"></i> Раздели ги по равно
+                    </button>
+                    <button type="button" class="btn btn-outline-danger rounded-pill fw-bold hover-scale" id="btnIgnorePoints" style="padding: 12px; border-width: 2px;">
+                        Запази теста въпреки това
+                    </button>
+                    <button type="button" class="btn btn-link text-muted mt-2" data-bs-dismiss="modal" style="text-decoration: none;">
+                        Назад към редакцията
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -368,34 +395,85 @@
             form.appendChild(input);
         }
 
-        // НОВАТА ЛОГИКА ЗА СЪБМИТ С CUSTOM МОДАЛ
+        // ========================================================
+        // НОВАТА ЛОГИКА ЗА СЪБМИТ: ПРОВЕРКА ЗА ТОЧКИ И ОПИСАНИЕ
+        // ========================================================
         document.getElementById('createTestForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const descInput = document.querySelector('textarea[name="Description"]');
-
-            if (descInput && descInput.value.trim() === '') {
-                let myModal = new bootstrap.Modal(document.getElementById('missingDescriptionModal'));
-                myModal.show();
+            // Ако вече сме минали и през двете проверки, събмитваме директно
+            if (this.dataset.pointsConfirmed === 'true' && this.dataset.descConfirmed === 'true') {
+                proceedWithSubmit(this);
                 return;
             }
 
+            const descInput = document.querySelector('textarea[name="Description"]');
+            var totalExpected = parseInt(document.getElementById('TotalPoints').value) || 0;
+            var currentSum = parseInt(document.getElementById('totalPoints').innerText) || 0; // Вземаме сумата от статистиката
+
+            // ПРОВЕРКА 1: Липсващо описание
+            if (this.dataset.descConfirmed !== 'true' && descInput && descInput.value.trim() === '') {
+                let myModal = new bootstrap.Modal(document.getElementById('missingDescriptionModal'));
+                myModal.show();
+                return; // Спираме тук, изчакваме решение от модала
+            }
+            this.dataset.descConfirmed = 'true'; // Маркираме, че описанието е ОК или е потвърдено празно
+
+            // ПРОВЕРКА 2: Разминаване в точките
+            if (this.dataset.pointsConfirmed !== 'true' && currentSum !== totalExpected) {
+                document.getElementById('mismatchDetails').innerText =
+                    `Задали сте общо ${totalExpected} т., но въпросите носят ${currentSum} т.`;
+
+                var warningModal = new bootstrap.Modal(document.getElementById('pointsMismatchModal'));
+                warningModal.show();
+                return; // Спираме тук, изчакваме решение от модала
+            }
+            this.dataset.pointsConfirmed = 'true'; // Маркираме, че точките са ОК или са потвърдени
+
+            // Ако всичко е наред, събмитваме
             proceedWithSubmit(this);
         });
 
+        // Бутон "Да, запази теста" (БЕЗ ОПИСАНИЕ)
         document.getElementById('confirmSaveWithoutDescBtn').addEventListener('click', function() {
             const descInput = document.querySelector('textarea[name="Description"]');
-            if (descInput) {
-                descInput.value = " ";
-            }
+            if (descInput) descInput.value = " "; // Слагаме празно място, за да мине валидацията
 
-            let modalInstance = bootstrap.Modal.getInstance(document.getElementById('missingDescriptionModal'));
-            if(modalInstance) {
-                modalInstance.hide();
+            const form = document.getElementById('createTestForm');
+            form.dataset.descConfirmed = 'true'; // Маркираме проверката като успешна
+            bootstrap.Modal.getInstance(document.getElementById('missingDescriptionModal')).hide();
+
+            // Завъртаме формата отново, за да мине и през проверката за точки
+            form.dispatchEvent(new Event('submit'));
+        });
+
+        // Бутон "Раздели ги по равно" (ТОЧКИ)
+        document.getElementById('btnDistributePoints').addEventListener('click', function() {
+            var totalExpected = parseInt(document.getElementById('TotalPoints').value) || 0;
+            var pointInputs = document.querySelectorAll('.question-points');
+
+            if (pointInputs.length > 0) {
+                var pointsPerQuestion = Math.floor(totalExpected / pointInputs.length);
+                var remainder = totalExpected % pointInputs.length;
+
+                pointInputs.forEach(function(input, index) {
+                    input.value = pointsPerQuestion + (index < remainder ? 1 : 0);
+                });
+                updateQuestionStats();
             }
 
             const form = document.getElementById('createTestForm');
-            proceedWithSubmit(form);
+            form.dataset.pointsConfirmed = 'true';
+            bootstrap.Modal.getInstance(document.getElementById('pointsMismatchModal')).hide();
+            form.dispatchEvent(new Event('submit'));
+        });
+
+        // Бутон "Запази въпреки това" (ТОЧКИ)
+        document.getElementById('btnIgnorePoints').addEventListener('click', function() {
+            const form = document.getElementById('createTestForm');
+            form.dataset.pointsConfirmed = 'true';
+            bootstrap.Modal.getInstance(document.getElementById('pointsMismatchModal')).hide();
+            form.dispatchEvent(new Event('submit'));
         });
 
         function proceedWithSubmit(form) {
@@ -405,6 +483,9 @@
                 return;
             }
 
+            // Изчистваме старите скрити полета за въпроси, за да не се дублират при повторен събмит
+            form.querySelectorAll('input[name="questionsJson"]').forEach(el => el.remove());
+
             const questionsInput = document.createElement('input');
             questionsInput.type = 'hidden';
             questionsInput.name = 'questionsJson';
@@ -412,12 +493,14 @@
             addQuestionFormData(form, questions);
             form.appendChild(questionsInput);
 
-            form.submit();
+            // Тъй като прехващаме събмита, пускаме оригиналния метод
+            HTMLFormElement.prototype.submit.call(form);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             addMultipleChoiceQuestion();
             document.addEventListener('input', e => { if (e.target.classList.contains('question-points')) updateQuestionStats(); });
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
         });
     </script>
 

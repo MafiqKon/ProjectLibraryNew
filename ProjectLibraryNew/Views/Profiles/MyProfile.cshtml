@@ -270,6 +270,29 @@
     </div>
 </div>
 
+<div class="modal fade" id="pastDateWarningModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; background-color: var(--bg-card);">
+            <div class="modal-body text-center p-4 p-md-5">
+                <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-4" style="width: 70px; height: 70px; background-color: rgba(245, 158, 11, 0.1);">
+                    <i data-lucide="history" class="text-warning" style="width: 36px; height: 36px;"></i>
+                </div>
+                <h4 class="fw-bold mb-2" style="color: var(--text-main);">Минала дата</h4>
+                <p class="text-muted mb-4">Избрали сте дата, която вече е отминала. Сигурни ли сте, че искате да добавите задача със задна дата?</p>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn rounded-pill fw-bold text-white shadow-sm hover-scale" id="btnConfirmPastDate" style="background-color: #f59e0b; padding: 12px;">
+                        Да, добави задача
+                    </button>
+                    <button type="button" class="btn btn-hover-gray rounded-pill fw-bold" data-bs-dismiss="modal" style="padding: 12px; border-width: 2px;">
+                        Отказ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         if (typeof lucide !== 'undefined') {
@@ -306,8 +329,19 @@
                 dateClick: function(info) {
                     document.getElementById('eventDate').value = info.dateStr;
                     document.getElementById('eventTitle').value = '';
-                    var modal = new bootstrap.Modal(document.getElementById('addEventModal'));
-                    modal.show();
+
+                    // Проверка дали датата е в миналото
+                    var clickedDate = new Date(info.dateStr);
+                    var today = new Date();
+                    today.setHours(0, 0, 0, 0); // Зануляваме часа, за да сравняваме само дните
+
+                    if (clickedDate < today) {
+                        var warningModal = new bootstrap.Modal(document.getElementById('pastDateWarningModal'));
+                        warningModal.show();
+                    } else {
+                        var addModal = new bootstrap.Modal(document.getElementById('addEventModal'));
+                        addModal.show();
+                    }
                 },
 
                 eventClick: function(info) {
@@ -339,6 +373,13 @@
             });
 
             calendar.render();
+
+            // Логика за бутона "Да, добави задача" от предупредителния модал за минала дата
+            document.getElementById('btnConfirmPastDate').addEventListener('click', function() {
+                bootstrap.Modal.getInstance(document.getElementById('pastDateWarningModal')).hide();
+                var addModal = new bootstrap.Modal(document.getElementById('addEventModal'));
+                addModal.show();
+            });
 
             document.getElementById('addEventForm').addEventListener('submit', function(e) {
                 e.preventDefault();
