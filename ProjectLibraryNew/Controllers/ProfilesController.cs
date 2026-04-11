@@ -267,6 +267,42 @@ namespace ProjectLibrary.Controllers
 
             return Ok(new { success = true, isCompleted = studyEvent.IsCompleted });
         }
+
+        // POST: Бърза смяна на профилна снимка директно от аватара
+        [HttpPost]
+        public async Task<IActionResult> UpdateAvatar(IFormFile profilePicture)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || profilePicture == null || profilePicture.Length == 0)
+            {
+                return RedirectToAction(nameof(MyProfile));
+            }
+
+            // Генерираме уникално име за файла
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePicture.FileName;
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "profiles");
+
+            // Създаваме папката, ако не съществува
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            // Запазваме файла на сървъра
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await profilePicture.CopyToAsync(fileStream);
+            }
+
+            // Записваме пътя в базата данни и обновяваме потребителя
+            user.ProfilePictureUrl = "/images/profiles/" + uniqueFileName;
+            await _userManager.UpdateAsync(user);
+
+            // Връщаме го обратно в профила, за да си види новата снимка
+            return RedirectToAction(nameof(MyProfile));
+        }
     }
 
 }

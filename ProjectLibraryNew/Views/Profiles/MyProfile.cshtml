@@ -13,18 +13,29 @@
 
         <div class="col-lg-4">
             <div class="custom-card text-center p-4 p-md-5 mb-4 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
-                <div class="d-inline-block p-1 rounded-circle mb-4" style="border: 3px solid var(--border-color); transition: border-color 0.3s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
-                    @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
-                    {
-                        <img src="@Model.ProfilePictureUrl" alt="Профилна снимка" class="rounded-circle shadow-sm" style="width: 120px; height: 120px; object-fit: cover; background-color: var(--bg-body);" />
-                    }
-                    else
-                    {
-                        <div class="rounded-circle d-flex justify-content-center align-items-center overflow-hidden shadow-sm" style="width: 120px; height: 120px; background-color: var(--bg-body); color: var(--primary);">
-                            <i data-lucide="user" style="width: 60px; height: 60px; stroke-width: 1.5;"></i>
+                <form asp-controller="Profiles" asp-action="UpdateAvatar" method="post" enctype="multipart/form-data" id="avatarForm">
+                    <div class="position-relative d-inline-block p-1 rounded-circle mb-4 avatar-container shadow-sm" style="border: 3px solid var(--border-color); cursor: pointer; transition: border-color 0.3s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="document.getElementById('profilePictureInput').click();" title="Кликни, за да смениш снимката">
+
+                        <div class="avatar-wrapper rounded-circle overflow-hidden position-relative" style="width: 120px; height: 120px; background-color: var(--bg-body);">
+                            @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                            {
+                                <img src="@Model.ProfilePictureUrl" alt="Профилна снимка" class="w-100 h-100" style="object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="w-100 h-100 d-flex justify-content-center align-items-center" style="color: var(--primary);">
+                                    <i data-lucide="user" style="width: 60px; height: 60px; stroke-width: 1.5;"></i>
+                                </div>
+                            }
+
+                            <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                                <i data-lucide="camera" class="text-white" style="width: 32px; height: 32px;"></i>
+                            </div>
                         </div>
-                    }
-                </div>
+
+                    </div>
+                    <input type="file" name="profilePicture" id="profilePictureInput" class="d-none" accept="image/*" onchange="document.getElementById('avatarForm').submit();" />
+                </form>
                 <h3 class="fw-bold mb-1" style="color: var(--text-main);">@Model.FirstName @Model.LastName</h3>
                 <p class="text-muted mb-4 fs-6">@Model.Email</p>
                 <div class="mb-4">
@@ -486,5 +497,16 @@
                 color: white !important;
                 box-shadow: 0 4px 12px rgba(106, 156, 120, 0.3) !important;
             }
+
+        /* Стилове за ховър ефекта на аватара */
+        .avatar-overlay {
+            background-color: rgba(0, 0, 0, 0.6); /* Полупрозрачно черно */
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1; /* Показва се при минаване с мишката */
+        }
     </style>
 }
