@@ -109,7 +109,7 @@
                             </td>
 
                             <td class="py-3 px-4 text-end">
-                                <div class="d-flex justify-content-end align-items-center">
+                                <div class="d-flex justify-content-end align-items-center gap-2">
                                     @if (item.User.UserName == "admin@abv.bg")
                                     {
                                         <span class="text-muted small fw-bold me-2"><i data-lucide="lock" style="width: 14px; margin-right: 4px;"></i>Защитен</span>
@@ -120,11 +120,19 @@
                                     }
                                     else
                                     {
+                                        <button type="button" class="btn btn-outline-warning btn-sm d-flex justify-content-center align-items-center hover-scale m-0"
+                                                style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;"
+                                                title="Смени паролата"
+                                                onclick="openPasswordModal('@item.User.Id', '@item.User.FirstName @item.User.LastName')">
+                                            <i data-lucide="key" style="width: 16px; margin: 0;"></i>
+                                        </button>
+
                                         <form asp-action="DeleteUser" method="post" style="display:inline;" class="m-0">
                                             <input type="hidden" name="userId" value="@item.User.Id" />
                                             <button type="submit" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center hover-scale m-0"
                                                     style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;"
-                                                    onclick="return confirm('Сигурни ли сте, че искате да изтриете този потребител? Всички негови коментари ще бъдат изтрити!')">
+                                                    onclick="return confirm('Сигурни ли сте, че искате да изтриете този потребител? Всички негови коментари ще бъдат изтрити!')"
+                                                    title="Изтрий потребител">
                                                 <i data-lucide="trash-2" style="width: 16px; margin: 0;"></i>
                                             </button>
                                         </form>
@@ -146,6 +154,36 @@
                 }
             </tbody>
         </table>
+    </div>
+</div>
+
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px; background-color: var(--bg-card);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--text-main);">
+                    <i data-lucide="key" class="me-2 text-warning" style="width: 24px;"></i> Смяна на парола
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-4">Въведете нова парола за потребител <strong id="resetUserName" class="text-primary"></strong>.</p>
+
+                <form asp-action="ResetUserPassword" method="post">
+                    <input type="hidden" id="resetUserId" name="userId" />
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Нова парола</label>
+                        <input type="text" name="newPassword" class="form-control rounded-3 py-2" required minlength="6" placeholder="Напр. NovaParola123!" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);">
+                        <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">Внимание: Паролата трябва да съдържа главна буква, малка буква, цифра и специален знак (според изискванията на системата).</small>
+                    </div>
+
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold shadow-sm hover-scale d-flex align-items-center justify-content-center" style="background-color: #f59e0b; color: white; padding: 12px; border: none;">
+                        <i data-lucide="save" class="me-2" style="width: 18px;"></i> Запази новата парола
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -249,6 +287,14 @@
         // Презареждаме иконките, в случай че сме ги инжектирали
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
+        }
+
+        // Функция за отваряне на модала и зареждане на данните
+        function openPasswordModal(id, name) {
+            document.getElementById('resetUserId').value = id;
+            document.getElementById('resetUserName').innerText = name;
+            var modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+            modal.show();
         }
     </script>
 }

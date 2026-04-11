@@ -285,6 +285,63 @@ namespace ProjectLibrary.Controllers
             return RedirectToAction(nameof(Users));
         }
 
+        // =========================================================================
+        // НОВО: ПРИНУДИТЕЛНА СМЯНА НА ПАРОЛА
+        // =========================================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetUserPassword(string userId, string newPassword)
+        {
+            var targetUser = await _userManager.FindByIdAsync(userId);
+            if (targetUser != null)
+            {
+                // 1. ЗАЩИТА: Никой не пипа паролата на Суперадмина от тук
+                if (targetUser.UserName == "admin@abv.bg")
+                {
+                    TempData["ErrorMessage"] = "Паролата на Главния Суперадминистратор не може да бъде променяна по този начин!";
+                    return RedirectToAction(nameof(Users));
+                }
+
+                var currentLoggedInUser = await _userManager.GetUserAsync(User);
+                bool isSuperAdmin = currentLoggedInUser.UserName == "admin@abv.bg";
+                var targetUserRoles = await _userManager.GetRolesAsync(targetUser);
+
+                // 2. ЗАЩИТА: Обикновен админ не сменя пароли на други Админи
+                if (targetUserRoles.Contains("Admin") && !isSuperAdmin)
+                {
+                    TempData["ErrorMessage"] = "Само Суперадминистраторът може да променя паролите на други администратори!";
+                    return RedirectToAction(nameof(Users));
+                }
+
+                if (string.IsNullOrEmpty(newPassword))
+                {
+                    TempData["ErrorMessage"] = "Моля, въведете валидна парола!";
+                    return RedirectToAction(nameof(Users));
+                }
+
+                // Генерираме специален тоукън и сменяме паролата директно
+                var resetToken = await _userManager.GeneratePasswordResetTokenAsync(targetUser);
+                var result = await _userManager.ResetPasswordAsync(targetUser, resetToken, newPassword);
+
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = $"Паролата на {targetUser.FirstName} {targetUser.LastName} беше променена успешно!";
+                }
+                else
+                {
+                    // Ако Identity хвърли грешка (напр. няма главна буква или специален знак)
+                    var errorMsg = string.Join(" ", result.Errors.Select(e => e.Description));
+                    TempData["ErrorMessage"] = "Грешка: " + errorMsg;
+                }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Потребителят не беше намерен!";
+            }
+
+            return RedirectToAction(nameof(Users));
+        }
+
         // GET: Системна статистика
         public async Task<IActionResult> SystemStats()
         {

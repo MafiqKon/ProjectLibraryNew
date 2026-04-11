@@ -17,6 +17,8 @@ namespace ProjectLibrary.Models
         // ЗАКОМЕНТИРАЙ ТЕЗИ РЕДОВЕ С ДВЕ НАКЛОНЕНИ ЧЕРТИ, АКО СВЕТЯТ В ЧЕРВЕНО:
          public virtual ICollection<UserBadge> UserBadges { get; set; }
          public virtual ICollection<BookCollection> Collections { get; set; }
+        // Флаг, който показва дали профилът (особено учителският) чака одобрение от Админ
+        public bool IsPendingApproval { get; set; } = false;
     }
 
     public enum UserType
