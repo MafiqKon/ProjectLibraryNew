@@ -90,6 +90,61 @@ namespace ProjectLibrary.Controllers
             return View(userViewModels);
         }
 
+        // =========================================================================
+        // УПРАВЛЕНИЕ НА ЧАКАЩИ УЧИТЕЛИ
+        // =========================================================================
+
+        // GET: Admin/PendingTeachers
+        public async Task<IActionResult> PendingTeachers()
+        {
+            var pendingUsers = await _userManager.Users
+                .Where(u => u.IsPendingApproval)
+                .OrderByDescending(u => u.RegistrationDate)
+                .ToListAsync();
+
+            return View(pendingUsers);
+        }
+
+        // POST: Admin/ApproveTeacher
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveTeacher(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                // Махаме флага за чакащ и сменяме типа на Учител
+                user.IsPendingApproval = false;
+                user.UserType = UserType.Teacher;
+
+                // Сменяме ролята в Identity
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                await _userManager.AddToRoleAsync(user, "Teacher");
+
+                await _userManager.UpdateAsync(user);
+                TempData["SuccessMessage"] = $"Профилът на {user.FirstName} {user.LastName} беше одобрен като УЧИТЕЛ!";
+            }
+            return RedirectToAction(nameof(PendingTeachers));
+        }
+
+        // POST: Admin/RejectTeacher
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectTeacher(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                // Махаме флага за чакащ, но го оставяме като Ученик
+                user.IsPendingApproval = false;
+                await _userManager.UpdateAsync(user);
+
+                TempData["ErrorMessage"] = $"Заявката на {user.FirstName} беше отхвърлена. Профилът му остава със стандартни права на УЧЕНИК.";
+            }
+            return RedirectToAction(nameof(PendingTeachers));
+        }
+
         // GET: Управление на произведения (Books)
         public async Task<IActionResult> Books(string searchString)
         {

@@ -46,60 +46,47 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
             _emailSender = emailSender;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string ReturnUrl { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [EmailAddress]
-            [Display(Name = "Email")]
+            // === НОВИ ПОЛЕТА ЗА ИМЕ И ФАМИЛИЯ ===
+            [Required(ErrorMessage = "Полето за име е задължително.")]
+            [StringLength(50, ErrorMessage = "{0} трябва да бъде между {2} и {1} символа.", MinimumLength = 2)]
+            [Display(Name = "Име")]
+            public string FirstName { get; set; }
+
+            [Required(ErrorMessage = "Полето за фамилия е задължително.")]
+            [StringLength(50, ErrorMessage = "{0} трябва да бъде между {2} и {1} символа.", MinimumLength = 2)]
+            [Display(Name = "Фамилия")]
+            public string LastName { get; set; }
+            // ===================================
+
+            [Required(ErrorMessage = "Имейлът е задължителен.")]
+            [EmailAddress(ErrorMessage = "Невалиден имейл адрес.")]
+            [Display(Name = "Имейл")]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [Required(ErrorMessage = "Паролата е задължителна.")]
+            [StringLength(100, ErrorMessage = "{0}та трябва да бъде между {2} и {1} символа.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Парола")]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Потвърди паролата")]
+            [Compare("Password", ErrorMessage = "Паролите не съвпадат.")]
             public string ConfirmPassword { get; set; }
-        }
 
+            // === НОВО ПОЛЕ ЗА УЧИТЕЛСКА ЗАЯВКА ===
+            [Display(Name = "Искам да се регистрирам като учител")]
+            public bool RequestTeacherRole { get; set; }
+        }
 
         public async Task OnGetAsync(string returnUrl = null)
         {
@@ -111,9 +98,22 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+
+                // Задаваме Име и Фамилия
+                user.FirstName = Input.FirstName;
+                user.LastName = Input.LastName;
+                user.RegistrationDate = DateTime.Now;
+
+                // ЛОГИКА ЗА УЧИТЕЛИТЕ: Всички започват като ученици, но ако е чекнато, вдигаме флага
+                user.UserType = UserType.Student;
+                if (Input.RequestTeacherRole)
+                {
+                    user.IsPendingApproval = true;
+                }
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -122,6 +122,9 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+
+                    // Задаваме основна роля "Student" на всички в началото
+                    await _userManager.AddToRoleAsync(user, "Student");
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -151,7 +154,6 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
         }
 
