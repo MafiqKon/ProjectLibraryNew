@@ -82,39 +82,57 @@
 
                         @if ((int)question.Type == 2) // СВЪРЗВАНЕ
                         {
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="alert @(result.PointsEarned == result.MaxPoints ? "alert-success" : (result.PointsEarned > 0 ? "alert-warning" : "alert-danger"))">
+                            var userPairsList = string.IsNullOrEmpty(result.UserAnswer)
+                            ? new List<string>()
+                            : result.UserAnswer.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+
+                            <div class="row align-items-stretch">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <div class="alert @(result.PointsEarned == result.MaxPoints ? "alert-success" : (result.PointsEarned > 0 ? "alert-warning" : "alert-danger")) h-100 mb-0">
                                         <strong>Вашият отговор:</strong><br>
                                         <div class="d-flex flex-column gap-2 mt-2">
-                                            @if (!string.IsNullOrEmpty(result.UserAnswer))
+                                            @foreach (var opt in question.Options)
                                             {
-                                                var userPairs = result.UserAnswer.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                                                var correctPairsList = question.Options.Select(o => o.Text.Trim()).ToList();
-
-                                                foreach (var pair in userPairs)
+                                                var parts = opt.Text.Split('|');
+                                                if (parts.Length == 2)
                                                 {
-                                                    var parts = pair.Split('|');
-                                                    if (parts.Length == 2)
-                                                    {
-                                                        var isPairCorrect = correctPairsList.Contains(pair.Trim());
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <span class="badge bg-white text-dark border p-2 w-50 text-truncate" title="@parts[0]">@parts[0]</span>
-                                                            <i data-lucide="@(isPairCorrect ? "check" : "x")" class="@(isPairCorrect ? "text-success" : "text-danger")" style="width: 16px;"></i>
-                                                            <span class="badge @(isPairCorrect ? "bg-success" : "bg-danger") p-2 w-50 text-truncate" title="@parts[1]">@parts[1]</span>
-                                                        </div>
-                                                    }
+                                                    var left = parts[0].Trim();
+                                                    var correctRight = parts[1].Trim();
+
+                                                    // Търсим дали ученикът е свързал това Ляво с нещо
+                                                    var userPairForThisLeft = userPairsList.FirstOrDefault(p => p.StartsWith(left + "|"));
+                                                    var userRight = userPairForThisLeft != null && userPairForThisLeft.Split('|').Length == 2
+                                                    ? userPairForThisLeft.Split('|')[1].Trim()
+                                                    : null;
+
+                                                    var isPairCorrect = userRight == correctRight;
+
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-white text-dark border p-2 w-50 text-truncate" title="@left">@left</span>
+
+                                                        @if (isPairCorrect)
+                                                        {
+                                                            <i data-lucide="check" class="text-success" style="width: 16px;"></i>
+                                                            <span class="badge bg-success p-2 w-50 text-truncate" title="@userRight">@userRight</span>
+                                                        }
+                                                        else if (userRight != null)
+                                                        {
+                                                            <i data-lucide="x" class="text-danger" style="width: 16px;"></i>
+                                                            <span class="badge bg-danger p-2 w-50 text-truncate" title="@userRight">@userRight</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i data-lucide="minus" class="text-muted" style="width: 16px;"></i>
+                                                            <span class="badge bg-secondary p-2 w-50 text-truncate text-white" style="opacity: 0.6;">Пропуснат</span>
+                                                        }
+                                                    </div>
                                                 }
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">Няма даден отговор</span>
                                             }
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="alert alert-info">
+                                    <div class="alert alert-info h-100 mb-0">
                                         <strong>Верен отговор:</strong><br>
                                         <div class="d-flex flex-column gap-2 mt-2">
                                             @foreach (var opt in question.Options)
@@ -125,7 +143,7 @@
                                                     <div class="d-flex align-items-center gap-2">
                                                         <span class="badge bg-white text-dark border p-2 w-50 text-truncate" title="@parts[0]">@parts[0]</span>
                                                         <i data-lucide="arrow-right" class="text-info" style="width: 16px;"></i>
-                                                        <span class="badge bg-info p-2 w-50 text-truncate" title="@parts[1]">@parts[1]</span>
+                                                        <span class="badge bg-info text-dark p-2 w-50 text-truncate" title="@parts[1]">@parts[1]</span>
                                                     </div>
                                                 }
                                             }
@@ -181,7 +199,7 @@
 
                         @if (result.PointsEarned < result.MaxPoints)
                         {
-                            <div class="alert alert-warning mt-2">
+                            <div class="alert alert-warning mt-3 mb-0">
                                 <strong>💡 Препоръка:</strong> Прегледайте материала отново и се опитайте пак!
                             </div>
                         }
@@ -258,7 +276,7 @@
             <div class="card-body">
                 <p><strong>📚 Тест:</strong> @Model.Test.Title</p>
                 <p><strong>📖 Тема:</strong> @(Model.Test.Book?.Title ?? "Общ / Смесен тест")</p>
-                @if (Model.Test.Book != null)
+                @if (Model.Test.Book != null && Model.Test.Book.Author != null)
                 {
                     <p><strong>👨‍🎓 Автор:</strong> @Model.Test.Book.Author.Name</p>
                 }

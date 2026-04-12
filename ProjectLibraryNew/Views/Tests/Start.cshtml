@@ -6,8 +6,9 @@
     var questions = ViewBag.Questions as List<ProjectLibrary.Models.TestQuestion>;
 }
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <div class="test-page-wrapper px-md-4 mt-5 pt-4">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <h2 class="fw-bold mb-4" style="color: var(--text-main);">📝 @test.Title</h2>
 
     <div class="row align-items-start">
@@ -61,7 +62,6 @@
                             }
                             else if ((int)question.Type == 2) // Matching (СВЪРЗВАНЕ)
                             {
-                                // Разделяме опциите, които записахме като "Ляво|Дясно"
                                 var leftParts = new List<string>();
                                 var rightParts = new List<string>();
                                 foreach (var opt in question.Options)
@@ -74,14 +74,13 @@
                                     }
                                 }
 
-                                // Разбъркваме десните отговори, за да е интересно
                                 var rand = new Random();
                                 var shuffledRights = rightParts.OrderBy(x => rand.Next()).ToList();
 
                                 <div class="matching-question-container mt-4" data-qid="@question.Id">
-                                    <p class="text-muted small mb-2"><i data-lucide="info" style="width: 14px;"></i> Кликнете върху елемент от горното поле, след което кликнете върху празна кутийка долу, за да го поставите.</p>
+                                    <p class="text-muted small mb-2"><i data-lucide="info" style="width: 14px;"></i> Плъзнете елемент от горното поле в празна кутийка долу (или кликнете за бързо поставяне).</p>
 
-                                    <div class="matching-bank p-4 mb-4 rounded-4 shadow-sm d-flex flex-wrap gap-2 justify-content-center" style="background-color: rgba(139, 92, 246, 0.05); border: 2px dashed #8b5cf6;">
+                                    <div class="matching-bank p-4 mb-4 rounded-4 shadow-sm d-flex flex-wrap gap-2 justify-content-center" style="background-color: rgba(139, 92, 246, 0.05); border: 2px dashed #8b5cf6; min-height: 80px;">
                                         @foreach (var r in shuffledRights)
                                         {
                                             <div class="matching-item-draggable badge bg-white text-dark border shadow-sm p-3 fs-6 cursor-pointer hover-scale" data-value="@r" style="transition: all 0.2s;">
@@ -101,10 +100,10 @@
                                                 <i data-lucide="arrow-down" class="text-muted d-block d-sm-none"></i>
 
                                                 <div class="matching-slot empty-slot p-3 rounded-4 w-100 w-sm-50 text-center cursor-pointer text-muted d-flex align-items-center justify-content-center" data-left="@l" style="background-color: var(--bg-body); border: 2px dashed #8b5cf6; min-height: 56px; transition: all 0.2s;">
-                                                    Кликни тук
+                                                    Плъзни тук
                                                 </div>
 
-                                                <input type="hidden" name="answers[@question.Id]" class="matching-hidden-input" value="" />
+                                                <input type="hidden" class="matching-hidden-input" value="" />
                                             </div>
                                         }
                                     </div>
@@ -182,7 +181,7 @@
                                 <i data-lucide="book" class="me-3 mt-1 text-success" style="width: 20px;"></i>
                                 <div>
                                     <small class="d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Произведение</small>
-                                    <span style="color: var(--text-main);" class="fw-bold">@test.Book.Title</span>
+                                    <span style="color: var(--text-main);" class="fw-bold">@(test.Book?.Title ?? "Общ тест")</span>
                                 </div>
                             </li>
                             <li class="mb-3 d-flex align-items-start">
@@ -357,12 +356,6 @@
         }
     }
 
-    {
-        width: 50% !important;
-    }
-
-    }
-
     .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
     }
@@ -427,6 +420,30 @@
         const timerCard = document.querySelector('.timer-card');
         const timerIcon = document.getElementById('timerIcon');
 
+        // НОВО: Функция за обединяване на отговорите преди изпращане
+        function prepareFormForSubmit() {
+            document.querySelectorAll('.matching-question-container').forEach(container => {
+                const qid = container.getAttribute('data-qid');
+                const inputs = container.querySelectorAll('.matching-hidden-input');
+
+                // Събираме всички попълнени стойности с запетайка
+                let combinedValue = Array.from(inputs)
+                                         .map(i => i.value)
+                                         .filter(v => v !== "")
+                                         .join(',');
+
+                // Изтриваме старите скрити полета, за да не объркват сървъра
+                inputs.forEach(i => i.remove());
+
+                // Създаваме ЕДНО единствено поле с всички отговори
+                const finalInput = document.createElement('input');
+                finalInput.type = 'hidden';
+                finalInput.name = `answers[${qid}]`;
+                finalInput.value = combinedValue;
+                container.appendChild(finalInput);
+            });
+        }
+
         function updateTimer() {
             if (!timerElement) return;
             const minutes = Math.floor(timeLeft / 60);
@@ -446,6 +463,7 @@
                 isFormDirty = false;
                 window.onbeforeunload = null;
                 alert("Времето изтече! Тестът се предава автоматично.");
+                prepareFormForSubmit();
                 document.getElementById('testForm').submit();
             }
             timeLeft--;
@@ -454,7 +472,7 @@
 
         // 3. ИЗХОД ОТ ТЕСТА
         function triggerLeaveModal() {
-            targetUrl = '@Url.Action("Details", "Books", new { id = test.BookId })';
+            targetUrl = '@Url.Action("Index", "Tests")';
             $('#leaveTestModal').modal('show');
         }
 
@@ -479,12 +497,10 @@
         $('#btnTriggerSubmit').on('click', function() {
             const total = @questions.Count;
 
-            // Проверяваме дали въпросите имат отговори (радио бутони, текстови полета И скрити полета за свързване)
             let answeredCount = 0;
             document.querySelectorAll('.question-card').forEach((card) => {
                 const isRadioAnswered = card.querySelector('input[type="radio"]:checked') !== null;
                 const isTextAnswered = Array.from(card.querySelectorAll('textarea')).some(t => t.value.trim() !== "");
-                // За свързването - проверяваме дали ИМА слотове, и ако да - дали поне един има сложена стойност
                 const matchingInputs = Array.from(card.querySelectorAll('.matching-hidden-input'));
                 const isMatchingAnswered = matchingInputs.length > 0 && matchingInputs.some(i => i.value.trim() !== "");
 
@@ -516,6 +532,10 @@
             isFormDirty = false;
             window.onbeforeunload = null;
             $(this).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Зареждане...');
+
+            // ИЗВИКВАМЕ НОВАТА ФУНКЦИЯ ПРЕДИ ДА ПРАТИМ
+            prepareFormForSubmit();
+
             document.getElementById('testForm').submit();
         });
 
@@ -567,33 +587,28 @@
             const bank = container.querySelector('.matching-bank');
             const slots = container.querySelectorAll('.matching-slot');
 
-            // Инициализираме банката с отговори
             new Sortable(bank, {
                 group: 'shared',
                 animation: 150,
                 ghostClass: 'opacity-50'
             });
 
-            // Инициализираме всеки празен слот
             slots.forEach(slot => {
                 new Sortable(slot, {
                     group: 'shared',
                     animation: 150,
-                    max: 1, // Само 1 елемент може да влезе в слот!
+                    max: 1,
                     onAdd: function (evt) {
-                        // Ако в слота вече е имало нещо, го връщаме горе в банката
                         if (slot.children.length > 1) {
                             const oldItem = slot.children[0] === evt.item ? slot.children[1] : slot.children[0];
                             bank.appendChild(oldItem);
                         }
 
-                        // Махаме текста "Кликни тук"
                         slot.childNodes.forEach(node => {
                             if (node.nodeType === 3) node.textContent = '';
                         });
                         slot.classList.remove('empty-slot', 'text-muted');
 
-                        // Записваме резултата ЛЯВО|ДЯСНО в скритото поле за бекенда
                         const leftValue = slot.getAttribute('data-left');
                         const rightValue = evt.item.getAttribute('data-value');
                         const hiddenInput = slot.parentElement.querySelector('.matching-hidden-input');
@@ -602,7 +617,6 @@
                         updateProgress();
                     },
                     onRemove: function (evt) {
-                        // Ако ученикът издърпа отговора обратно горе, изчистваме слота
                         if (slot.children.length === 0) {
                             slot.innerHTML = 'Плъзни тук';
                             slot.classList.add('empty-slot', 'text-muted');
@@ -634,6 +648,13 @@
 @functions {
     private string GetOptionLetter(int optionId)
     {
-        return optionId switch { 1 => "А", 2 => "Б", 3 => "В", 4 => "Г", _ => optionId.ToString() };
+        return optionId switch
+        {
+            1 => "а",
+            2 => "б",
+            3 => "в",
+            4 => "г",
+            _ => optionId.ToString()
+        };
     }
 }

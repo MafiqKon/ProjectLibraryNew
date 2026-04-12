@@ -14,7 +14,13 @@
 
 <form id="antiForgeryForm">@Html.AntiForgeryToken()</form>
 
-<div class="row mt-5 pt-5">
+<div class="mt-4 mb-2">
+    <button onclick="history.back()" class="btn btn-sm rounded-pill fw-bold d-inline-flex align-items-center shadow-sm px-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); transition: all 0.2s ease-in-out;" onmouseover="this.style.backgroundColor='var(--primary)'; this.style.color='white'; this.style.borderColor='var(--primary)';" onmouseout="this.style.backgroundColor='var(--bg-body)'; this.style.color='var(--text-main)'; this.style.borderColor='var(--border-color)';">
+        <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i> Назад
+    </button>
+</div>
+
+<div class="row mt-3">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--text-main);">@Model.Title</h2>
         <h4 class="text-muted mb-3">@Model.Author.Name</h4>
