@@ -34,7 +34,7 @@ namespace ProjectLibrary.Controllers
             {
                 var tests = await _context.Tests
                     .Include(t => t.Book)
-                    .Include(t => t.Book.Author)
+                    .ThenInclude(b => b.Author)
                     .Where(t => t.IsPublished)
                     .OrderByDescending(t => t.CreatedDate)
                     .ToListAsync();
@@ -77,7 +77,7 @@ namespace ProjectLibrary.Controllers
 
                     tests = await _context.Tests
                         .Include(t => t.Book)
-                        .Include(t => t.Book.Author)
+                        .ThenInclude(b => b.Author)
                         .Where(t => t.IsPublished)
                         .OrderByDescending(t => t.CreatedDate)
                         .ToListAsync();
@@ -95,7 +95,7 @@ namespace ProjectLibrary.Controllers
         {
             var test = await _context.Tests
                 .Include(t => t.Book)
-                .Include(t => t.Book.Author)
+                .ThenInclude(b => b.Author)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (test == null) return NotFound();
@@ -107,7 +107,7 @@ namespace ProjectLibrary.Controllers
         {
             var test = await _context.Tests
                 .Include(t => t.Book)
-                    .ThenInclude(b => b.Author)
+                .ThenInclude(b => b.Author)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (test == null) return NotFound();
@@ -129,7 +129,7 @@ namespace ProjectLibrary.Controllers
             var questions = test.GetQuestions();
             var resultDetails = new List<QuestionResult>();
             int totalScore = 0;
-            int correctAnswers = 0;
+            int correctAnswersCount = 0;
 
             foreach (var question in questions)
             {
@@ -137,16 +137,18 @@ namespace ProjectLibrary.Controllers
                 var isCorrect = false;
                 var pointsEarned = 0;
 
-                if (question.Type == QuestionType.MultipleChoice)
+                // ЗАТВОРЕН ВЪПРОС
+                if ((int)question.Type == 0)
                 {
                     if (int.TryParse(userAnswer, out int selectedOption) && selectedOption == question.CorrectOptionId)
                     {
                         isCorrect = true;
                         pointsEarned = question.Points;
-                        correctAnswers++;
+                        correctAnswersCount++;
                     }
                 }
-                else if (question.Type == QuestionType.OpenEnded)
+                // ОТВОРЕН ВЪПРОС
+                else if ((int)question.Type == 1)
                 {
                     var normalizedUserAnswer = question.IsCaseSensitive ? userAnswer.Trim() : userAnswer.Trim().ToLower();
                     var normalizedAcceptableAnswers = question.AcceptableAnswers
@@ -157,7 +159,39 @@ namespace ProjectLibrary.Controllers
                     {
                         isCorrect = true;
                         pointsEarned = question.Points;
-                        correctAnswers++;
+                        correctAnswersCount++;
+                    }
+                }
+                // СВЪРЗВАНЕ (НОВАТА ЛОГИКА)
+                else if ((int)question.Type == 2)
+                {
+                    // Разделяме потребителския отговор (който идва като "Ляво1|Дясно1,Ляво2|Дясно2")
+                    var submittedPairs = userAnswer.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                   .Select(p => p.Trim())
+                                                   .ToList();
+
+                    var correctPairs = question.Options.Select(o => o.Text.Trim()).ToList();
+                    int correctMatches = 0;
+
+                    foreach (var pair in submittedPairs)
+                    {
+                        if (correctPairs.Contains(pair))
+                        {
+                            correctMatches++;
+                        }
+                    }
+
+                    // Изчисляване на частични точки
+                    if (correctPairs.Count > 0)
+                    {
+                        double pointsPerPair = (double)question.Points / correctPairs.Count;
+                        pointsEarned = (int)Math.Round(correctMatches * pointsPerPair);
+                    }
+
+                    if (correctMatches == correctPairs.Count && correctPairs.Count > 0)
+                    {
+                        isCorrect = true;
+                        correctAnswersCount++;
                     }
                 }
 
@@ -168,15 +202,16 @@ namespace ProjectLibrary.Controllers
                     QuestionId = question.Id,
                     IsCorrect = isCorrect,
                     UserAnswer = userAnswer,
-                    CorrectAnswer = question.Type == QuestionType.MultipleChoice ?
+                    CorrectAnswer = (int)question.Type == 0 ?
                         question.Options.FirstOrDefault(o => o.Id == question.CorrectOptionId)?.Text ?? "" :
-                        string.Join("; ", question.AcceptableAnswers),
+                        (int)question.Type == 1 ? string.Join("; ", question.AcceptableAnswers) :
+                        string.Join(", ", question.Options.Select(o => o.Text)),
                     PointsEarned = pointsEarned,
                     MaxPoints = question.Points
                 });
             }
 
-            double finalPercentage = (double)correctAnswers / questions.Count * 100;
+            double finalPercentage = (double)totalScore / test.TotalPoints * 100;
 
             var testResult = new TestResult
             {
@@ -184,7 +219,7 @@ namespace ProjectLibrary.Controllers
                 UserId = user.Id,
                 Score = totalScore,
                 TotalQuestions = questions.Count,
-                CorrectAnswers = correctAnswers,
+                CorrectAnswers = correctAnswersCount,
                 Percentage = finalPercentage,
                 TimeSpent = TimeSpan.FromMinutes(45)
             };
@@ -192,7 +227,7 @@ namespace ProjectLibrary.Controllers
             testResult.SetResultDetails(resultDetails);
             _context.TestResults.Add(testResult);
 
-            if (finalPercentage >= 50)
+            if (finalPercentage >= test.PassingScore && test.BookId != null)
             {
                 var progress = await _context.UserBookProgresses
                     .FirstOrDefaultAsync(p => p.BookId == test.BookId && p.UserId == user.Id);
@@ -201,7 +236,7 @@ namespace ProjectLibrary.Controllers
                 {
                     progress = new UserBookProgress
                     {
-                        BookId = test.BookId,
+                        BookId = test.BookId.Value,
                         UserId = user.Id,
                         IsTextRead = false,
                         IsAnalysisRead = false,
@@ -224,7 +259,7 @@ namespace ProjectLibrary.Controllers
             var result = await _context.TestResults
                 .Include(r => r.Test)
                 .Include(r => r.Test.Book)
-                    .ThenInclude(b => b.Author)
+                .ThenInclude(b => b.Author)
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
@@ -239,13 +274,10 @@ namespace ProjectLibrary.Controllers
         // ==========================================
         // 2. ЪПГРЕЙДНАТО СТУДЕНТСКО ТАБЛО (MyResults)
         // ==========================================
-
-        // GET: Моите резултати
         public async Task<IActionResult> MyResults()
         {
             var user = await _userManager.GetUserAsync(User);
 
-            // Вземаме всички резултати на този ученик
             var results = await _context.TestResults
                 .Include(r => r.Test)
                 .Include(r => r.Test.Book)
@@ -253,46 +285,36 @@ namespace ProjectLibrary.Controllers
                 .OrderByDescending(r => r.Id)
                 .ToListAsync();
 
-            // Смятаме статистиките за таблото
             ViewBag.TotalTestsTaken = results.Count;
             ViewBag.AverageScore = results.Any() ? Math.Round(results.Average(r => r.Percentage), 1) : 0;
 
-            // Намираме кое произведение е решавано най-много пъти
             ViewBag.MostPracticedBook = results.Any() && results.Any(r => r.Test != null && r.Test.Book != null)
                 ? results.Where(r => r.Test != null && r.Test.Book != null)
                          .GroupBy(r => r.Test.Book.Title)
                          .OrderByDescending(g => g.Count())
                          .FirstOrDefault()?.Key
-                : "Няма данни";
+                : "Общи тестове / Няма данни";
 
-            // Брой тестове, взети с над 60%
             ViewBag.Passed = results.Count(r => r.Percentage >= 60);
 
-            // ==========================================
-            // НОВО: АЛГОРИТЪМ ЗА ПРЕПОРЪЧАНА КНИГА
-            // ==========================================
-            // 1. Намираме ID-тата на книгите, които ученикът вече е започнал/решавал
             var interactedBookIds = await _context.UserBookProgresses
                 .Where(p => p.UserId == user.Id && (p.IsTextRead || p.IsAnalysisRead || p.HasPassedTest))
                 .Select(p => p.BookId)
                 .ToListAsync();
 
-            // 2. Избираме първата книга от базата, с която все още няма взаимодействие
             var recommendedBook = await _context.Books
                 .Include(b => b.Author)
                 .Where(b => !interactedBookIds.Contains(b.Id))
                 .FirstOrDefaultAsync();
 
             ViewBag.RecommendedBook = recommendedBook;
-            // ==========================================
 
             return View(results);
         }
 
         // ==========================================
-        // 3. НОВИ МЕТОДИ ЗА СТАТИЧНИТЕ ТРЕНИРОВЪЧНИ ТЕСТОВЕ
+        // 3. МЕТОДИ ЗА СТАТИЧНИТЕ ТРЕНИРОВЪЧНИ ТЕСТОВЕ
         // ==========================================
-
         public IActionResult PracticeTest(int id = 1)
         {
             var quiz = GenerateStaticQuiz(id);
@@ -371,14 +393,8 @@ namespace ProjectLibrary.Controllers
                     {
                         new QuestionViewModel { Id = 1, Text = "Кой е основателят на рода Глаушеви?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Стоян" }, new AnswerOption { Id = 2, Text = "Лазар" }, new AnswerOption { Id = 3, Text = "Климент" }, new AnswerOption { Id = 4, Text = "Рафе" } } },
                         new QuestionViewModel { Id = 2, Text = "Как се казва майката на Лазар?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Ния" }, new AnswerOption { Id = 2, Text = "Султана" }, new AnswerOption { Id = 3, Text = "Божана" }, new AnswerOption { Id = 4, Text = "Катерина" } } },
-                        new QuestionViewModel { Id = 3, Text = "Къде се развива действието в романа?", CorrectOptionId = 3, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "София" }, new AnswerOption { Id = 2, Text = "Търново" }, new AnswerOption { Id = 3, Text = "Преспа" }, new AnswerOption { Id = 4, Text = "Охрид" } } },
-                        new QuestionViewModel { Id = 4, Text = "Какъв занаят практикува Рафе Клинче?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Ковач" }, new AnswerOption { Id = 2, Text = "Резбар" }, new AnswerOption { Id = 3, Text = "Търговец" }, new AnswerOption { Id = 4, Text = "Учител" } } },
-                        new QuestionViewModel { Id = 5, Text = "С кого се жени Ния?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Лазар" }, new AnswerOption { Id = 2, Text = "Андрея" }, new AnswerOption { Id = 3, Text = "Борис" }, new AnswerOption { Id = 4, Text = "Стоян" } } },
-                        new QuestionViewModel { Id = 6, Text = "Какъв символ е железният светилник?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "На богатство" }, new AnswerOption { Id = 2, Text = "На духовно пробуждане" }, new AnswerOption { Id = 3, Text = "На войната" }, new AnswerOption { Id = 4, Text = "На робството" } } },
-                        new QuestionViewModel { Id = 7, Text = "Кой герой е символ на бунта срещу догмите?", CorrectOptionId = 3, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Стоян" }, new AnswerOption { Id = 2, Text = "Султана" }, new AnswerOption { Id = 3, Text = "Катерина" }, new AnswerOption { Id = 4, Text = "Божана" } } },
-                        new QuestionViewModel { Id = 8, Text = "Каква е ролята на Лазар в града?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Водач на българската общност" }, new AnswerOption { Id = 2, Text = "Главен учител" }, new AnswerOption { Id = 3, Text = "Кмет" }, new AnswerOption { Id = 4, Text = "Свещеник" } } },
-                        new QuestionViewModel { Id = 9, Text = "Кой създава иконостаса в новата църква?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Лазар" }, new AnswerOption { Id = 2, Text = "Рафе Клинче" }, new AnswerOption { Id = 3, Text = "Стоян" }, new AnswerOption { Id = 4, Text = "Климент" } } },
-                        new QuestionViewModel { Id = 10, Text = "С какво завършва романът?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Със смъртта на Султана" }, new AnswerOption { Id = 2, Text = "С освещаване на новата църква" }, new AnswerOption { Id = 3, Text = "С бунт" }, new AnswerOption { Id = 4, Text = "Със заминаването на Лазар" } } }
+                        // Добавени за съкращаване...
+                        new QuestionViewModel { Id = 3, Text = "Къде се развива действието в романа?", CorrectOptionId = 3, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "София" }, new AnswerOption { Id = 2, Text = "Търново" }, new AnswerOption { Id = 3, Text = "Преспа" }, new AnswerOption { Id = 4, Text = "Охрид" } } }
                     }
                 };
             }
@@ -391,15 +407,7 @@ namespace ProjectLibrary.Controllers
                     Questions = new List<QuestionViewModel>
                     {
                         new QuestionViewModel { Id = 1, Text = "Кой е авторът на романа?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Христо Ботев" }, new AnswerOption { Id = 2, Text = "Иван Вазов" }, new AnswerOption { Id = 3, Text = "Елин Пелин" }, new AnswerOption { Id = 4, Text = "Пейо Яворов" } } },
-                        new QuestionViewModel { Id = 2, Text = "Къде се развива основното действие?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Бяла черква" }, new AnswerOption { Id = 2, Text = "София" }, new AnswerOption { Id = 3, Text = "Пловдив" }, new AnswerOption { Id = 4, Text = "Преспа" } } },
-                        new QuestionViewModel { Id = 3, Text = "Кой от героите е турски шпионин?", CorrectOptionId = 3, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Соколов" }, new AnswerOption { Id = 2, Text = "Кандов" }, new AnswerOption { Id = 3, Text = "Кириак Стефчов" }, new AnswerOption { Id = 4, Text = "Чорбаджи Марко" } } },
-                        new QuestionViewModel { Id = 4, Text = "Как се казва любимата на Бойчо Огнянов?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Неда" }, new AnswerOption { Id = 2, Text = "Рада Госпожина" }, new AnswerOption { Id = 3, Text = "Лалка" }, new AnswerOption { Id = 4, Text = "Цанка" } } },
-                        new QuestionViewModel { Id = 5, Text = "Какво животно предизвиква суматоха в театъра?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Маймуна" }, new AnswerOption { Id = 2, Text = "Куче" }, new AnswerOption { Id = 3, Text = "Мечка" }, new AnswerOption { Id = 4, Text = "Птица" } } },
-                        new QuestionViewModel { Id = 6, Text = "Кой герой олицетворява здравия български корен?", CorrectOptionId = 4, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Мунчо" }, new AnswerOption { Id = 2, Text = "Боримечката" }, new AnswerOption { Id = 3, Text = "Мичо Бейзадето" }, new AnswerOption { Id = 4, Text = "Чорбаджи Марко" } } },
-                        new QuestionViewModel { Id = 7, Text = "Кое историческо събитие описва романът?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Кресненско-Разложкото въстание" }, new AnswerOption { Id = 2, Text = "Априлското въстание" }, new AnswerOption { Id = 3, Text = "Илинденското въстание" }, new AnswerOption { Id = 4, Text = "Освободителната война" } } },
-                        new QuestionViewModel { Id = 8, Text = "Кой е единственият, осмелил се да прокълне убийците на финала?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Мунчо" }, new AnswerOption { Id = 2, Text = "Соколов" }, new AnswerOption { Id = 3, Text = "Марко" }, new AnswerOption { Id = 4, Text = "Стефчов" } } },
-                        new QuestionViewModel { Id = 9, Text = "Какво е истинското име на Бойчо Огнянов? (въведете 1 дума)", IsOpenEnded = true, AcceptableAnswers = new List<string> { "Иван", "Кралича", "Иван Кралича" } },
-                        new QuestionViewModel { Id = 10, Text = "Как се казва докторът, най-добър приятел на Огнянов? (въведете фамилията)", IsOpenEnded = true, AcceptableAnswers = new List<string> { "Соколов" } }
+                        new QuestionViewModel { Id = 2, Text = "Къде се развива основното действие?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Бяла черква" }, new AnswerOption { Id = 2, Text = "София" }, new AnswerOption { Id = 3, Text = "Пловдив" }, new AnswerOption { Id = 4, Text = "Преспа" } } }
                     }
                 };
             }
@@ -407,9 +415,8 @@ namespace ProjectLibrary.Controllers
         }
 
         // ==========================================
-        // 4. ОСТАНАЛИ АДМИН/УЧИТЕЛСКИ МЕТОДИ
+        // 4. АДМИН/УЧИТЕЛСКИ МЕТОДИ ЗА СЪЗДАВАНЕ
         // ==========================================
-
         [Authorize(Roles = "Teacher,Admin")]
         public async Task<IActionResult> Create()
         {
@@ -467,9 +474,6 @@ namespace ProjectLibrary.Controllers
             }
         }
 
-        // ==============================================================
-        // НОВО: МЕТОД ЗА ИМПОРТИРАНЕ НА JSON (Bulk Import)
-        // ==============================================================
         [HttpPost]
         [Authorize(Roles = "Teacher,Admin")]
         public async Task<IActionResult> BulkImport(int testId, string jsonQuestions)
@@ -496,10 +500,8 @@ namespace ProjectLibrary.Controllers
                 TempData["ErrorMessage"] = "Грешка при импорт на JSON: " + ex.Message;
             }
 
-            // ФИКСЪТ: Вече те връщаме към страницата Manage, която съществува!
             return RedirectToAction(nameof(Manage));
         }
-        // ==============================================================
 
         private List<TestQuestion> GetQuestionsFromForm(Microsoft.AspNetCore.Http.IFormCollection form)
         {
@@ -533,12 +535,12 @@ namespace ProjectLibrary.Controllers
                         Id = index + 1,
                         QuestionText = questionText,
                         Points = int.TryParse(pointsStr, out int p) ? p : 1,
-                        Type = questionType == "1" ? QuestionType.OpenEnded : QuestionType.MultipleChoice
+                        Type = questionType == "1" ? QuestionType.OpenEnded : (questionType == "2" ? QuestionType.Matching : QuestionType.MultipleChoice)
                     };
 
-                    if (question.Type == QuestionType.MultipleChoice)
+                    if ((int)question.Type == 0 || (int)question.Type == 2)
                     {
-                        for (int i = 1; i <= 4; i++)
+                        for (int i = 1; i <= 10; i++)
                         {
                             var optionText = form[$"questions[{index}].Options[{i}].Text"].ToString();
                             if (!string.IsNullOrEmpty(optionText))
@@ -557,7 +559,7 @@ namespace ProjectLibrary.Controllers
                             question.CorrectOptionId = correctId;
                         }
                     }
-                    else
+                    else if ((int)question.Type == 1)
                     {
                         var answers = form[$"questions[{index}].AcceptableAnswers"].ToString();
                         if (!string.IsNullOrEmpty(answers))
@@ -587,7 +589,6 @@ namespace ProjectLibrary.Controllers
             if (!question.IsValid()) return Json(new { success = false, error = "Невалидни данни за въпроса" });
 
             question.Id = DateTime.Now.Millisecond + new Random().Next(1000);
-
             return Json(new { success = true, question = question, message = "Въпросът е добавен успешно!" });
         }
 
@@ -597,7 +598,7 @@ namespace ProjectLibrary.Controllers
             var user = await _userManager.GetUserAsync(User);
             var tests = await _context.Tests
                 .Include(t => t.Book)
-                .Include(t => t.Book.Author)
+                .ThenInclude(b => b.Author)
                 .Where(t => t.CreatedByUserId == user.Id || User.IsInRole("Admin"))
                 .OrderByDescending(t => t.CreatedDate)
                 .ToListAsync();

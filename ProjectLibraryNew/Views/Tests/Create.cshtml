@@ -22,7 +22,7 @@
 
 <div class="row g-4">
     <div class="col-md-8">
-        <form id="createTestForm" method="post" asp-action="Create" data-points-confirmed="false">
+        <form id="createTestForm" method="post" asp-action="Create" data-points-confirmed="false" data-desc-confirmed="false">
             @Html.AntiForgeryToken()
 
             <div class="card mb-4 border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 16px;">
@@ -67,7 +67,7 @@
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="form-label fw-bold text-muted small text-uppercase mb-1">Общо точки <span class="text-danger">*</span></label>
-                                        <input asp-for="TotalPoints" id="TotalPoints" type="number" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="100" min="10" max="200" required>
+                                        <input asp-for="TotalPoints" id="TotalPoints" type="number" class="form-control rounded-pill px-3 py-2 border" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);" value="100" min="1" max="200" required>
                                         <span asp-validation-for="TotalPoints" class="text-danger small mt-1 d-block ms-2"></span>
                                     </div>
                                 </div>
@@ -112,13 +112,17 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-center flex-wrap gap-3 mt-4 mb-3 border-top pt-4" style="border-color: var(--border-color) !important;">
-                        <button type="button" class="btn btn-solid-premium rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center" style="padding: 12px 24px; font-size: 0.9rem; letter-spacing: 0.5px; min-width: 280px; border: 2px solid transparent;" onclick="addMultipleChoiceQuestion()">
-                            <i data-lucide="plus-circle" class="me-2" style="width: 18px;"></i> Добави затворен въпрос
+                    <div class="d-flex justify-content-center flex-wrap gap-2 mt-4 mb-3 border-top pt-4" style="border-color: var(--border-color) !important;">
+                        <button type="button" class="btn btn-solid-premium rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center" style="padding: 10px 20px; font-size: 0.85rem; letter-spacing: 0.5px; border: 2px solid transparent;" onclick="addMultipleChoiceQuestion()">
+                            <i data-lucide="list" class="me-2" style="width: 18px;"></i> Затворен
                         </button>
 
-                        <button type="button" class="btn rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center custom-outline-green" style="padding: 12px 24px; font-size: 0.9rem; letter-spacing: 0.5px; min-width: 280px;" onclick="addOpenEndedQuestion()">
-                            <i data-lucide="plus-circle" class="me-2" style="width: 18px;"></i> Добави отворен въпрос
+                        <button type="button" class="btn rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center custom-outline-green" style="padding: 10px 20px; font-size: 0.85rem; letter-spacing: 0.5px;" onclick="addOpenEndedQuestion()">
+                            <i data-lucide="edit-3" class="me-2" style="width: 18px;"></i> Отворен
+                        </button>
+
+                        <button type="button" class="btn rounded-pill fw-bold text-uppercase d-flex justify-content-center align-items-center custom-outline-purple" style="padding: 10px 20px; font-size: 0.85rem; letter-spacing: 0.5px;" onclick="addMatchingQuestion()">
+                            <i data-lucide="git-merge" class="me-2" style="width: 18px;"></i> Свързване
                         </button>
                     </div>
 
@@ -183,8 +187,8 @@
                         <span>Оптимално: 10-15 въпроса за един стандартен тест.</span>
                     </li>
                     <li class="d-flex align-items-start text-muted small">
-                        <i data-lucide="clock" class="text-warning me-2 mt-1" style="width: 16px;"></i>
-                        <span>Предвидете около 1-2 минути за решаване на всеки въпрос.</span>
+                        <i data-lucide="git-merge" class="text-info me-2 mt-1" style="width: 16px;"></i>
+                        <span>Въпросите за свързване развиват логическото мислене! Използвайте ги за автори-произведения.</span>
                     </li>
                 </ul>
             </div>
@@ -246,10 +250,11 @@
     <script>
         let questionIdCounter = 1;
 
+        // ЗАТВОРЕН ВЪПРОС
         function addMultipleChoiceQuestion() {
             const questionId = questionIdCounter++;
             const questionHtml = `
-                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid var(--primary) !important;">
+                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" data-type="0" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid var(--primary) !important;">
                     <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Въпрос ${questionId} <span class="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1 rounded-pill fw-normal">Затворен</span></h6>
                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 d-flex align-items-center" onclick="removeQuestion(${questionId})">
@@ -262,8 +267,8 @@
                             <textarea class="form-control question-text rounded-4 p-3 border" rows="2" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" placeholder="Въведете текста на въпроса..." required></textarea>
                         </div>
                         <div class="form-group mb-4 w-50">
-                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Точки за въпроса *</label>
-                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="1" min="1" max="10" required>
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Точки *</label>
+                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="1" min="1" max="20" required>
                         </div>
                         <div class="options-container p-4 rounded-4" style="background-color: rgba(150,150,150,0.05); border: 1px solid var(--border-color);">
                             <label class="form-label fw-bold text-muted small text-uppercase mb-3">Опции за отговор *</label>
@@ -287,10 +292,11 @@
             updateQuestionStats();
         }
 
+        // ОТВОРЕН ВЪПРОС (С добавен бутон за динамични отговори)
         function addOpenEndedQuestion() {
             const questionId = questionIdCounter++;
             const questionHtml = `
-                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid #0dcaf0 !important;">
+                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" data-type="1" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid #0dcaf0 !important;">
                     <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Въпрос ${questionId} <span class="badge bg-info bg-opacity-10 text-info ms-2 px-2 py-1 rounded-pill fw-normal">Отворен</span></h6>
                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 d-flex align-items-center" onclick="removeQuestion(${questionId})">
@@ -304,14 +310,16 @@
                         </div>
                         <div class="form-group mb-4 w-50">
                             <label class="form-label fw-bold text-muted small text-uppercase mb-1">Точки *</label>
-                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="2" min="1" max="10" required>
+                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="2" min="1" max="20" required>
                         </div>
                         <div class="p-4 rounded-4" style="background-color: rgba(150,150,150,0.05); border: 1px solid var(--border-color);">
                             <label class="form-label fw-bold text-muted small text-uppercase mb-2">Приемливи верни отговори *</label>
                             <div class="acceptable-answers d-flex flex-column gap-2">
-                                <input type="text" class="form-control acceptable-answer rounded-pill px-3 py-2 border shadow-sm" placeholder="Първи верен отговор" required>
-                                <input type="text" class="form-control acceptable-answer rounded-pill px-3 py-2 border shadow-sm" placeholder="Втори верен отговор (по избор)">
+                                <input type="text" class="form-control acceptable-answer rounded-pill px-3 py-2 border shadow-sm" placeholder="Първи верен отговор (Напр: Свобода)" required>
                             </div>
+                            <button type="button" class="btn btn-sm rounded-pill fw-bold mt-3 d-flex align-items-center custom-outline-green" onclick="addAcceptableAnswer(this)">
+                                <i data-lucide="plus" class="me-1" style="width: 16px;"></i> Добави още един възможен отговор
+                            </button>
                             <div class="form-check mt-3">
                                 <input class="form-check-input case-sensitive" type="checkbox" style="cursor:pointer;">
                                 <label class="form-check-label small text-muted">Проверявай главни/малки букви</label>
@@ -323,6 +331,91 @@
             document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
             updateQuestionStats();
+        }
+
+        // НОВО: ВЪПРОС ЗА СВЪРЗВАНЕ
+        function addMatchingQuestion() {
+            const questionId = questionIdCounter++;
+            const questionHtml = `
+                <div class="question-card card mb-4 border-0 shadow-sm" data-question-id="${questionId}" data-type="2" style="background-color: var(--bg-body); border-radius: 12px; border-left: 5px solid #8b5cf6 !important;">
+                    <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Въпрос ${questionId} <span class="badge ms-2 px-2 py-1 rounded-pill fw-normal" style="background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6;">Свързване</span></h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 d-flex align-items-center" onclick="removeQuestion(${questionId})">
+                            <i data-lucide="trash-2" class="me-1" style="width: 14px;"></i> Изтрий
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Условие на задачата *</label>
+                            <textarea class="form-control question-text rounded-4 p-3 border" rows="2" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" placeholder="Напр.: Свържете автора с неговото произведение..." required></textarea>
+                        </div>
+                        <div class="form-group mb-4 w-50">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-1">Точки (общо за въпроса) *</label>
+                            <input type="number" class="form-control question-points rounded-pill px-3 py-2 border" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);" value="3" min="1" max="20" required>
+                        </div>
+                        <div class="p-4 rounded-4" style="background-color: rgba(150,150,150,0.05); border: 1px solid var(--border-color);">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-3">Двойки за свързване (Учителят ги въвежда ПРАВИЛНО свързани тук, а системата ще ги разбърка за ученика)</label>
+                            <div class="matching-pairs-container d-flex flex-column gap-3">
+                                ${[1, 2, 3].map(i => `
+                                    <div class="matching-pair row g-2 align-items-center">
+                                        <div class="col-5">
+                                            <input type="text" class="form-control match-left rounded-pill px-3 py-2 border shadow-sm" placeholder="Елемент (напр. Елин Пелин)" required>
+                                        </div>
+                                        <div class="col-2 text-center text-muted"><i data-lucide="arrow-right" style="width: 20px;"></i></div>
+                                        <div class="col-4">
+                                            <input type="text" class="form-control match-right rounded-pill px-3 py-2 border shadow-sm" placeholder="Съответствие (напр. Андрешко)" required>
+                                        </div>
+                                        <div class="col-1 text-end">
+                                            <button type="button" class="btn btn-sm text-danger" tabindex="-1" onclick="removeMatchingPair(this)"><i data-lucide="x-circle" style="width:20px;"></i></button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button type="button" class="btn btn-sm rounded-pill fw-bold mt-4 d-flex align-items-center custom-outline-purple" onclick="addMatchingPair(this)">
+                                <i data-lucide="plus" class="me-1" style="width: 16px;"></i> Добави още една двойка
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            updateQuestionStats();
+        }
+
+        // Помощна функция за добавяне на отговор при Отворен въпрос
+        function addAcceptableAnswer(btn) {
+            const container = btn.parentElement.querySelector('.acceptable-answers');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control acceptable-answer rounded-pill px-3 py-2 border shadow-sm mt-2';
+            input.placeholder = 'Допълнителен верен отговор (напр. синоним)';
+            container.appendChild(input);
+        }
+
+        // Помощна функция за добавяне на двойка при Свързване
+        function addMatchingPair(btn) {
+            const container = btn.parentElement.querySelector('.matching-pairs-container');
+            const pairHtml = `
+                <div class="matching-pair row g-2 align-items-center mt-1">
+                    <div class="col-5">
+                        <input type="text" class="form-control match-left rounded-pill px-3 py-2 border shadow-sm" placeholder="Елемент" required>
+                    </div>
+                    <div class="col-2 text-center text-muted"><i data-lucide="arrow-right" style="width: 20px;"></i></div>
+                    <div class="col-4">
+                        <input type="text" class="form-control match-right rounded-pill px-3 py-2 border shadow-sm" placeholder="Съответствие" required>
+                    </div>
+                    <div class="col-1 text-end">
+                        <button type="button" class="btn btn-sm text-danger" tabindex="-1" onclick="removeMatchingPair(this)"><i data-lucide="x-circle" style="width:20px;"></i></button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', pairHtml);
+            lucide.createIcons();
+        }
+
+        function removeMatchingPair(btn) {
+            btn.closest('.matching-pair').remove();
         }
 
         function removeQuestion(questionId) {
@@ -347,20 +440,25 @@
                 const questionText = card.querySelector('.question-text')?.value.trim();
                 const points = parseInt(card.querySelector('.question-points')?.value) || 1;
                 if (!questionText) return;
+
+                const qType = parseInt(card.getAttribute('data-type'));
+
                 const question = {
                     Id: index + 1,
                     QuestionText: questionText,
                     Points: points,
-                    Type: card.querySelector('.options-container') ? 0 : 1
+                    Type: qType
                 };
-                if (question.Type === 0) {
+
+                if (qType === 0) { // Multiple Choice
                     const options = [];
                     card.querySelectorAll('.option-text').forEach((input, optIndex) => {
                         if (input.value.trim()) options.push({ Id: optIndex + 1, Text: input.value.trim() });
                     });
                     question.Options = options;
                     question.CorrectOptionId = parseInt(card.querySelector('.correct-option')?.value) || 1;
-                } else {
+                }
+                else if (qType === 1) { // Open Ended
                     const answers = [];
                     card.querySelectorAll('.acceptable-answer').forEach(input => {
                         if (input.value.trim()) answers.push(input.value.trim());
@@ -368,6 +466,19 @@
                     question.AcceptableAnswers = answers;
                     question.IsCaseSensitive = card.querySelector('.case-sensitive')?.checked || false;
                 }
+                else if (qType === 2) { // Matching
+                    const options = [];
+                    // Свързваме лявата и дясната част със символ '|', за да не пипаме базата данни
+                    card.querySelectorAll('.matching-pair').forEach((pair, optIndex) => {
+                        const left = pair.querySelector('.match-left').value.trim();
+                        const right = pair.querySelector('.match-right').value.trim();
+                        if (left && right) {
+                            options.push({ Id: optIndex + 1, Text: left + '|' + right });
+                        }
+                    });
+                    question.Options = options;
+                }
+
                 questions.push(question);
             });
             return questions;
@@ -378,10 +489,13 @@
                 addHiddenField(form, `questions[${i}].QuestionText`, q.QuestionText);
                 addHiddenField(form, `questions[${i}].Type`, q.Type);
                 addHiddenField(form, `questions[${i}].Points`, q.Points);
-                if (q.Type === 0) {
+
+                if (q.Type === 0 || q.Type === 2) { // Options for Multiple Choice & Matching
                     q.Options.forEach((o, oi) => addHiddenField(form, `questions[${i}].Options[${oi}].Text`, o.Text));
-                    addHiddenField(form, `questions[${i}].CorrectOptionId`, q.CorrectOptionId);
-                } else {
+                    if(q.Type === 0) {
+                        addHiddenField(form, `questions[${i}].CorrectOptionId`, q.CorrectOptionId);
+                    }
+                } else if (q.Type === 1) { // Open Ended
                     addHiddenField(form, `questions[${i}].AcceptableAnswers`, q.AcceptableAnswers?.join(';') || '');
                 }
             });
@@ -396,12 +510,11 @@
         }
 
         // ========================================================
-        // НОВАТА ЛОГИКА ЗА СЪБМИТ: ПРОВЕРКА ЗА ТОЧКИ И ОПИСАНИЕ
+        // ЛОГИКА ЗА СЪБМИТ: ПРОВЕРКА ЗА ТОЧКИ И ОПИСАНИЕ
         // ========================================================
         document.getElementById('createTestForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // Ако вече сме минали и през двете проверки, събмитваме директно
             if (this.dataset.pointsConfirmed === 'true' && this.dataset.descConfirmed === 'true') {
                 proceedWithSubmit(this);
                 return;
@@ -409,45 +522,39 @@
 
             const descInput = document.querySelector('textarea[name="Description"]');
             var totalExpected = parseInt(document.getElementById('TotalPoints').value) || 0;
-            var currentSum = parseInt(document.getElementById('totalPoints').innerText) || 0; // Вземаме сумата от статистиката
+            var currentSum = parseInt(document.getElementById('totalPoints').innerText) || 0;
 
-            // ПРОВЕРКА 1: Липсващо описание
             if (this.dataset.descConfirmed !== 'true' && descInput && descInput.value.trim() === '') {
                 let myModal = new bootstrap.Modal(document.getElementById('missingDescriptionModal'));
                 myModal.show();
-                return; // Спираме тук, изчакваме решение от модала
+                return;
             }
-            this.dataset.descConfirmed = 'true'; // Маркираме, че описанието е ОК или е потвърдено празно
+            this.dataset.descConfirmed = 'true';
 
-            // ПРОВЕРКА 2: Разминаване в точките
             if (this.dataset.pointsConfirmed !== 'true' && currentSum !== totalExpected) {
                 document.getElementById('mismatchDetails').innerText =
                     `Задали сте общо ${totalExpected} т., но въпросите носят ${currentSum} т.`;
 
                 var warningModal = new bootstrap.Modal(document.getElementById('pointsMismatchModal'));
                 warningModal.show();
-                return; // Спираме тук, изчакваме решение от модала
+                return;
             }
-            this.dataset.pointsConfirmed = 'true'; // Маркираме, че точките са ОК или са потвърдени
+            this.dataset.pointsConfirmed = 'true';
 
-            // Ако всичко е наред, събмитваме
             proceedWithSubmit(this);
         });
 
-        // Бутон "Да, запази теста" (БЕЗ ОПИСАНИЕ)
         document.getElementById('confirmSaveWithoutDescBtn').addEventListener('click', function() {
             const descInput = document.querySelector('textarea[name="Description"]');
-            if (descInput) descInput.value = " "; // Слагаме празно място, за да мине валидацията
+            if (descInput) descInput.value = " ";
 
             const form = document.getElementById('createTestForm');
-            form.dataset.descConfirmed = 'true'; // Маркираме проверката като успешна
+            form.dataset.descConfirmed = 'true';
             bootstrap.Modal.getInstance(document.getElementById('missingDescriptionModal')).hide();
 
-            // Завъртаме формата отново, за да мине и през проверката за точки
             form.dispatchEvent(new Event('submit'));
         });
 
-        // Бутон "Раздели ги по равно" (ТОЧКИ)
         document.getElementById('btnDistributePoints').addEventListener('click', function() {
             var totalExpected = parseInt(document.getElementById('TotalPoints').value) || 0;
             var pointInputs = document.querySelectorAll('.question-points');
@@ -468,7 +575,6 @@
             form.dispatchEvent(new Event('submit'));
         });
 
-        // Бутон "Запази въпреки това" (ТОЧКИ)
         document.getElementById('btnIgnorePoints').addEventListener('click', function() {
             const form = document.getElementById('createTestForm');
             form.dataset.pointsConfirmed = 'true';
@@ -483,7 +589,6 @@
                 return;
             }
 
-            // Изчистваме старите скрити полета за въпроси, за да не се дублират при повторен събмит
             form.querySelectorAll('input[name="questionsJson"]').forEach(el => el.remove());
 
             const questionsInput = document.createElement('input');
@@ -493,7 +598,6 @@
             addQuestionFormData(form, questions);
             form.appendChild(questionsInput);
 
-            // Тъй като прехващаме събмита, пускаме оригиналния метод
             HTMLFormElement.prototype.submit.call(form);
         }
 
@@ -521,6 +625,19 @@
                 background-color: var(--primary) !important;
                 color: white !important;
                 box-shadow: 0 4px 12px rgba(106, 156, 120, 0.3) !important;
+            }
+
+        .custom-outline-purple {
+            border: 2px solid #8b5cf6 !important;
+            color: #8b5cf6 !important;
+            background-color: transparent !important;
+            transition: all 0.3s ease;
+        }
+
+            .custom-outline-purple:hover {
+                background-color: #8b5cf6 !important;
+                color: white !important;
+                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
             }
 
         .btn-outline-cancel {

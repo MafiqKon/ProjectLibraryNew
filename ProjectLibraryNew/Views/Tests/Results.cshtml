@@ -11,13 +11,12 @@
 
 <div class="row">
     <div class="col-md-8">
-        <!-- Общ резултат -->
         <div class="card mb-4 @(Model.Percentage >= Model.Test.PassingScore ? "border-success" : "border-warning")">
             <div class="card-header @(Model.Percentage >= Model.Test.PassingScore ? "bg-success text-white" : "bg-warning text-dark")">
                 <div class="row text-center">
                     <div class="col-md-4">
                         <h3>@Model.CorrectAnswers/@Model.TotalQuestions</h3>
-                        <small>Верни отговори</small>
+                        <small>Въпроса без грешка</small>
                     </div>
                     <div class="col-md-4">
                         <h3>@Model.Score/@Model.Test.TotalPoints</h3>
@@ -52,7 +51,6 @@
             </div>
         </div>
 
-        <!-- Детайли по въпроси -->
         <div class="card">
             <div class="card-header">
                 <h5>📝 Детайли по въпроси</h5>
@@ -63,12 +61,16 @@
                     var question = testQuestions[i];
                     var result = resultDetails.FirstOrDefault(r => r.QuestionId == question.Id);
 
-                    <div class="question-result mb-4 p-3 border rounded @(result.IsCorrect ? "border-success bg-light" : "border-danger bg-light")">
+                    <div class="question-result mb-4 p-3 border rounded @(result.PointsEarned == result.MaxPoints ? "border-success bg-light" : (result.PointsEarned > 0 ? "border-warning bg-light" : "border-danger bg-light"))">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h6>Въпрос @(i + 1) <span class="badge @(result.IsCorrect ? "bg-success" : "bg-danger")">@result.PointsEarned/@result.MaxPoints т.</span></h6>
-                            @if (result.IsCorrect)
+                            <h6>Въпрос @(i + 1) <span class="badge @(result.PointsEarned == result.MaxPoints ? "bg-success" : (result.PointsEarned > 0 ? "bg-warning text-dark" : "bg-danger"))">@result.PointsEarned/@result.MaxPoints т.</span></h6>
+                            @if (result.PointsEarned == result.MaxPoints)
                             {
                                 <span class="badge bg-success">✅ Верен</span>
+                            }
+                            else if (result.PointsEarned > 0)
+                            {
+                                <span class="badge bg-warning text-dark">⚠️ Частично</span>
                             }
                             else
                             {
@@ -78,52 +80,108 @@
 
                         <p class="fw-bold">@question.QuestionText</p>
 
-                        <!-- Показване на отговорите -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="alert @(result.IsCorrect ? "alert-success" : "alert-danger")">
-                                    <strong>Вашият отговор:</strong><br>
-                                    @if (question.Type == ProjectLibrary.Models.QuestionType.MultipleChoice)
-                                    {
-                                        var selectedOption = question.Options.FirstOrDefault(o => o.Id.ToString() == result.UserAnswer);
-                                        if (selectedOption != null)
+                        @if ((int)question.Type == 2) // СВЪРЗВАНЕ
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="alert @(result.PointsEarned == result.MaxPoints ? "alert-success" : (result.PointsEarned > 0 ? "alert-warning" : "alert-danger"))">
+                                        <strong>Вашият отговор:</strong><br>
+                                        <div class="d-flex flex-column gap-2 mt-2">
+                                            @if (!string.IsNullOrEmpty(result.UserAnswer))
+                                            {
+                                                var userPairs = result.UserAnswer.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                                var correctPairsList = question.Options.Select(o => o.Text.Trim()).ToList();
+
+                                                foreach (var pair in userPairs)
+                                                {
+                                                    var parts = pair.Split('|');
+                                                    if (parts.Length == 2)
+                                                    {
+                                                        var isPairCorrect = correctPairsList.Contains(pair.Trim());
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="badge bg-white text-dark border p-2 w-50 text-truncate" title="@parts[0]">@parts[0]</span>
+                                                            <i data-lucide="@(isPairCorrect ? "check" : "x")" class="@(isPairCorrect ? "text-success" : "text-danger")" style="width: 16px;"></i>
+                                                            <span class="badge @(isPairCorrect ? "bg-success" : "bg-danger") p-2 w-50 text-truncate" title="@parts[1]">@parts[1]</span>
+                                                        </div>
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Няма даден отговор</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <strong>Верен отговор:</strong><br>
+                                        <div class="d-flex flex-column gap-2 mt-2">
+                                            @foreach (var opt in question.Options)
+                                            {
+                                                var parts = opt.Text.Split('|');
+                                                if (parts.Length == 2)
+                                                {
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-white text-dark border p-2 w-50 text-truncate" title="@parts[0]">@parts[0]</span>
+                                                        <i data-lucide="arrow-right" class="text-info" style="width: 16px;"></i>
+                                                        <span class="badge bg-info p-2 w-50 text-truncate" title="@parts[1]">@parts[1]</span>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            // ЗАТВОРЕНИ И ОТВОРЕНИ ВЪПРОСИ
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="alert @(result.IsCorrect ? "alert-success" : "alert-danger")">
+                                        <strong>Вашият отговор:</strong><br>
+                                        @if ((int)question.Type == 0)
                                         {
-                                            <span>@GetOptionLetter(selectedOption.Id). @selectedOption.Text</span>
+                                            var selectedOption = question.Options.FirstOrDefault(o => o.Id.ToString() == result.UserAnswer);
+                                            if (selectedOption != null)
+                                            {
+                                                <span>@GetOptionLetter(selectedOption.Id). @selectedOption.Text</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Няма отговор</span>
+                                            }
                                         }
                                         else
                                         {
-                                            <span class="text-muted">Няма отговор</span>
+                                            <span>@(string.IsNullOrEmpty(result.UserAnswer) ? "Няма отговор" : result.UserAnswer)</span>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <span>@(string.IsNullOrEmpty(result.UserAnswer) ? "Няма отговор" : result.UserAnswer)</span>
-                                    }
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="alert alert-info">
-                                    <strong>Верен отговор:</strong><br>
-                                    @if (question.Type == ProjectLibrary.Models.QuestionType.MultipleChoice)
-                                    {
-                                        var correctOption = question.Options.FirstOrDefault(o => o.Id == question.CorrectOptionId);
-                                        if (correctOption != null)
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <strong>Верен отговор:</strong><br>
+                                        @if ((int)question.Type == 0)
                                         {
-                                            <span>@GetOptionLetter(correctOption.Id). @correctOption.Text</span>
+                                            var correctOption = question.Options.FirstOrDefault(o => o.Id == question.CorrectOptionId);
+                                            if (correctOption != null)
+                                            {
+                                                <span>@GetOptionLetter(correctOption.Id). @correctOption.Text</span>
+                                            }
                                         }
-                                    }
-                                    else
-                                    {
-                                        <span>@result.CorrectAnswer</span>
-                                    }
+                                        else
+                                        {
+                                            <span>@result.CorrectAnswer</span>
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
 
-                        <!-- Обяснение за грешка -->
-                        @if (!result.IsCorrect)
+                        @if (result.PointsEarned < result.MaxPoints)
                         {
-                            <div class="alert alert-warning">
+                            <div class="alert alert-warning mt-2">
                                 <strong>💡 Препоръка:</strong> Прегледайте материала отново и се опитайте пак!
                             </div>
                         }
@@ -134,7 +192,6 @@
     </div>
 
     <div class="col-md-4">
-        <!-- Бързи действия -->
         <div class="card">
             <div class="card-header">
                 <h5>🚀 Следващи стъпки</h5>
@@ -144,9 +201,12 @@
                     <a href="@Url.Action("Start", new { id = Model.TestId })" class="btn btn-outline-primary">
                         🔄 Опитай пак
                     </a>
-                    <a href="@Url.Action("Details", "Books", new { id = Model.Test.Book.Id })" class="btn btn-outline-info">
-                        📖 Прегледай произведението
-                    </a>
+                    @if (Model.Test.Book != null)
+                    {
+                        <a href="@Url.Action("Details", "Books", new { id = Model.Test.Book.Id })" class="btn btn-outline-info">
+                            📖 Прегледай произведението
+                        </a>
+                    }
                     <a href="@Url.Action("MyResults")" class="btn btn-outline-success">
                         📊 Всички мои резултати
                     </a>
@@ -157,7 +217,6 @@
             </div>
         </div>
 
-        <!-- Статистика -->
         <div class="card mt-3">
             <div class="card-header">
                 <h5>📈 Статистика</h5>
@@ -167,7 +226,7 @@
                     <strong>Общ резултат:</strong>
                     <div class="progress mt-1" style="height: 20px;">
                         <div class="progress-bar @GetProgressBarColor(Model.Percentage)"
-                             style="width: @Model.Percentage%"
+                             style="width: @Model.Percentage.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"
                              role="progressbar">
                             @Model.Percentage.ToString("0.0")%
                         </div>
@@ -175,10 +234,10 @@
                 </div>
 
                 <div class="mb-3">
-                    <strong>Верни отговори:</strong>
+                    <strong>Въпроса без грешка:</strong>
                     <div class="progress mt-1" style="height: 20px;">
                         <div class="progress-bar bg-success"
-                             style="width: @((double)Model.CorrectAnswers / Model.TotalQuestions * 100)%"
+                             style="width: @(((double)Model.CorrectAnswers / Model.TotalQuestions * 100).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))%"
                              role="progressbar">
                             @Model.CorrectAnswers/@Model.TotalQuestions
                         </div>
@@ -192,15 +251,17 @@
             </div>
         </div>
 
-        <!-- Информация за теста -->
         <div class="card mt-3">
             <div class="card-header">
                 <h5>📋 Информация</h5>
             </div>
             <div class="card-body">
                 <p><strong>📚 Тест:</strong> @Model.Test.Title</p>
-                <p><strong>📖 Произведение:</strong> @Model.Test.Book.Title</p>
-                <p><strong>👨‍🎓 Автор:</strong> @Model.Test.Book.Author.Name</p>
+                <p><strong>📖 Тема:</strong> @(Model.Test.Book?.Title ?? "Общ / Смесен тест")</p>
+                @if (Model.Test.Book != null)
+                {
+                    <p><strong>👨‍🎓 Автор:</strong> @Model.Test.Book.Author.Name</p>
+                }
                 <p><strong>🎯 Минимум:</strong> @Model.Test.PassingScore%</p>
             </div>
         </div>
@@ -209,6 +270,9 @@
 
 @section Scripts {
     <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
         // Анимация за прогреса
         document.querySelectorAll('.progress-bar').forEach(bar => {
             const width = bar.style.width;

@@ -8,7 +8,7 @@ namespace ProjectLibrary.Models
         public int Id { get; set; }
 
         [Required]
-        public int BookId { get; set; }
+        public int? BookId { get; set; }
         public Book Book { get; set; }
 
         [Required]
@@ -110,8 +110,9 @@ namespace ProjectLibrary.Models
 
     public enum QuestionType
     {
-        MultipleChoice,
-        OpenEnded
+        MultipleChoice = 0,
+        OpenEnded = 1,
+        Matching = 2
     }
 
     public class TestResult

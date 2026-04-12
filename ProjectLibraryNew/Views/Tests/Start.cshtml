@@ -1,4 +1,5 @@
-﻿@{
+﻿@model ProjectLibrary.Models.Test
+@{
     ViewData["Title"] = "Решаване на тест";
 
     var test = ViewBag.Test as ProjectLibrary.Models.Test;
@@ -6,6 +7,7 @@
 }
 
 <div class="test-page-wrapper px-md-4 mt-5 pt-4">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <h2 class="fw-bold mb-4" style="color: var(--text-main);">📝 @test.Title</h2>
 
     <div class="row align-items-start">
@@ -24,7 +26,7 @@
                                 <span class="badge bg-secondary rounded-pill px-3 py-2 fs-6">@question.Points т.</span>
                             </div>
 
-                            @if (question.Type == ProjectLibrary.Models.QuestionType.MultipleChoice)
+                            @if ((int)question.Type == 0) // MultipleChoice
                             {
                                 <div class="options-container d-flex flex-column gap-3 mt-4">
                                     @foreach (var option in question.Options)
@@ -45,7 +47,7 @@
                                     }
                                 </div>
                             }
-                            else
+                            else if ((int)question.Type == 1) // OpenEnded
                             {
                                 <div class="form-group mt-4">
                                     <textarea class="form-control rounded-4 p-4 shadow-sm custom-textarea"
@@ -55,6 +57,57 @@
                                     <small class="form-text text-muted mt-2 d-block ms-2">
                                         💡 Отговорът трябва да бъде точен и изчерпателен.
                                     </small>
+                                </div>
+                            }
+                            else if ((int)question.Type == 2) // Matching (СВЪРЗВАНЕ)
+                            {
+                                // Разделяме опциите, които записахме като "Ляво|Дясно"
+                                var leftParts = new List<string>();
+                                var rightParts = new List<string>();
+                                foreach (var opt in question.Options)
+                                {
+                                    var parts = opt.Text.Split('|');
+                                    if (parts.Length == 2)
+                                    {
+                                        leftParts.Add(parts[0]);
+                                        rightParts.Add(parts[1]);
+                                    }
+                                }
+
+                                // Разбъркваме десните отговори, за да е интересно
+                                var rand = new Random();
+                                var shuffledRights = rightParts.OrderBy(x => rand.Next()).ToList();
+
+                                <div class="matching-question-container mt-4" data-qid="@question.Id">
+                                    <p class="text-muted small mb-2"><i data-lucide="info" style="width: 14px;"></i> Кликнете върху елемент от горното поле, след което кликнете върху празна кутийка долу, за да го поставите.</p>
+
+                                    <div class="matching-bank p-4 mb-4 rounded-4 shadow-sm d-flex flex-wrap gap-2 justify-content-center" style="background-color: rgba(139, 92, 246, 0.05); border: 2px dashed #8b5cf6;">
+                                        @foreach (var r in shuffledRights)
+                                        {
+                                            <div class="matching-item-draggable badge bg-white text-dark border shadow-sm p-3 fs-6 cursor-pointer hover-scale" data-value="@r" style="transition: all 0.2s;">
+                                                @r
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="matching-slots d-flex flex-column gap-3">
+                                        @foreach (var l in leftParts)
+                                        {
+                                            <div class="matching-row d-flex flex-column flex-sm-row align-items-center gap-2 gap-sm-3">
+                                                <div class="matching-left-static p-3 rounded-4 shadow-sm w-100 w-sm-50 text-center fw-bold" style="background-color: var(--bg-body); border: 2px solid var(--border-color); color: var(--text-main);">
+                                                    @l
+                                                </div>
+                                                <i data-lucide="arrow-right" class="text-muted d-none d-sm-block"></i>
+                                                <i data-lucide="arrow-down" class="text-muted d-block d-sm-none"></i>
+
+                                                <div class="matching-slot empty-slot p-3 rounded-4 w-100 w-sm-50 text-center cursor-pointer text-muted d-flex align-items-center justify-content-center" data-left="@l" style="background-color: var(--bg-body); border: 2px dashed #8b5cf6; min-height: 56px; transition: all 0.2s;">
+                                                    Кликни тук
+                                                </div>
+
+                                                <input type="hidden" name="answers[@question.Id]" class="matching-hidden-input" value="" />
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -266,6 +319,50 @@
             box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
         }
 
+    /* CSS ЗА СВЪРЗВАНЕ (МATCHING) */
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .matching-item-draggable.selected-item {
+        background-color: #8b5cf6 !important;
+        color: white !important;
+        border-color: #8b5cf6 !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+    }
+
+    .matching-slot {
+        user-select: none;
+    }
+
+        .matching-slot:hover {
+            background-color: rgba(139, 92, 246, 0.05) !important;
+        }
+
+        .matching-slot:not(.empty-slot) {
+            border: 2px solid #8b5cf6 !important;
+            background-color: white !important;
+            color: var(--text-main) !important;
+            font-weight: bold;
+        }
+
+    .w-sm-50 {
+        width: 100%;
+    }
+
+    @@media (min-width: 576px) {
+        .w-sm-50 {
+            width: 50% !important;
+        }
+    }
+
+    {
+        width: 50% !important;
+    }
+
+    }
+
     .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
     }
@@ -324,7 +421,7 @@
         window.addEventListener('resize', updateStickyNav);
         updateStickyNav();
 
-        // 2. ТАЙМЕР ЛОГИКА - ОПРАВЕН ДА ОЦВЕТЯВА ПРАВИЛНАТА КУТИЯ
+        // 2. ТАЙМЕР ЛОГИКА
         let timeLeft = @(test.TimeLimitMinutes * 60);
         const timerElement = document.getElementById('timer');
         const timerCard = document.querySelector('.timer-card');
@@ -336,7 +433,7 @@
             const seconds = timeLeft % 60;
             timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-            if (timeLeft <= 300) { // Последни 5 минути става червено
+            if (timeLeft <= 300) {
                 timerCard.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
                 timerCard.style.borderColor = '#dc3545';
                 timerElement.style.color = '#dc3545';
@@ -381,15 +478,27 @@
         // 4. ПРЕДАВАНЕ С МОДАЛ
         $('#btnTriggerSubmit').on('click', function() {
             const total = @questions.Count;
-            const answered = document.querySelectorAll('input[type="radio"]:checked').length +
-                             Array.from(document.querySelectorAll('textarea')).filter(t => t.value.trim() !== "").length;
 
-            if (answered < total) {
+            // Проверяваме дали въпросите имат отговори (радио бутони, текстови полета И скрити полета за свързване)
+            let answeredCount = 0;
+            document.querySelectorAll('.question-card').forEach((card) => {
+                const isRadioAnswered = card.querySelector('input[type="radio"]:checked') !== null;
+                const isTextAnswered = Array.from(card.querySelectorAll('textarea')).some(t => t.value.trim() !== "");
+                // За свързването - проверяваме дали ИМА слотове, и ако да - дали поне един има сложена стойност
+                const matchingInputs = Array.from(card.querySelectorAll('.matching-hidden-input'));
+                const isMatchingAnswered = matchingInputs.length > 0 && matchingInputs.some(i => i.value.trim() !== "");
+
+                if (isRadioAnswered || isTextAnswered || isMatchingAnswered) {
+                    answeredCount++;
+                }
+            });
+
+            if (answeredCount < total) {
                 $('#submitModalTitle').text('Имате пропуснати въпроси!');
                 $('#submitModalTitle').removeClass('text-success').addClass('text-warning');
                 $('#submitModalIcon').attr('data-lucide', 'alert-circle').css('color', '#ffc107');
                 $('#submitModalIconBg').css('background-color', 'rgba(255, 193, 7, 0.1)');
-                $('#submitModalText').html(`Не сте отговорили на <b class="text-danger">${total - answered}</b> въпроса.<br>Можете да предадете теста така, но ще загубите точки. Да предадем ли?`);
+                $('#submitModalText').html(`Не сте отговорили на <b class="text-danger">${total - answeredCount}</b> въпроса.<br>Можете да предадете теста така, но ще загубите точки. Да предадем ли?`);
                 $('#confirmSubmitBtn').removeClass('btn-success').addClass('btn-warning text-dark').text('Предай въпреки това');
             } else {
                 $('#submitModalTitle').text('Готови ли сте?');
@@ -417,8 +526,12 @@
             document.querySelectorAll('.question-card').forEach((card, index) => {
                 const isRadioAnswered = card.querySelector('input[type="radio"]:checked') !== null;
                 const isTextAnswered = Array.from(card.querySelectorAll('textarea')).some(t => t.value.trim() !== "");
+                const matchingInputs = Array.from(card.querySelectorAll('.matching-hidden-input'));
+                const isMatchingAnswered = matchingInputs.length > 0 && matchingInputs.some(i => i.value.trim() !== "");
+
                 const navBtn = document.querySelector(`.question-nav-btn[data-question-index="${index}"]`);
-                if (isRadioAnswered || isTextAnswered) {
+
+                if (isRadioAnswered || isTextAnswered || isMatchingAnswered) {
                     answeredCount++;
                     if(navBtn) navBtn.classList.add('answered');
                 } else {
@@ -430,6 +543,7 @@
             document.getElementById('progressText').textContent = answeredCount + ' / ' + total;
         }
 
+        // Радио бутони
         document.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const groupName = this.name;
@@ -441,9 +555,66 @@
             });
         });
 
+        // Текстови полета
         document.querySelectorAll('textarea').forEach(textarea => {
             textarea.addEventListener('input', updateProgress);
         });
+
+        // ==========================================
+        // ЛОГИКА ЗА ВЪПРОСИ ТИП "СВЪРЗВАНЕ" (С ИСТИНСКИ DRAG & DROP)
+        // ==========================================
+        document.querySelectorAll('.matching-question-container').forEach(container => {
+            const bank = container.querySelector('.matching-bank');
+            const slots = container.querySelectorAll('.matching-slot');
+
+            // Инициализираме банката с отговори
+            new Sortable(bank, {
+                group: 'shared',
+                animation: 150,
+                ghostClass: 'opacity-50'
+            });
+
+            // Инициализираме всеки празен слот
+            slots.forEach(slot => {
+                new Sortable(slot, {
+                    group: 'shared',
+                    animation: 150,
+                    max: 1, // Само 1 елемент може да влезе в слот!
+                    onAdd: function (evt) {
+                        // Ако в слота вече е имало нещо, го връщаме горе в банката
+                        if (slot.children.length > 1) {
+                            const oldItem = slot.children[0] === evt.item ? slot.children[1] : slot.children[0];
+                            bank.appendChild(oldItem);
+                        }
+
+                        // Махаме текста "Кликни тук"
+                        slot.childNodes.forEach(node => {
+                            if (node.nodeType === 3) node.textContent = '';
+                        });
+                        slot.classList.remove('empty-slot', 'text-muted');
+
+                        // Записваме резултата ЛЯВО|ДЯСНО в скритото поле за бекенда
+                        const leftValue = slot.getAttribute('data-left');
+                        const rightValue = evt.item.getAttribute('data-value');
+                        const hiddenInput = slot.parentElement.querySelector('.matching-hidden-input');
+                        hiddenInput.value = leftValue + "|" + rightValue;
+
+                        updateProgress();
+                    },
+                    onRemove: function (evt) {
+                        // Ако ученикът издърпа отговора обратно горе, изчистваме слота
+                        if (slot.children.length === 0) {
+                            slot.innerHTML = 'Плъзни тук';
+                            slot.classList.add('empty-slot', 'text-muted');
+                            const hiddenInput = slot.parentElement.querySelector('.matching-hidden-input');
+                            hiddenInput.value = "";
+                            updateProgress();
+                        }
+                    }
+                });
+            });
+        });
+        // ==========================================
 
         document.querySelectorAll('.question-nav-btn').forEach(btn => {
             btn.addEventListener('click', function() {
