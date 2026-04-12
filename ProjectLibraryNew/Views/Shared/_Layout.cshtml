@@ -25,6 +25,19 @@
         .scrolled-up {
             transform: translateY(0); /* Показва менюто при скрол нагоре */
         }
+
+        /* НОВО: Независим скрол за дълги менюта на телефон */
+        @@media (max-width: 991px) { /* <--- ТУК Е РАЗЛИКАТА: @@media вместо @@media
+
+            */
+            .navbar-collapse .dropdown-menu {
+                max-height: 60vh; /* Менюто не може да е по-високо от 60% от екрана */
+                overflow-y: auto; /* Позволява вътрешен скрол */
+                overscroll-behavior: contain; /* Блокира скролирането на страницата отзад */
+                -webkit-overflow-scrolling: touch; /* Плавно скролиране за iOS */
+                box-shadow: inset 0 -10px 10px -10px rgba(0,0,0,0.1); /* Лека сянка долу, за да подскаже, че има още за скролиране */
+            }
+        }
     </style>
 
     <script>

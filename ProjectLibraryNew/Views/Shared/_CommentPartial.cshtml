@@ -3,7 +3,7 @@
 
 <div class="mb-3 comment-thread" id="comment-@Model.Id">
 
-    <div class="custom-card p-3 shadow-sm" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;">
+    <div class="custom-card p-3 shadow-sm comment-box transition-all" id="comment-box-@Model.Id" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;">
         <div class="d-flex gap-3">
 
             <div class="flex-shrink-0">
@@ -51,7 +51,7 @@
                     {
                         <button class="btn btn-sm btn-link text-decoration-none p-0 d-flex align-items-center fw-bold hover-scale"
                                 style="color: var(--primary); font-size: 0.85rem;"
-                                onclick="toggleReplyForm(@Model.Id)">
+                                onclick="handleReplyClick(@Model.Id)">
                             <i data-lucide="corner-down-right" class="me-1" style="width: 16px; height: 16px;"></i> Отговори
                         </button>
                     }
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <div id="reply-form-@Model.Id" class="reply-form-container d-none mt-2 ms-4 mb-3">
+    <div id="reply-form-@Model.Id" class="reply-form-container d-none mt-2 ms-lg-4 mb-3">
         <form asp-controller="Comments" asp-action="Create" method="post" class="d-flex gap-2 ajax-comment-form">
             <input type="hidden" name="bookId" value="@Model.BookId" />
             <input type="hidden" name="parentCommentId" value="@Model.Id" />
@@ -89,28 +89,42 @@
     {
         var replyCount = Model.Replies.Count;
 
-        <button class="btn btn-sm d-lg-none mt-2 mb-3 ms-3 d-flex align-items-center fw-bold mobile-reply-toggle"
+        <button class="btn btn-sm d-lg-none mt-2 mb-3 ms-2 d-flex align-items-center fw-bold mobile-reply-toggle"
                 style="color: var(--primary); background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;"
                 data-count="@replyCount"
                 onclick="toggleMobileReplies('replies-container-@Model.Id', this)">
             <i data-lucide="message-square-plus" class="me-2" style="width: 16px;"></i> Виж @replyCount отговор@(replyCount == 1 ? "а" : "и")
         </button>
 
-        <div id="replies-container-@Model.Id" class="replies-wrapper d-none d-lg-block mt-2 ms-3 ps-3 ms-md-4 ps-md-4">
+        <div id="replies-container-@Model.Id" class="replies-wrapper d-none d-lg-block mt-2 ms-lg-3 ps-lg-3 ms-md-4 ps-md-4">
             @foreach (var reply in Model.Replies.OrderBy(r => r.CreatedDate))
             {
-                <partial name="_CommentPartial" model="reply" />
+                <div class="mobile-reply-item">
+                    <partial name="_CommentPartial" model="reply" />
+                </div>
             }
         </div>
     }
     else
     {
-        <div id="replies-container-@Model.Id" class="replies-wrapper d-none d-lg-block mt-2 ms-3 ps-3 ms-md-4 ps-md-4">
+        <div id="replies-container-@Model.Id" class="replies-wrapper d-none d-lg-block mt-2 ms-lg-3 ps-lg-3 ms-md-4 ps-md-4">
         </div>
     }
 </div>
 
 <style>
+    /* Анимация за присветване (Highlight) */
+    .highlight-comment {
+        background-color: rgba(16, 185, 129, 0.15) !important; /* Леко зелен акцент */
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+        transform: scale(1.01);
+    }
+
+    .transition-all {
+        transition: all 0.5s ease-in-out;
+    }
+
     /* 1. Защита за компютри: Спираме безкрайното отместване надясно след 3-тото ниво */
     .replies-wrapper .replies-wrapper .replies-wrapper {
         margin-left: 0 !important;
@@ -118,7 +132,7 @@
         border-left: 2px solid var(--primary) !important;
     }
 
-    /* 2. Обща стилизация на нишката (Линията отляво) */
+    /* 2. Обща стилизация на нишката (Линията отляво) ЗА ДЕСКТОП */
     .replies-wrapper {
         border-left: 1px solid var(--border-color);
         transition: all 0.3s ease-in-out;
@@ -141,4 +155,69 @@
             transform: translateY(0);
         }
     }
+
+    /* 4. МОБИЛЕН ДИЗАЙН (max-width: 991px) */
+    @@media (max-width: 991px) {
+        .replies-wrapper {
+            border-left: none !important; /* Махаме чертата */
+            margin-left: 0 !important; /* Махаме изместването */
+            padding-left: 0 !important;
+        }
+
+        .reply-form-container {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        /* На телефон отговорите се отличават с лек фон и иконка */
+        .mobile-reply-item > .comment-thread > .comment-box {
+            background-color: rgba(150, 150, 150, 0.03) !important;
+            border: 1px dashed var(--border-color) !important;
+            border-left: 4px solid var(--primary) !important; /* Тънка цветна лента отляво */
+            margin-top: 10px;
+        }
+    }
 </style>
+
+<script>
+    // Тази функция само показва формата и скролира плавно до коментара
+    function handleReplyClick(commentId) {
+        // Показваме формата
+        if (typeof toggleReplyForm === 'function') {
+            toggleReplyForm(commentId);
+        }
+
+        // Намираме кутията на коментара
+        const commentBox = document.getElementById('comment-box-' + commentId);
+
+        if (commentBox) {
+            // Плавно скролиране до коментара (малко по-надолу от горния ръб)
+            const y = commentBox.getBoundingClientRect().top + window.scrollY - 100;
+            window.scrollTo({top: y, behavior: 'smooth'});
+
+            // Добавяме клас за присветване
+            commentBox.classList.add('highlight-comment');
+
+            // Премахваме класа след 2 секунди
+            setTimeout(() => {
+                commentBox.classList.remove('highlight-comment');
+            }, 2000);
+        }
+    }
+
+    // Твоята съществуваща функция за показване/скриване на мобилни отговори
+    function toggleMobileReplies(containerId, btn) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.classList.toggle('show-replies-mobile');
+            const isShowing = container.classList.contains('show-replies-mobile');
+            const count = btn.getAttribute('data-count');
+
+            if (isShowing) {
+                btn.innerHTML = `<i data-lucide="chevron-up" class="me-2" style="width: 16px;"></i> Скрий отговорите`;
+            } else {
+                btn.innerHTML = `<i data-lucide="message-square-plus" class="me-2" style="width: 16px;"></i> Виж ${count} отговор${count == 1 ? 'а' : 'и'}`;
+            }
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+        }
+    }
+</script>
