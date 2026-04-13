@@ -14,13 +14,27 @@
 
     <div class="custom-card p-4 p-md-5 shadow-sm">
         <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="BookId" />
             <input type="hidden" asp-for="CreatedDate" />
 
             <div class="mb-4">
-                <label asp-for="Content" class="form-label fw-bold text-muted text-uppercase small"><i data-lucide="align-left" class="me-1" style="width:14px;"></i> Текст на анализа</label>
-                <textarea asp-for="Content" class="form-control rounded-4 p-4 shadow-sm" rows="12" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); font-size: 1.05rem; line-height: 1.6;" required></textarea>
+                <label asp-for="Title" class="form-label fw-bold text-muted text-uppercase small">
+                    <i data-lucide="type" class="me-1" style="width:14px;"></i> Заглавие на анализа
+                </label>
+                <input asp-for="Title" class="form-control rounded-pill px-4 py-2 shadow-sm"
+                       style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); font-size: 1.05rem;" required />
+                <span asp-validation-for="Title" class="text-danger small mt-1 d-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Content" class="form-label fw-bold text-muted text-uppercase small">
+                    <i data-lucide="align-left" class="me-1" style="width:14px;"></i> Текст на анализа
+                </label>
+                <textarea asp-for="Content" class="form-control rounded-4 p-4 shadow-sm" rows="12"
+                          style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); font-size: 1.05rem; line-height: 1.6;" required></textarea>
                 <span asp-validation-for="Content" class="text-danger small mt-1 d-block"></span>
             </div>
 
@@ -32,3 +46,7 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

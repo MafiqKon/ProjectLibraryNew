@@ -25,7 +25,7 @@ namespace ProjectLibrary.Controllers
         }
 
         // ==========================================
-        // 1. СЪЩЕСТВУВАЩИ МЕТОДИ
+        // 1. СЪЩЕСТВУВАЩИ МЕТОДИ ЗА ТЕСТОВЕ
         // ==========================================
 
         public async Task<IActionResult> Index()
@@ -162,10 +162,9 @@ namespace ProjectLibrary.Controllers
                         correctAnswersCount++;
                     }
                 }
-                // СВЪРЗВАНЕ (НОВАТА ЛОГИКА)
+                // СВЪРЗВАНЕ 
                 else if ((int)question.Type == 2)
                 {
-                    // Разделяме потребителския отговор (който идва като "Ляво1|Дясно1,Ляво2|Дясно2")
                     var submittedPairs = userAnswer.Split(',', StringSplitOptions.RemoveEmptyEntries)
                                                    .Select(p => p.Trim())
                                                    .ToList();
@@ -181,7 +180,6 @@ namespace ProjectLibrary.Controllers
                         }
                     }
 
-                    // Изчисляване на частични точки
                     if (correctPairs.Count > 0)
                     {
                         double pointsPerPair = (double)question.Points / correctPairs.Count;
@@ -250,7 +248,14 @@ namespace ProjectLibrary.Controllers
                 }
             }
 
+            // Първо запазваме резултата в базата данни
             await _context.SaveChangesAsync();
+
+            // ==========================================
+            // НОВО: ПРОВЕРЯВАМЕ И РАЗДАВАМЕ ЗНАЧКИ!
+            // ==========================================
+            await CheckTestBadges(user.Id, finalPercentage, testId);
+
             return RedirectToAction(nameof(Results), new { id = testResult.Id });
         }
 
@@ -272,7 +277,7 @@ namespace ProjectLibrary.Controllers
         }
 
         // ==========================================
-        // 2. ЪПГРЕЙДНАТО СТУДЕНТСКО ТАБЛО (MyResults)
+        // 2. СТУДЕНТСКО ТАБЛО (MyResults)
         // ==========================================
         public async Task<IActionResult> MyResults()
         {
@@ -363,6 +368,8 @@ namespace ProjectLibrary.Controllers
                 var dummyTest = await _context.Tests.FirstOrDefaultAsync();
                 if (dummyTest != null)
                 {
+                    double currentPercentage = ((double)model.Score / originalQuiz.Questions.Count) * 100;
+
                     var resultRecord = new TestResult
                     {
                         TestId = dummyTest.Id,
@@ -370,11 +377,14 @@ namespace ProjectLibrary.Controllers
                         Score = model.Score,
                         TotalQuestions = originalQuiz.Questions.Count,
                         CorrectAnswers = model.Score,
-                        Percentage = ((double)model.Score / originalQuiz.Questions.Count) * 100,
+                        Percentage = currentPercentage,
                         TimeSpent = TimeSpan.FromMinutes(5)
                     };
                     _context.TestResults.Add(resultRecord);
                     await _context.SaveChangesAsync();
+
+                    // Добавяме проверка за значки и при тренировъчните тестове!
+                    await CheckTestBadges(user.Id, currentPercentage, dummyTest.Id);
                 }
             }
 
@@ -393,7 +403,6 @@ namespace ProjectLibrary.Controllers
                     {
                         new QuestionViewModel { Id = 1, Text = "Кой е основателят на рода Глаушеви?", CorrectOptionId = 1, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Стоян" }, new AnswerOption { Id = 2, Text = "Лазар" }, new AnswerOption { Id = 3, Text = "Климент" }, new AnswerOption { Id = 4, Text = "Рафе" } } },
                         new QuestionViewModel { Id = 2, Text = "Как се казва майката на Лазар?", CorrectOptionId = 2, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "Ния" }, new AnswerOption { Id = 2, Text = "Султана" }, new AnswerOption { Id = 3, Text = "Божана" }, new AnswerOption { Id = 4, Text = "Катерина" } } },
-                        // Добавени за съкращаване...
                         new QuestionViewModel { Id = 3, Text = "Къде се развива действието в романа?", CorrectOptionId = 3, Options = new List<AnswerOption> { new AnswerOption { Id = 1, Text = "София" }, new AnswerOption { Id = 2, Text = "Търново" }, new AnswerOption { Id = 3, Text = "Преспа" }, new AnswerOption { Id = 4, Text = "Охрид" } } }
                     }
                 };
@@ -733,6 +742,88 @@ namespace ProjectLibrary.Controllers
         private bool TestExists(int id)
         {
             return _context.Tests.Any(e => e.Id == id);
+        }
+
+
+        // ==========================================================
+        // 5. НОВО: МЕТОДИ ЗА ПРОВЕРКА И РАЗДАВАНЕ НА ЗНАЧКИ ЗА ТЕСТОВЕ
+        // ==========================================================
+        private async Task CheckTestBadges(string userId, double currentPercentage, int currentTestId)
+        {
+            // 1. Взимаме всички резултати на този потребител (Сортираме по Id вместо по CreatedDate)
+            var userResults = await _context.TestResults
+                .Where(r => r.UserId == userId)
+                .OrderByDescending(r => r.Id)
+                .ToListAsync();
+
+            int totalTestsTaken = userResults.Count;
+
+            // ЗНАЧКА: Отличник (пълен 100%)
+            if (currentPercentage == 100)
+            {
+                await AddBadgeToUser(userId, "Отличник");
+            }
+
+            // ЗНАЧКА: Маратонец 
+            // Тъй като нямаме поле за дата в TestResult, засега я даваме при достигане на 5 теста общо.
+            if (totalTestsTaken == 5)
+            {
+                await AddBadgeToUser(userId, "Маратонец");
+            }
+
+            // ЗНАЧКА: Безупречна серия (Три поредни теста със 100%)
+            if (totalTestsTaken >= 3)
+            {
+                var lastThree = userResults.Take(3).ToList();
+                if (lastThree.All(r => r.Percentage == 100))
+                {
+                    await AddBadgeToUser(userId, "Безупречна серия");
+                }
+            }
+
+            // ЗНАЧКА: Завръщането (Значително подобрение на същия тест)
+            var previousAttempts = userResults.Where(r => r.TestId == currentTestId && r.Id != userResults.First().Id).ToList();
+            if (previousAttempts.Any())
+            {
+                var lowestPreviousScore = previousAttempts.Min(r => r.Percentage);
+                if (currentPercentage >= lowestPreviousScore + 30)
+                {
+                    await AddBadgeToUser(userId, "Завръщането");
+                }
+            }
+        }
+
+        private async Task AddBadgeToUser(string userId, string badgeName)
+        {
+            // ЗАБЕЛЕЖКА: Името "badgeName" тук трябва да съвпада точно с това в базата ти данни!
+            var badge = await _context.Badges.FirstOrDefaultAsync(b => b.Name == badgeName);
+
+            if (badge != null)
+            {
+                bool alreadyHasIt = await _context.UserBadges
+                    .AnyAsync(ub => ub.UserId == userId && ub.BadgeId == badge.Id);
+
+                if (!alreadyHasIt)
+                {
+                    var userBadge = new UserBadge
+                    {
+                        UserId = userId,
+                        BadgeId = badge.Id
+                    };
+
+                    _context.UserBadges.Add(userBadge);
+                    await _context.SaveChangesAsync();
+
+                    if (TempData["BadgeUnlocked"] != null)
+                    {
+                        TempData["BadgeUnlocked"] = TempData["BadgeUnlocked"] + $" И отключихте: {badge.Name}! 🎉";
+                    }
+                    else
+                    {
+                        TempData["BadgeUnlocked"] = $"Отключихте нова значка: {badge.Name}! 🎉";
+                    }
+                }
+            }
         }
     }
 

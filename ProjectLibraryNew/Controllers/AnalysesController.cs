@@ -19,7 +19,7 @@ namespace ProjectLibrary.Controllers
             _context = context;
         }
 
-        // GET: Показава всички анализи за дадено произведение
+        // GET: Показва всички анализи за дадено произведение
         public async Task<IActionResult> Index(int bookId)
         {
             var book = await _context.Books
@@ -31,7 +31,6 @@ namespace ProjectLibrary.Controllers
             ViewBag.BookTitle = book.Title;
             ViewBag.BookId = book.Id;
 
-            // Подреждаме ги от най-новия към най-стария
             return View(book.Analyses.OrderByDescending(a => a.CreatedDate).ToList());
         }
 
@@ -45,9 +44,9 @@ namespace ProjectLibrary.Controllers
         // POST: Записване на новия анализ
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookId,Content")] Analysis analysis)
+        // ДОБАВЕНО: "Title" в Bind списъка
+        public async Task<IActionResult> Create([Bind("BookId,Title,Content")] Analysis analysis)
         {
-            // ФИКС ЗА ЗАПАЗВАНЕТО: Игнорираме валидацията на навигационното поле Book
             ModelState.Remove("Book");
             ModelState.Remove("CreatedDate");
 
@@ -78,11 +77,11 @@ namespace ProjectLibrary.Controllers
         // POST: Записване на редакцията
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BookId,Content,CreatedDate")] Analysis analysis)
+        // ДОБАВЕНО: "Title" в Bind списъка
+        public async Task<IActionResult> Edit(int id, [Bind("Id,BookId,Title,Content,CreatedDate")] Analysis analysis)
         {
             if (id != analysis.Id) return NotFound();
 
-            // ФИКС ЗА ЗАПАЗВАНЕТО: Същото като при Create
             ModelState.Remove("Book");
 
             if (ModelState.IsValid)
