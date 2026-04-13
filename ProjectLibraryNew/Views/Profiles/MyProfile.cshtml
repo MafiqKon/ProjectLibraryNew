@@ -549,5 +549,33 @@
         .avatar-container:hover .avatar-overlay {
             opacity: 1; /* Показва се при минаване с мишката */
         }
+
+        /* ==========================================
+                   ПОПРАВКА ЗА КАЛЕНДАРА НА МОБИЛНИ УСТРОЙСТВА
+                   ========================================== */
+        @@media (max-width: 767px) {
+            /* Подреждаме бутоните и заглавието едно под друго */
+            .fc .fc-toolbar.fc-header-toolbar {
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 1rem !important;
+            }
+            /* Центрираме всеки блок (бутони ляво, заглавие, бутони дясно) */
+            .fc .fc-toolbar-chunk {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+            /* Намаляваме размера на шрифта на датата, за да не се чупи грозно */
+            .fc .fc-toolbar-title {
+                font-size: 1.15rem !important;
+                text-align: center;
+            }
+            /* Правим самите бутони малко по-компактни */
+            .fc .fc-button {
+                padding: 0.3em 0.6em !important;
+                font-size: 0.85em !important;
+            }
+        }
     </style>
 }

@@ -1,4 +1,4 @@
-﻿@model ProjectLibrary.Models.ApplicationUser
+﻿@model ProjectLibrary.Controllers.EditProfileDto
 
 @{
     ViewData["Title"] = "Редактиране на профил";
@@ -14,29 +14,26 @@
                 <div class="card-body">
                     <form asp-action="Edit" method="post" enctype="multipart/form-data">
 
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
                         <div class="mb-3">
-                            <label class="form-label">Име</label>
-                            <input type="text" name="firstName" class="form-control" value="@Model.FirstName" required />
+                            <label asp-for="FirstName" class="form-label">Име</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Фамилия</label>
-                            <input type="text" name="lastName" class="form-control" value="@Model.LastName" required />
+                            <label asp-for="LastName" class="form-label">Фамилия</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label">Профилна снимка</label>
+                            <label asp-for="ProfilePicture" class="form-label">Профилна снимка</label>
 
-                            <div class="mb-2">
-                                @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
-                                {
-                                    <img src="@Model.ProfilePictureUrl" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" />
-                                    <span class="text-muted ms-2">Текуща снимка</span>
-                                }
-                            </div>
-
-                            <input type="file" name="profilePicture" class="form-control" accept="image/*" />
-                            <div class="form-text">Поддържани формати: .jpg, .jpeg, .png.</div>
+                            <input asp-for="ProfilePicture" type="file" class="form-control" accept="image/jpeg, image/png, image/jpg" />
+                            <span asp-validation-for="ProfilePicture" class="text-danger small"></span>
+                            <div class="form-text">Поддържани формати: .jpg, .jpeg, .png. Ако не изберете снимка, старата ще се запази.</div>
                         </div>
 
                         <hr />
@@ -51,3 +48,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

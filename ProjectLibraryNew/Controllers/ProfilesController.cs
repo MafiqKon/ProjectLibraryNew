@@ -11,9 +11,27 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectLibrary.Controllers
 {
+    // НОВО: Създаваме сигурен модел за данните (DTO)
+    public class EditProfileDto
+    {
+        [Required(ErrorMessage = "Полето за име е задължително.")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Името трябва да бъде между 2 и 50 символа.")]
+        [RegularExpression(@"^[a-zA-Zа-яА-Я\s\-]*$", ErrorMessage = "Името може да съдържа само букви и тирета.")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "Полето за фамилия е задължително.")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Фамилията трябва да бъде между 2 и 50 символа.")]
+        [RegularExpression(@"^[a-zA-Zа-яА-Я\s\-]*$", ErrorMessage = "Фамилията може да съдържа само букви и тирета.")]
+        public string LastName { get; set; }
+
+        // Добавяме и снимката тук
+        public IFormFile ProfilePicture { get; set; }
+    }
+
     [Authorize]
     public class ProfilesController : Controller
     {
@@ -36,12 +54,10 @@ namespace ProjectLibrary.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
-            // 1. Зареждаме потребителя със значките
             var fullUser = await _context.Users
                 .Include(u => u.UserBadges).ThenInclude(ub => ub.Badge)
                 .FirstOrDefaultAsync(u => u.Id == user.Id);
 
-            // 2. ИЗЧИСЛЯВАНЕ НА ГОТОВНОСТ ЗА МАТУРА
             var userProgresses = await _context.UserBookProgresses
                 .Where(p => p.UserId == user.Id)
                 .ToListAsync();
@@ -71,7 +87,6 @@ namespace ProjectLibrary.Controllers
                 ViewBag.OverallMaturaProgress = 0;
             }
 
-            // 3. РЕАЛНИ СТАТИСТИКИ
             ViewBag.CollectionsCount = await _context.BookCollections.CountAsync(c => c.UserId == user.Id);
             ViewBag.TestsCount = await _context.TestResults.CountAsync(t => t.UserId == user.Id);
             ViewBag.BadgesCount = fullUser?.UserBadges?.Count ?? 0;
@@ -86,9 +101,6 @@ namespace ProjectLibrary.Controllers
                 .OrderBy(b => b.Title)
                 .ToListAsync();
 
-            // ==========================================
-            // НОВО: АЛГОРИТЪМ ЗА ПРЕПОРЪЧАНА КНИГА
-            // ==========================================
             var interactedBookIds = userProgresses
                 .Where(p => p.IsTextRead || p.IsAnalysisRead || p.HasPassedTest)
                 .Select(p => p.BookId)
@@ -100,7 +112,6 @@ namespace ProjectLibrary.Controllers
                 .FirstOrDefaultAsync();
 
             ViewBag.RecommendedBook = recommendedBook;
-            // ==========================================
 
             return View(fullUser);
         }
@@ -111,23 +122,38 @@ namespace ProjectLibrary.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
-            return View(user);
+            // Прехвърляме данните към DTO-то
+            var dto = new EditProfileDto
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+
+            return View(dto);
         }
 
         // POST: Profiles/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string firstName, string lastName, IFormFile profilePicture)
+        // Променяме параметрите - вече приемаме нашия сигурен DTO
+        public async Task<IActionResult> Edit(EditProfileDto dto)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
-            user.FirstName = firstName;
-            user.LastName = lastName;
-
-            if (profilePicture != null && profilePicture.Length > 0)
+            // Ако някой хакер прати цифри за име, ModelState.IsValid ще го хване и ще го върне!
+            if (!ModelState.IsValid)
             {
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePicture.FileName;
+                // Връщаме изгледа с грешките
+                return View(dto);
+            }
+
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+
+            if (dto.ProfilePicture != null && dto.ProfilePicture.Length > 0)
+            {
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + dto.ProfilePicture.FileName;
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "profiles");
 
                 if (!Directory.Exists(uploadsFolder))
@@ -139,7 +165,7 @@ namespace ProjectLibrary.Controllers
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    await profilePicture.CopyToAsync(fileStream);
+                    await dto.ProfilePicture.CopyToAsync(fileStream);
                 }
 
                 user.ProfilePictureUrl = "/images/profiles/" + uniqueFileName;
@@ -168,11 +194,7 @@ namespace ProjectLibrary.Controllers
 
             return View(allBadges);
         }
-        // ========================================================
-        // МЕТОДИ ЗА КАЛЕНДАРА (API ENDPOINTS)
-        // ========================================================
 
-        // Взимане на всички събития за календара (GET)
         [HttpGet]
         public async Task<IActionResult> GetEvents()
         {
@@ -186,19 +208,17 @@ namespace ProjectLibrary.Controllers
                 {
                     id = e.Id,
                     title = e.Title,
-                    start = e.EventDate.ToString("yyyy-MM-dd"), // Формат, който FullCalendar разбира
-                    allDay = true, // Събитията ни засега са за целия ден
+                    start = e.EventDate.ToString("yyyy-MM-dd"),
+                    allDay = true,
                     description = e.Description,
                     bookId = e.BookId,
                     bookTitle = e.Book != null ? e.Book.Title : null,
                     eventType = e.EventType,
                     isCompleted = e.IsCompleted,
-
-                    // Цветова логика според типа
-                    backgroundColor = e.EventType == "Reading" ? "#3b82f6" : // Синьо
-                                      e.EventType == "Analysis" ? "#8b5cf6" : // Лилаво
-                                      e.EventType == "Test" ? "#ef4444" : // Червено
-                                      "#10b981", // Зелено за общи бележки
+                    backgroundColor = e.EventType == "Reading" ? "#3b82f6" :
+                                      e.EventType == "Analysis" ? "#8b5cf6" :
+                                      e.EventType == "Test" ? "#ef4444" :
+                                      "#10b981",
                     borderColor = e.EventType == "Reading" ? "#2563eb" :
                                   e.EventType == "Analysis" ? "#7c3aed" :
                                   e.EventType == "Test" ? "#dc2626" :
@@ -209,7 +229,6 @@ namespace ProjectLibrary.Controllers
             return Json(events);
         }
 
-        // Създаване на ново събитие (POST)
         [HttpPost]
         public async Task<IActionResult> CreateEvent([FromBody] StudyEvent newEvent)
         {
@@ -223,7 +242,6 @@ namespace ProjectLibrary.Controllers
 
             newEvent.UserId = user.Id;
 
-            // Ако потребителят е избрал книга (но идва като празен стринг от JS, го правим на null)
             if (newEvent.BookId == 0) newEvent.BookId = null;
 
             _context.StudyEvents.Add(newEvent);
@@ -232,7 +250,6 @@ namespace ProjectLibrary.Controllers
             return Ok(new { success = true, id = newEvent.Id });
         }
 
-        // Изтриване на събитие (POST)
         [HttpPost]
         public async Task<IActionResult> DeleteEvent(int id)
         {
@@ -250,7 +267,6 @@ namespace ProjectLibrary.Controllers
             return Ok(new { success = true });
         }
 
-        // Отмятане/Възстановяване на събитие (POST)
         [HttpPost]
         public async Task<IActionResult> ToggleEventStatus(int id)
         {
@@ -268,7 +284,6 @@ namespace ProjectLibrary.Controllers
             return Ok(new { success = true, isCompleted = studyEvent.IsCompleted });
         }
 
-        // POST: Бърза смяна на профилна снимка директно от аватара
         [HttpPost]
         public async Task<IActionResult> UpdateAvatar(IFormFile profilePicture)
         {
@@ -278,11 +293,9 @@ namespace ProjectLibrary.Controllers
                 return RedirectToAction(nameof(MyProfile));
             }
 
-            // Генерираме уникално име за файла
             string uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePicture.FileName;
             string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "profiles");
 
-            // Създаваме папката, ако не съществува
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
@@ -290,19 +303,15 @@ namespace ProjectLibrary.Controllers
 
             string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-            // Запазваме файла на сървъра
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await profilePicture.CopyToAsync(fileStream);
             }
 
-            // Записваме пътя в базата данни и обновяваме потребителя
             user.ProfilePictureUrl = "/images/profiles/" + uniqueFileName;
             await _userManager.UpdateAsync(user);
 
-            // Връщаме го обратно в профила, за да си види новата снимка
             return RedirectToAction(nameof(MyProfile));
         }
     }
-
 }

@@ -9,12 +9,14 @@ namespace ProjectLibrary.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Съдържанието на коментара е задължително.")]
+        [StringLength(1000, MinimumLength = 2, ErrorMessage = "Коментарът трябва да бъде между 2 и 1000 символа.")]
         public string Content { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         // Рейтингът за оценката
+        [Range(0, 5, ErrorMessage = "Рейтингът трябва да бъде между 0 и 5.")]
         public int Rating { get; set; }
 
         public int BookId { get; set; }

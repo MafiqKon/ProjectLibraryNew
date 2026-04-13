@@ -55,22 +55,28 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            // === НОВИ ПОЛЕТА ЗА ИМЕ И ФАМИЛИЯ ===
             [Required(ErrorMessage = "Полето за име е задължително.")]
-            [StringLength(50, ErrorMessage = "{0} трябва да бъде между {2} и {1} символа.", MinimumLength = 2)]
+            [StringLength(50, MinimumLength = 2, ErrorMessage = "Името трябва да бъде между 2 и 50 символа.")]
+            [RegularExpression(@"^[a-zA-Zа-яА-Я\s\-]*$", ErrorMessage = "Името може да съдържа само букви и тирета.")]
             [Display(Name = "Име")]
             public string FirstName { get; set; }
 
             [Required(ErrorMessage = "Полето за фамилия е задължително.")]
-            [StringLength(50, ErrorMessage = "{0} трябва да бъде между {2} и {1} символа.", MinimumLength = 2)]
+            [StringLength(50, MinimumLength = 2, ErrorMessage = "Фамилията трябва да бъде между 2 и 50 символа.")]
+            [RegularExpression(@"^[a-zA-Zа-яА-Я\s\-]*$", ErrorMessage = "Фамилията може да съдържа само букви и тирета.")]
             [Display(Name = "Фамилия")]
             public string LastName { get; set; }
-            // ===================================
 
             [Required(ErrorMessage = "Имейлът е задължителен.")]
-            [EmailAddress(ErrorMessage = "Невалиден имейл адрес.")]
+            [EmailAddress(ErrorMessage = "Въведете валиден имейл адрес.")]
+            [StringLength(100, ErrorMessage = "Имейлът е прекалено дълъг.")]
             [Display(Name = "Имейл")]
             public string Email { get; set; }
+
+            // [Phone(ErrorMessage = "Невалиден формат за телефон.")]
+            // [RegularExpression(@"^(\+359|0)\s?8[789]\d\s?\d{3}\s?\d{3}$", ErrorMessage = "Въведете валиден български мобилен номер.")]
+            // [Display(Name = "Телефонен номер")]
+            // public string PhoneNumber { get; set; }
 
             [Required(ErrorMessage = "Паролата е задължителна.")]
             [StringLength(100, ErrorMessage = "{0}та трябва да бъде между {2} и {1} символа.", MinimumLength = 6)]
@@ -83,7 +89,6 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
             [Compare("Password", ErrorMessage = "Паролите не съвпадат.")]
             public string ConfirmPassword { get; set; }
 
-            // === НОВО ПОЛЕ ЗА УЧИТЕЛСКА ЗАЯВКА ===
             [Display(Name = "Искам да се регистрирам като учител")]
             public bool RequestTeacherRole { get; set; }
         }
@@ -103,12 +108,10 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
 
-                // Задаваме Име и Фамилия
                 user.FirstName = Input.FirstName;
                 user.LastName = Input.LastName;
                 user.RegistrationDate = DateTime.Now;
 
-                // ЛОГИКА ЗА УЧИТЕЛИТЕ: Всички започват като ученици, но ако е чекнато, вдигаме флага
                 user.UserType = UserType.Student;
                 if (Input.RequestTeacherRole)
                 {
@@ -123,7 +126,6 @@ namespace ProjectLibraryNew.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Задаваме основна роля "Student" на всички в началото
                     await _userManager.AddToRoleAsync(user, "Student");
 
                     var userId = await _userManager.GetUserIdAsync(user);

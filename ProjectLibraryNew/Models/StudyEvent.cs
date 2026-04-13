@@ -11,24 +11,22 @@ namespace ProjectLibrary.Models
         public string UserId { get; set; }
         public virtual ApplicationUser User { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string Title { get; set; } // Напр. "Подготовка за класно" или "Железният светилник"
+        [Required(ErrorMessage = "Заглавието на събитието е задължително.")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Заглавието трябва да бъде между 2 и 100 символа.")]
+        public string Title { get; set; }
 
-        [Required]
-        public DateTime EventDate { get; set; } // На коя дата е събитието
+        [Required(ErrorMessage = "Датата на събитието е задължителна.")]
+        public DateTime EventDate { get; set; }
 
-        public string Description { get; set; } // По желание: допълнителни бележки
+        [StringLength(500, ErrorMessage = "Бележките не могат да надвишават 500 символа.")]
+        public string Description { get; set; }
 
-        // Връзка с произведение (ако събитието е вързано с конкретна книга)
         public int? BookId { get; set; }
         public virtual Book Book { get; set; }
 
-        // Тип на събитието (за да го оцветяваме различно)
-        // Може да бъде: "Reading" (Четене), "Analysis" (Анализ), "Test" (Тест), "General" (Общо)
+        [StringLength(20)]
         public string EventType { get; set; } = "General";
 
-        // Дали ученикът го е изпълнил (ако е вързано с прогреса, ще се отмята автоматично!)
         public bool IsCompleted { get; set; } = false;
     }
 }

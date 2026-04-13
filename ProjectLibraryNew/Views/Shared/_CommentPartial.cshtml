@@ -44,7 +44,16 @@
                     <small class="text-muted" style="font-size: 0.8rem;">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
                 </div>
 
-                <p class="mb-2 mt-2" style="color: var(--text-main); line-height: 1.5; font-size: 0.95rem;">@Model.Content</p>
+                @if (ViewData["ParentName"] != null && Model.ParentCommentId != null)
+                {
+                    <div class="mb-2 mt-1 d-inline-flex align-items-center" style="font-size: 0.8rem; background-color: rgba(150,150,150,0.08); padding: 4px 10px; border-radius: 8px;">
+                        <i data-lucide="corner-down-right" class="me-1 text-muted" style="width: 14px; height: 14px;"></i>
+                        <span class="text-muted me-1">Отговор на</span>
+                        <a href="javascript:void(0)" onclick="scrollToTargetComment(@Model.ParentCommentId)" class="text-decoration-none fw-bold" style="color: var(--primary); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">@ViewData["ParentName"]</a>
+                    </div>
+                }
+
+                <p class="mb-2 mt-1" style="color: var(--text-main); line-height: 1.5; font-size: 0.95rem; word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap;">@Model.Content</p>
 
                 <div class="mt-2 d-flex gap-4">
                     @if (User.Identity.IsAuthenticated)
@@ -72,14 +81,22 @@
     </div>
 
     <div id="reply-form-@Model.Id" class="reply-form-container d-none mt-2 ms-lg-4 mb-3">
-        <form asp-controller="Comments" asp-action="Create" method="post" class="d-flex gap-2 ajax-comment-form">
+        <form asp-controller="Comments" asp-action="Create" method="post" class="d-flex gap-2 ajax-comment-form w-100 align-items-start">
             <input type="hidden" name="bookId" value="@Model.BookId" />
             <input type="hidden" name="parentCommentId" value="@Model.Id" />
 
-            <input type="text" name="content" class="form-control form-control-sm rounded-pill px-3 shadow-sm"
-                   placeholder="Напиши отговор..." required style="background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color);" />
+            <div class="position-relative flex-grow-1">
+                <textarea name="content" maxlength="1000" rows="2" class="form-control form-control-sm rounded-4 px-3 py-2 shadow-sm"
+                          placeholder="Напиши отговор... (Enter за изпращане, Shift+Enter за нов ред)"
+                          required
+                          style="background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding-right: 90px !important; resize: none;"
+                          oninput="updateCharCount(this, 'reply-counter-@Model.Id')"
+                          onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.closest('form').querySelector('button[type=submit]').click(); }"></textarea>
 
-            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm d-flex align-items-center hover-scale">
+                <small id="reply-counter-@Model.Id" class="text-muted position-absolute end-0 bottom-0 pe-3 pb-2 fw-bold" style="font-size: 0.7rem; pointer-events: none; opacity: 0.6; transition: color 0.3s;">0 / 1000</small>
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center hover-scale flex-shrink-0 mt-1">
                 <i data-lucide="send" class="me-1" style="width: 14px; height: 14px;"></i> Изпрати
             </button>
         </form>
@@ -88,6 +105,10 @@
     @if (Model.Replies != null && Model.Replies.Any())
     {
         var replyCount = Model.Replies.Count;
+
+        var currentViewData = new ViewDataDictionary(ViewData);
+        currentViewData["ParentName"] = Model.User?.FirstName + " " + Model.User?.LastName;
+        currentViewData["ParentId"] = Model.Id;
 
         <button class="btn btn-sm d-lg-none mt-2 mb-3 ms-2 d-flex align-items-center fw-bold mobile-reply-toggle"
                 style="color: var(--primary); background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;"
@@ -100,7 +121,7 @@
             @foreach (var reply in Model.Replies.OrderBy(r => r.CreatedDate))
             {
                 <div class="mobile-reply-item">
-                    <partial name="_CommentPartial" model="reply" />
+                    <partial name="_CommentPartial" model="reply" view-data="currentViewData" />
                 </div>
             }
         </div>
@@ -113,9 +134,8 @@
 </div>
 
 <style>
-    /* Анимация за присветване (Highlight) */
     .highlight-comment {
-        background-color: rgba(16, 185, 129, 0.15) !important; /* Леко зелен акцент */
+        background-color: rgba(16, 185, 129, 0.15) !important;
         border-color: var(--primary) !important;
         box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
         transform: scale(1.01);
@@ -125,20 +145,28 @@
         transition: all 0.5s ease-in-out;
     }
 
-    /* 1. Защита за компютри: Спираме безкрайното отместване надясно след 3-тото ниво */
-    .replies-wrapper .replies-wrapper .replies-wrapper {
-        margin-left: 0 !important;
-        padding-left: 1rem !important;
-        border-left: 2px solid var(--primary) !important;
+    /* Спираме безкрайното смачкване надясно */
+    .replies-wrapper .replies-wrapper {
+        margin-left: 15px !important;
+        padding-left: 15px !important;
     }
 
-    /* 2. Обща стилизация на нишката (Линията отляво) ЗА ДЕСКТОП */
+        .replies-wrapper .replies-wrapper .replies-wrapper {
+            margin-left: 0 !important;
+            padding-left: 10px !important;
+            border-left: 2px solid rgba(16, 185, 129, 0.3) !important;
+        }
+
+            .replies-wrapper .replies-wrapper .replies-wrapper .replies-wrapper {
+                border-left: none !important;
+                padding-left: 0 !important;
+            }
+
     .replies-wrapper {
         border-left: 1px solid var(--border-color);
         transition: all 0.3s ease-in-out;
     }
 
-    /* 3. Анимация при показване на телефон */
     .show-replies-mobile {
         display: block !important;
         animation: slideDownFade 0.3s ease-out forwards;
@@ -156,11 +184,10 @@
         }
     }
 
-    /* 4. МОБИЛЕН ДИЗАЙН (max-width: 991px) */
     @@media (max-width: 991px) {
         .replies-wrapper {
-            border-left: none !important; /* Махаме чертата */
-            margin-left: 0 !important; /* Махаме изместването */
+            border-left: none !important;
+            margin-left: 0 !important;
             padding-left: 0 !important;
         }
 
@@ -168,43 +195,54 @@
             margin-left: 0 !important;
             margin-right: 0 !important;
         }
-        /* На телефон отговорите се отличават с лек фон и иконка */
+
         .mobile-reply-item > .comment-thread > .comment-box {
             background-color: rgba(150, 150, 150, 0.03) !important;
             border: 1px dashed var(--border-color) !important;
-            border-left: 4px solid var(--primary) !important; /* Тънка цветна лента отляво */
+            border-left: 4px solid var(--primary) !important;
             margin-top: 10px;
         }
     }
 </style>
 
 <script>
-    // Тази функция само показва формата и скролира плавно до коментара
     function handleReplyClick(commentId) {
-        // Показваме формата
         if (typeof toggleReplyForm === 'function') {
             toggleReplyForm(commentId);
         }
 
-        // Намираме кутията на коментара
-        const commentBox = document.getElementById('comment-box-' + commentId);
-
-        if (commentBox) {
-            // Плавно скролиране до коментара (малко по-надолу от горния ръб)
-            const y = commentBox.getBoundingClientRect().top + window.scrollY - 100;
-            window.scrollTo({top: y, behavior: 'smooth'});
-
-            // Добавяме клас за присветване
-            commentBox.classList.add('highlight-comment');
-
-            // Премахваме класа след 2 секунди
-            setTimeout(() => {
-                commentBox.classList.remove('highlight-comment');
-            }, 2000);
+        // Показваме формата и фокусираме текстовото поле
+        const formContainer = document.getElementById('reply-form-' + commentId);
+        if(formContainer && !formContainer.classList.contains('d-none')) {
+            const input = formContainer.querySelector('textarea');
+            if(input) {
+                input.focus();
+                // Центрираме формата на екрана
+                formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 
-    // Твоята съществуваща функция за показване/скриване на мобилни отговори
+    // НОВО: Функция, която центрира оригиналния коментар на екрана!
+    if (typeof scrollToTargetComment !== 'function') {
+        window.scrollToTargetComment = function(commentId) {
+            const commentBox = document.getElementById('comment-box-' + commentId);
+            if (commentBox) {
+
+                // Магията за перфектно центриране на екрана
+                commentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Слагаме му класа за присветване
+                commentBox.classList.add('highlight-comment');
+
+                // Махаме класа след 2 секунди
+                setTimeout(() => {
+                    commentBox.classList.remove('highlight-comment');
+                }, 2000);
+            }
+        };
+    }
+
     function toggleMobileReplies(containerId, btn) {
         const container = document.getElementById(containerId);
         if (container) {
@@ -219,5 +257,27 @@
             }
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
         }
+    }
+
+    if (typeof updateCharCount !== 'function') {
+        window.updateCharCount = function(inputElement, counterId) {
+            const maxLength = inputElement.getAttribute('maxlength') || 1000;
+            const currentLength = inputElement.value.length;
+            const counterElement = document.getElementById(counterId);
+
+            if (counterElement) {
+                counterElement.textContent = `${currentLength} / ${maxLength}`;
+
+                if (currentLength >= maxLength * 0.9) {
+                    counterElement.classList.remove('text-muted');
+                    counterElement.style.color = '#dc3545';
+                    counterElement.style.opacity = '1';
+                } else {
+                    counterElement.classList.add('text-muted');
+                    counterElement.style.color = '';
+                    counterElement.style.opacity = '0.6';
+                }
+            }
+        };
     }
 </script>

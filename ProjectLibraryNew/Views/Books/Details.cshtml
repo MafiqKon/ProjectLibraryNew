@@ -223,7 +223,15 @@
                 <input type="hidden" name="bookId" value="@Model.Id" />
                 <div class="mb-3">
                     <label class="form-label fw-bold text-muted small text-uppercase">Остави коментар:</label>
-                    <textarea name="content" class="form-control rounded-4 p-3 shadow-sm" rows="3" required placeholder="Напиши нещо..." style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color);"></textarea>
+                    <div class="position-relative">
+                        <textarea name="content" maxlength="1000" class="form-control rounded-4 p-3 shadow-sm pb-4" rows="3" required
+                              placeholder="Напиши нещо... (Enter за публикуване, Shift+Enter за нов ред)"
+                              style="background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color);"
+                              oninput="updateCharCount(this, 'main-comment-counter')"
+                              onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.closest('form').querySelector('button[type=submit]').click(); }"></textarea>
+
+                        <small id="main-comment-counter" class="text-muted position-absolute bottom-0 end-0 p-2 me-2 mb-1 fw-bold" style="font-size: 0.75rem; pointer-events: none; opacity: 0.6; transition: color 0.3s;">0 / 1000</small>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-solid-premium px-4 py-2 fw-bold rounded-pill shadow-sm hover-scale">
                     <i data-lucide="send" class="me-2" style="width: 16px;"></i> Публикувай
