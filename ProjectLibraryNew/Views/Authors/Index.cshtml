@@ -1,47 +1,146 @@
 ﻿@model IEnumerable<ProjectLibrary.Models.Author>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Управление на автори";
 }
 
-<h1>Index</h1>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-3 gap-3">
+    <div class="d-flex align-items-center">
+        <i data-lucide="user-square" class="me-2 text-primary" style="width: 28px; height: 28px;"></i>
+        <h2 class="fw-bold mb-0" style="color: var(--text-main);">Управление на автори</h2>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Biography)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BirthDate)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Biography)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BirthDate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+    <div class="d-flex gap-3 align-items-center">
+        <div class="input-group shadow-sm position-relative" style="border-radius: 50px; background-color: var(--bg-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
+            <span class="input-group-text bg-transparent border-0 pe-1" style="color: var(--text-muted);">
+                <i data-lucide="search" style="width: 18px;"></i>
+            </span>
+            <input type="text" id="liveSearchAuthors" class="form-control border-0 shadow-none bg-transparent" placeholder="Търси автор по име..." style="color: var(--text-main); padding-right: 40px;" />
+            <button type="button" id="clearSearchAuthors" class="btn border-0 position-absolute end-0 top-50 translate-middle-y d-none" style="color: #dc3545; z-index: 10;" title="Изчисти">
+                <i data-lucide="x" style="width: 18px; stroke-width: 3px;"></i>
+            </button>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary rounded-pill fw-bold px-4 shadow-sm hover-scale d-flex align-items-center">
+            <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Добави автор
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm overflow-hidden mb-5" style="background-color: var(--bg-card); border: 2px solid var(--border-color) !important; border-radius: 16px;">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0" style="color: var(--text-main);">
+            <thead style="background-color: rgba(150, 150, 150, 0.05);">
+                <tr>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold">Снимка</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold">Име</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold">Биография (кратка)</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold">Дата на раждане</th>
+                    <th class="py-3 px-4 border-bottom-0 fw-bold text-end">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr class="searchable-author" data-name="@(item.Name?.ToLower() ?? "")" style="border-bottom: 1px solid var(--border-color);">
+                            <td class="py-3 px-4">
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" : item.ImageUrl)"
+                                     alt="@item.Name" class="rounded-circle shadow-sm" style="width: 45px; height: 45px; object-fit: cover; border: 2px solid var(--bg-body);" />
+                            </td>
+                            <td class="py-3 px-4 fw-bold" style="font-size: 1.05rem;">@item.Name</td>
+                            <td class="py-3 px-4 text-muted small">
+                                @(string.IsNullOrEmpty(item.Biography) ? "Няма данни" : (item.Biography.Length > 60 ? item.Biography.Substring(0, 60) + "..." : item.Biography))
+                            </td>
+                            <td class="py-3 px-4 text-muted">
+                                @(item.BirthDate.HasValue? item.BirthDate.Value.ToString("dd.MM.yyyy") : "Неизвестна")
+                            </td>
+                            <td class="py-3 px-4 text-end">
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm d-flex justify-content-center align-items-center hover-scale" style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;" title="Редактирай">
+                                        <i data-lucide="edit-3" style="width: 16px; margin: 0;"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm d-flex justify-content-center align-items-center hover-scale" style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;" title="Детайли">
+                                        <i data-lucide="info" style="width: 16px; margin: 0;"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;" class="m-0">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center hover-scale m-0"
+                                                style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;"
+                                                onclick="return confirm('Сигурни ли сте, че искате да изтриете този автор?')"
+                                                title="Изтрий">
+                                            <i data-lucide="trash-2" style="width: 16px; margin: 0;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                    <tr id="noResultsAuthorRow" class="d-none">
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i data-lucide="search-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
+                            <h5 class="fw-bold">Няма намерени автори</h5>
+                            <p class="mb-0">Опитайте с друго име.</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i data-lucide="users" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
+                            <h5 class="fw-bold">Няма добавени автори</h5>
+                            <p class="mb-0">Все още няма въведени автори в системата.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // ЛОГИКА ЗА ЖИВО ТЪРСЕНЕ
+        const searchInput = document.getElementById('liveSearchAuthors');
+        const clearBtn = document.getElementById('clearSearchAuthors');
+        const authorRows = document.querySelectorAll('.searchable-author');
+        const noResultsRow = document.getElementById('noResultsAuthorRow');
+
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const term = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                if(term.length > 0) clearBtn.classList.remove('d-none');
+                else clearBtn.classList.add('d-none');
+
+                authorRows.forEach(row => {
+                    const name = row.dataset.name || "";
+                    if (name.includes(term)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (noResultsRow) {
+                    if (visibleCount === 0 && authorRows.length > 0) noResultsRow.classList.remove('d-none');
+                    else noResultsRow.classList.add('d-none');
+                }
+            });
+
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
+            });
+        }
+    </script>
 }
-    </tbody>
-</table>

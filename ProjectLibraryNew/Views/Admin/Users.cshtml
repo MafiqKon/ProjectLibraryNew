@@ -4,7 +4,7 @@
     ViewData["Title"] = "Управление на потребители";
 }
 
-<<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-3 gap-3">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-3 gap-3">
     <div class="d-flex align-items-center">
         <i data-lucide="users" class="me-2 text-primary" style="width: 28px; height: 28px;"></i>
         <h2 class="fw-bold mb-0" style="color: var(--text-main);">Управление на потребители</h2>
@@ -16,23 +16,16 @@
             <i data-lucide="user-check" class="me-2" style="width: 18px;"></i> Заявки за учители
         </a>
 
-        <form asp-action="Users" method="get" class="m-0">
-            <div class="input-group shadow-sm" style="border-radius: 50px; overflow: hidden; background-color: var(--bg-card); border: 1px solid var(--border-color);">
-                <span class="input-group-text bg-transparent border-0 pe-1" style="color: var(--text-muted);">
-                    <i data-lucide="search" style="width: 18px;"></i>
-                </span>
-                <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control border-0 shadow-none bg-transparent" placeholder="Търси по име или имейл..." style="color: var(--text-main); min-width: 250px;" />
-                <button type="submit" class="btn fw-bold px-3" style="background-color: var(--bg-card-nested); color: var(--text-main); border-left: 1px solid var(--border-color);">
-                    Търси
-                </button>
-                @if (ViewData["CurrentFilter"] != null)
-                {
-                    <a asp-action="Users" class="btn btn-danger d-flex align-items-center px-3" title="Изчисти">
-                        <i data-lucide="x" style="width: 16px; margin:0;"></i>
-                    </a>
-                }
-            </div>
-        </form>
+        <div class="input-group shadow-sm position-relative" style="border-radius: 50px; background-color: var(--bg-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
+            <span class="input-group-text bg-transparent border-0 pe-1" style="color: var(--text-muted);">
+                <i data-lucide="search" style="width: 18px;"></i>
+            </span>
+            <input type="text" id="liveSearchUsers" class="form-control border-0 shadow-none bg-transparent" placeholder="Търси по име или имейл..." style="color: var(--text-main); padding-right: 40px;" />
+            <button type="button" id="clearSearchUsers" class="btn border-0 position-absolute end-0 top-50 translate-middle-y d-none" style="color: #dc3545; z-index: 10;" title="Изчисти">
+                <i data-lucide="x" style="width: 18px; stroke-width: 3px;"></i>
+            </button>
+        </div>
+
     </div>
 </div>
 
@@ -54,7 +47,7 @@
                 {
                     @foreach (var item in Model)
                     {
-                        <tr style="border-bottom: 1px solid var(--border-color);">
+                        <tr class="searchable-user" data-name="@item.User.FirstName.ToLower() @item.User.LastName.ToLower()" data-email="@item.User.Email.ToLower()" style="border-bottom: 1px solid var(--border-color);">
                             <td class="py-3 px-4">
                                 @if (!string.IsNullOrEmpty(item.User.ProfilePictureUrl))
                                 {
@@ -146,6 +139,14 @@
                             </td>
                         </tr>
                     }
+
+                    <tr id="noResultsUserRow" class="d-none">
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i data-lucide="search-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
+                            <h5 class="fw-bold">Няма намерени потребители</h5>
+                            <p class="mb-0">Опитайте с друго име или имейл.</p>
+                        </td>
+                    </tr>
                 }
                 else
                 {
@@ -300,6 +301,50 @@
             document.getElementById('resetUserName').innerText = name;
             var modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
             modal.show();
+        }
+
+        // =====================================
+        // ЛОГИКА ЗА ЖИВО ТЪРСЕНЕ (LIVE SEARCH)
+        // =====================================
+        const searchInput = document.getElementById('liveSearchUsers');
+        const clearBtn = document.getElementById('clearSearchUsers');
+        const userRows = document.querySelectorAll('.searchable-user');
+        const noResultsRow = document.getElementById('noResultsUserRow');
+
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const term = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                // Показване/Скриване на Хиксчето
+                if(term.length > 0) clearBtn.classList.remove('d-none');
+                else clearBtn.classList.add('d-none');
+
+                userRows.forEach(row => {
+                    const name = row.dataset.name || "";
+                    const email = row.dataset.email || "";
+
+                    if (name.includes(term) || email.includes(term)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (visibleCount === 0 && userRows.length > 0) {
+                    noResultsRow.classList.remove('d-none');
+                } else {
+                    noResultsRow.classList.add('d-none');
+                }
+            });
+
+            // Изчистване на текста при клик върху хикса
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input')); // Форсираме ъпдейт
+                searchInput.focus();
+            });
         }
     </script>
 }

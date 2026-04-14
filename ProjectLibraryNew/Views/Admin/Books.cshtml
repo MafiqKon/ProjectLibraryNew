@@ -10,24 +10,17 @@
         <h2 class="fw-bold mb-0" style="color: var(--text-main);">Управление на произведения</h2>
     </div>
 
-    <div class="d-flex flex-column flex-md-row gap-3">
-        <form asp-action="Books" method="get" class="m-0">
-            <div class="input-group shadow-sm" style="border-radius: 50px; overflow: hidden; background-color: var(--bg-card); border: 1px solid var(--border-color);">
-                <span class="input-group-text bg-transparent border-0 pe-1" style="color: var(--text-muted);">
-                    <i data-lucide="search" style="width: 18px;"></i>
-                </span>
-                <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control border-0 shadow-none bg-transparent" placeholder="Търси произведение..." style="color: var(--text-main); min-width: 220px;" />
-                <button type="submit" class="btn fw-bold px-3" style="background-color: var(--bg-card-nested); color: var(--text-main); border-left: 1px solid var(--border-color);">
-                    Търси
-                </button>
-                @if (ViewData["CurrentFilter"] != null)
-                {
-                    <a asp-action="Books" class="btn btn-danger d-flex align-items-center px-3" title="Изчисти">
-                        <i data-lucide="x" style="width: 16px; margin:0;"></i>
-                    </a>
-                }
-            </div>
-        </form>
+    <div class="d-flex flex-column flex-md-row gap-3 align-items-center">
+
+        <div class="input-group shadow-sm position-relative" style="border-radius: 50px; background-color: var(--bg-card); border: 1px solid var(--border-color); width: 100%; max-width: 320px;">
+            <span class="input-group-text bg-transparent border-0 pe-1" style="color: var(--text-muted);">
+                <i data-lucide="search" style="width: 18px;"></i>
+            </span>
+            <input type="text" id="liveSearchBooks" class="form-control border-0 shadow-none bg-transparent" placeholder="Търси произведение или автор..." style="color: var(--text-main); padding-right: 40px;" />
+            <button type="button" id="clearSearchBooks" class="btn border-0 position-absolute end-0 top-50 translate-middle-y d-none" style="color: #dc3545; z-index: 10;" title="Изчисти">
+                <i data-lucide="x" style="width: 18px; stroke-width: 3px;"></i>
+            </button>
+        </div>
 
         <a asp-controller="Books" asp-action="Create" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm hover-scale d-flex align-items-center justify-content-center">
             <i data-lucide="plus" class="me-2" style="width: 18px;"></i> Добави произведение
@@ -51,7 +44,7 @@
                 {
                     @foreach (var item in Model)
                     {
-                        <tr style="border-bottom: 1px solid var(--border-color);">
+                        <tr class="searchable-book" data-title="@(item.Title?.ToLower() ?? "")" data-author="@(item.Author?.Name?.ToLower() ?? "")" style="border-bottom: 1px solid var(--border-color);">
                             <td class="py-3 px-4">
                                 <div class="d-flex align-items-center">
                                     <div class="d-flex justify-content-center align-items-center rounded-3 shadow-sm me-3" style="width: 45px; height: 45px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
@@ -84,22 +77,32 @@
                                         <i data-lucide="bar-chart-2" class="me-1" style="width: 14px;"></i> Анализи
                                     </a>
 
-                                    <a asp-controller="Books" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center hover-scale m-0" style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;" title="Изтрий произведението">
-                                        <i data-lucide="trash-2" style="width: 16px; margin: 0;"></i>
-                                    </a>
+                                    <form asp-controller="Books" asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;" class="m-0">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center hover-scale m-0" style="width: 34px; height: 34px; border-width: 2px; border-radius: 10px; padding: 0;" onclick="return confirm('Сигурни ли сте, че искате да изтриете това произведение?')" title="Изтрий произведението">
+                                            <i data-lucide="trash-2" style="width: 16px; margin: 0;"></i>
+                                        </button>
+                                    </form>
 
                                 </div>
                             </td>
                         </tr>
                     }
+
+                    <tr id="noResultsBookRow" class="d-none">
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i data-lucide="search-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
+                            <h5 class="fw-bold">Няма намерени произведения</h5>
+                            <p class="mb-0">Опитайте с друго заглавие или автор.</p>
+                        </td>
+                    </tr>
                 }
                 else
                 {
                     <tr>
                         <td colspan="4" class="text-center py-5 text-muted">
                             <i data-lucide="book-x" class="mb-3 opacity-50" style="width: 48px; height: 48px;"></i>
-                            <h5 class="fw-bold">Няма намерени произведения</h5>
-                            <p class="mb-0">Натиснете бутона "Добави произведение" или опитайте друго търсене.</p>
+                            <h5 class="fw-bold">Няма въведени произведения</h5>
+                            <p class="mb-0">Натиснете бутона "Добави произведение", за да започнете.</p>
                         </td>
                     </tr>
                 }
@@ -107,3 +110,48 @@
         </table>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // ЛОГИКА ЗА ЖИВО ТЪРСЕНЕ
+        const searchInput = document.getElementById('liveSearchBooks');
+        const clearBtn = document.getElementById('clearSearchBooks');
+        const bookRows = document.querySelectorAll('.searchable-book');
+        const noResultsRow = document.getElementById('noResultsBookRow');
+
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const term = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                if(term.length > 0) clearBtn.classList.remove('d-none');
+                else clearBtn.classList.add('d-none');
+
+                bookRows.forEach(row => {
+                    const title = row.dataset.title || "";
+                    const author = row.dataset.author || "";
+
+                    if (title.includes(term) || author.includes(term)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (visibleCount === 0 && bookRows.length > 0) noResultsRow.classList.remove('d-none');
+                else noResultsRow.classList.add('d-none');
+            });
+
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
+            });
+        }
+    </script>
+}
