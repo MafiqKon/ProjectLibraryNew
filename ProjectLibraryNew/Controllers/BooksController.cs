@@ -27,30 +27,21 @@ namespace ProjectLibrary.Controllers
         {
             var books = _context.Books.Include(b => b.Author).AsQueryable();
 
-            // Филтриране
             if (!string.IsNullOrEmpty(searchString))
             {
-                books = books.Where(b => b.Title.Contains(searchString) ||
-                                         b.Author.Name.Contains(searchString));
+                books = books.Where(b => b.Title.Contains(searchString) || b.Author.Name.Contains(searchString));
             }
             if (!string.IsNullOrEmpty(author)) books = books.Where(b => b.Author.Name == author);
             if (!string.IsNullOrEmpty(genre)) books = books.Where(b => b.Genre == genre);
             if (studyYear.HasValue) books = books.Where(b => b.StudyYear == studyYear.Value);
             if (forMatura.HasValue) books = books.Where(b => b.IsForMatura == forMatura.Value);
 
-            // ==========================================
-            // ЛОГИКА ЗА ИЗЧИСЛЯВАНЕ НА ПРОГРЕСА
-            // ==========================================
             var user = await _userManager.GetUserAsync(User);
             if (user != null)
             {
-                // 1. Взимаме целия прогрес на ученика от базата
-                var userProgresses = await _context.UserBookProgresses
-                    .Where(p => p.UserId == user.Id)
-                    .ToListAsync();
-
-                // 2. Смятаме процента за ВСЯКА книга (30+30+40)
+                var userProgresses = await _context.UserBookProgresses.Where(p => p.UserId == user.Id).ToListAsync();
                 var progressDict = new Dictionary<int, int>();
+
                 foreach (var p in userProgresses)
                 {
                     int score = 0;
@@ -60,10 +51,8 @@ namespace ProjectLibrary.Controllers
                     progressDict[p.BookId] = score;
                 }
 
-                // Подаваме го към View-то, за да сложим тикчетата на картите
                 ViewBag.UserProgresses = progressDict;
 
-                // 3. Смятаме ОБЩАТА готовност за матура (Големият прогрес бар)
                 var allMaturaBooks = await _context.Books.Where(b => b.IsForMatura).Select(b => b.Id).ToListAsync();
                 if (allMaturaBooks.Any())
                 {
@@ -80,7 +69,6 @@ namespace ProjectLibrary.Controllers
                 }
             }
 
-            // Подаване на филтри за View
             ViewBag.Authors = await _context.Books.Select(b => b.Author.Name).Distinct().ToListAsync();
             ViewBag.Genres = await _context.Books.Select(b => b.Genre).Distinct().ToListAsync();
             ViewBag.StudyYears = await _context.Books.Select(b => b.StudyYear).Distinct().OrderBy(y => y).ToListAsync();
@@ -91,10 +79,7 @@ namespace ProjectLibrary.Controllers
         // GET: Books/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var book = await _context.Books
                 .Include(b => b.Author)
@@ -103,12 +88,8 @@ namespace ProjectLibrary.Controllers
                 .Include(b => b.Comments).ThenInclude(c => c.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (book == null)
-            {
-                return NotFound();
-            }
+            if (book == null) return NotFound();
 
-            // Взимаме прогреса на текущия потребител за тази книга
             var user = await _userManager.GetUserAsync(User);
             if (user != null)
             {
@@ -119,9 +100,7 @@ namespace ProjectLibrary.Controllers
             return View(book);
         }
 
-        // ==========================================
-        // НОВ МЕТОД ЗА ЗАПАЗВАНЕ НА ПРОГРЕСА (AJAX)
-        // ==========================================
+        // POST: Books/ToggleProgress (AJAX)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -133,7 +112,6 @@ namespace ProjectLibrary.Controllers
             var progress = await _context.UserBookProgresses
                 .FirstOrDefaultAsync(p => p.BookId == bookId && p.UserId == user.Id);
 
-            // Ако потребителят цъка за първи път, създаваме запис
             if (progress == null)
             {
                 progress = new UserBookProgress { BookId = bookId, UserId = user.Id };
@@ -152,10 +130,7 @@ namespace ProjectLibrary.Controllers
         {
             if (id == null) return NotFound();
 
-            var book = await _context.Books
-                .Include(b => b.Author)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var book = await _context.Books.Include(b => b.Author).FirstOrDefaultAsync(m => m.Id == id);
             if (book == null) return NotFound();
 
             return View(book);
@@ -173,9 +148,17 @@ namespace ProjectLibrary.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Teacher")]
-        public async Task<IActionResult> Create([Bind("Id,Title,AuthorId,Description,StudyYear,Genre,IsForMatura,FullText,PublishedYear,WritingPeriod,Tags")] Book book)
+        public async Task<IActionResult> Create(Book book)
         {
+            // ИГНОРИРАМЕ ВАЛИДАЦИЯТА НА ЛИПСВАЩИ ПОЛЕТА
             ModelState.Remove("Author");
+            ModelState.Remove("PublishedYear");
+            ModelState.Remove("WritingPeriod");
+            ModelState.Remove("Tags");
+            ModelState.Remove("Analyses");
+            ModelState.Remove("Tests");
+            ModelState.Remove("Comments");
+            ModelState.Remove("BookCollections");
 
             if (ModelState.IsValid)
             {
@@ -183,6 +166,7 @@ namespace ProjectLibrary.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Books", "Admin");
             }
+
             ViewBag.Authors = _context.Authors.ToList();
             return View(book);
         }
@@ -204,27 +188,53 @@ namespace ProjectLibrary.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Teacher")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,AuthorId,Description,StudyYear,Genre,IsForMatura,FullText,PublishedYear,WritingPeriod,Tags")] Book book)
+        public async Task<IActionResult> Edit(int id, Book book)
         {
             if (id != book.Id) return NotFound();
 
+            // ИГНОРИРАМЕ ВАЛИДАЦИЯТА НА ЛИПСВАЩИ ПОЛЕТА
             ModelState.Remove("Author");
+            ModelState.Remove("PublishedYear");
+            ModelState.Remove("WritingPeriod");
+            ModelState.Remove("Tags");
+            ModelState.Remove("Analyses");
+            ModelState.Remove("Tests");
+            ModelState.Remove("Comments");
+            ModelState.Remove("BookCollections");
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(book);
+                    // ВЗИМАМЕ СТАРИЯ ЗАПИС И ОБНОВЯВАМЕ САМО ТОВА, КОЕТО Е ВЪВ ФОРМАТА
+                    var existingBook = await _context.Books.FindAsync(id);
+                    if (existingBook == null) return NotFound();
+
+                    existingBook.Title = book.Title;
+                    existingBook.AuthorId = book.AuthorId;
+                    existingBook.Genre = book.Genre;
+                    existingBook.StudyYear = book.StudyYear;
+                    existingBook.Description = book.Description;
+                    existingBook.FullText = book.FullText;
+                    existingBook.IsForMatura = book.IsForMatura;
+
+                    // Полета за Pop-up
+                    existingBook.HasPopup = book.HasPopup;
+                    existingBook.PopupContent = book.PopupContent;
+                    existingBook.HasPopupLink = book.HasPopupLink;
+                    existingBook.PopupLinkUrl = book.PopupLinkUrl;
+
                     await _context.SaveChangesAsync();
+                    return RedirectToAction("Books", "Admin");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!BookExists(book.Id)) return NotFound();
                     else throw;
                 }
-                return RedirectToAction("Books", "Admin");
             }
 
+            // АКО ИМА ГРЕШКА, ПРИНТИРАМЕ В КОНЗОЛАТА, ЗА ДА СЕ ВИДИ
             foreach (var modelState in ModelState.Values)
             {
                 foreach (var error in modelState.Errors)
@@ -243,10 +253,7 @@ namespace ProjectLibrary.Controllers
         {
             if (id == null) return NotFound();
 
-            var book = await _context.Books
-                .Include(b => b.Author)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var book = await _context.Books.Include(b => b.Author).FirstOrDefaultAsync(m => m.Id == id);
             if (book == null) return NotFound();
 
             return View(book);

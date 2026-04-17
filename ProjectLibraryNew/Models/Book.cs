@@ -38,6 +38,17 @@ namespace ProjectLibrary.Models
         [StringLength(200, ErrorMessage = "Таговете не могат да надвишават 200 символа.")]
         public string? Tags { get; set; }
 
+        // --- ПОЛЕТА ЗА POP-UP ---
+        public bool HasPopup { get; set; }
+
+        [StringLength(5000, ErrorMessage = "Текстът в прозореца е прекалено дълъг.")]
+        public string? PopupContent { get; set; }
+
+        public bool HasPopupLink { get; set; }
+
+        [StringLength(500)]
+        public string? PopupLinkUrl { get; set; }
+
         public ICollection<Analysis> Analyses { get; set; } = new List<Analysis>();
         public ICollection<Test> Tests { get; set; } = new List<Test>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();

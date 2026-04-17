@@ -16,7 +16,8 @@
 
     <div class="custom-card p-4 p-md-5">
         <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div asp-validation-summary="All" class="alert alert-danger mb-4" style="border-radius: 12px; display: @(ViewData.ModelState.IsValid ? "none" : "block");"></div>
+
             <input type="hidden" asp-for="Id" />
 
             <div class="row g-4">
@@ -24,7 +25,7 @@
                     <div class="form-group mb-3">
                         <label asp-for="Title" class="form-label fw-bold" style="color: var(--text-main);">Заглавие</label>
                         <input asp-for="Title" class="form-control rounded-pill" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-main);" />
-                        <span asp-validation-for="Title" class="text-danger small"></span>
+                        <span asp-validation-for="Title" class="text-danger small fw-bold"></span>
                     </div>
                 </div>
 
@@ -71,6 +72,37 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="col-12 mt-4">
+                    <div class="card p-4 rounded-4 shadow-sm" style="background-color: var(--bg-body); border: 2px dashed var(--primary);">
+                        <div class="form-check form-switch mb-3 d-flex align-items-center">
+                            <input class="form-check-input me-2" type="checkbox" asp-for="HasPopup" id="hasPopupToggle" style="width: 40px; height: 20px; cursor: pointer;">
+                            <label class="form-check-label fw-bold mb-0" for="hasPopupToggle" style="color: var(--primary); cursor: pointer; font-size: 1.1rem;">
+                                Активирай допълнителен Pop-up прозорец
+                            </label>
+                        </div>
+
+                        <div id="popupSettingsContainer" style="display: none; transition: all 0.3s ease;">
+                            <div class="form-group mb-4 mt-3">
+                                <label asp-for="PopupContent" class="form-label fw-bold" style="color: var(--text-main);">Форматиран текст за прозореца</label>
+                                <textarea asp-for="PopupContent" class="form-control rounded-4" rows="4" placeholder="Въведете допълнителната информация тук..." style="background-color: var(--bg-card); border-color: var(--border-color); color: var(--text-main);"></textarea>
+                            </div>
+
+                            <div class="form-check form-switch mb-3 d-flex align-items-center">
+                                <input class="form-check-input me-2" type="checkbox" asp-for="HasPopupLink" id="hasLinkToggle" style="cursor: pointer;">
+                                <label class="form-check-label fw-bold mb-0" for="hasLinkToggle" style="cursor: pointer; color: var(--text-main);">
+                                    Добави скрит линк (бутон "Натисни тук")
+                                </label>
+                            </div>
+
+                            <div id="linkSettingsContainer" style="display: none;" class="form-group mb-3">
+                                <label asp-for="PopupLinkUrl" class="form-label fw-bold" style="color: var(--text-main);">URL Адрес на линка (напр. https://chitanka.info/...)</label>
+                                <input asp-for="PopupLinkUrl" class="form-control rounded-pill" placeholder="https://..." style="background-color: var(--bg-card); border-color: var(--border-color); color: var(--text-main);" />
+                                <span asp-validation-for="PopupLinkUrl" class="text-danger small fw-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <hr style="border-color: var(--border-color);" class="my-4" />
@@ -88,4 +120,25 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        const hasPopupToggle = document.getElementById('hasPopupToggle');
+        const popupSettings = document.getElementById('popupSettingsContainer');
+        const hasLinkToggle = document.getElementById('hasLinkToggle');
+        const linkSettings = document.getElementById('linkSettingsContainer');
+
+        function togglePopupUI() {
+            if(popupSettings) popupSettings.style.display = hasPopupToggle.checked ? 'block' : 'none';
+        }
+
+        function toggleLinkUI() {
+            if(linkSettings) linkSettings.style.display = hasLinkToggle.checked ? 'block' : 'none';
+        }
+
+        if(hasPopupToggle) hasPopupToggle.addEventListener('change', togglePopupUI);
+        if(hasLinkToggle) hasLinkToggle.addEventListener('change', toggleLinkUI);
+
+        togglePopupUI();
+        toggleLinkUI();
+    </script>
 }

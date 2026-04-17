@@ -162,6 +162,13 @@
                     <a href="#comments-section" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale" style="background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main);">
                         <i data-lucide="message-circle" class="me-2" style="width: 18px;"></i> Виж коментари
                     </a>
+
+                    @if (Model.HasPopup)
+                    {
+                        <button type="button" class="btn w-100 shadow-sm rounded-pill d-flex justify-content-center align-items-center py-2 fw-bold hover-scale mt-2" style="background-color: var(--primary); color: white;" data-bs-toggle="modal" data-bs-target="#customBookPopupModal">
+                            <i data-lucide="external-link" class="me-2" style="width: 18px;"></i> Виж повече информация
+                        </button>
+                    }
                 </div>
             </div>
         </div>
@@ -328,6 +335,34 @@
     </div>
 </div>
 
+@if (Model.HasPopup)
+{
+    <div class="modal fade" id="customBookPopupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg" style="background-color: var(--bg-card); color: var(--text-main); border: 2px solid var(--primary); border-radius: 20px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-2 text-center">
+                    <i data-lucide="info" class="mb-3 text-primary" style="width: 48px; height: 48px;"></i>
+
+                    @if (!string.IsNullOrEmpty(Model.PopupContent))
+                    {
+                        <div class="text-start mb-4" style="white-space: pre-wrap; font-size: 1.1rem; line-height: 1.6; color: var(--text-main);">@Html.Raw(Model.PopupContent)</div>
+                    }
+
+                    @if (Model.HasPopupLink && !string.IsNullOrEmpty(Model.PopupLinkUrl))
+                    {
+                        <a href="@Model.PopupLinkUrl" target="_blank" class="btn btn-solid-premium rounded-pill px-5 py-2 fw-bold shadow hover-scale d-inline-flex align-items-center mt-2">
+                            <i data-lucide="mouse-pointer-click" class="me-2" style="width: 18px;"></i> Натисни тук
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     .nav-pills .nav-link {
         color: var(--text-main);
@@ -391,6 +426,26 @@
                 const counterElement = document.getElementById(counterId);
                 if (counterElement) { counterElement.textContent = `${currentLength} / 1000`; }
             };
+        }
+
+        // --- АВТОМАТИЧНО ОТВАРЯНЕ НА POP-UP ПРОЗОРЕЦА ---
+        @if (Model.HasPopup)
+        {
+                <text>
+                window.addEventListener('load', function () {
+                    setTimeout(function() {
+                        var popupEl = document.getElementById('customBookPopupModal');
+                        if (popupEl) {
+                            if (typeof bootstrap !== 'undefined') {
+                                var myModal = new bootstrap.Modal(popupEl);
+                                myModal.show();
+                            } else if (typeof window.jQuery !== 'undefined') {
+                                $('#customBookPopupModal').modal('show');
+                            }
+                        }
+                    }, 800); // 800ms забавяне за гладка анимация
+                });
+                </text>
         }
     </script>
 }
